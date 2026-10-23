@@ -315,7 +315,9 @@ fieldset:disabled .f, fieldset:disabled .check, fieldset:disabled .hint, fieldse
 .check:has(input:disabled) { opacity: .5; cursor: not-allowed; }
 /* inside a locked block the block itself is already dimmed; don't dim the fields twice */
 .fields .locked :is(input, select, textarea):disabled { opacity: 1; }
-legend { font-weight: 700; font-size: 14px; padding: 0 6px; }
+/* the heading sits inside the card like any other heading: drawn across the border (the usual legend), iPhone
+   paints the card's shading dark behind it */
+legend { float: left; width: 100%; margin: 0; padding: 0 0 2px; font-weight: 700; font-size: 15px; }
 .f { display: grid; gap: 3px; font-size: 12px; color: var(--ink-soft); letter-spacing: .04em; min-width: 0; }
 .f2 { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); gap: 10px; }
 /* iPhone draws date fields wider than their box unless their own styling is switched off */
@@ -342,10 +344,30 @@ legend { font-weight: 700; font-size: 14px; padding: 0 6px; }
 .extra { display: grid; grid-template-columns: minmax(0, 1fr) 110px 32px; gap: 6px; }
 .extra input { font: inherit; font-size: 14px; padding: 6px 8px; border-radius: 8px; border: 1px solid var(--rule); background: var(--paper); color: var(--ink); width: 100%; min-width: 0; }
 .extra input[type="number"] { font-family: var(--f-num); }
-/* example text in empty boxes is faint, so it never reads as something already typed */
-input::placeholder, textarea::placeholder { color: var(--ink-soft); opacity: .4; }
-/* an amount set by Themis: shown, dimmed, and not editable */
-.f input.locked { background: color-mix(in srgb, var(--ink) 10%, var(--paper)); color: var(--ink-soft); border-style: dashed; cursor: not-allowed; }
+/* a box you can type in: white with a firm border; its example text is the only faint thing in it */
+.f input:not(.locked):not([type="checkbox"]):not([type="radio"]), .f textarea, .f select, .extra input {
+  background: var(--card); border: 1.5px solid color-mix(in srgb, var(--ink) 38%, transparent); }
+.f input:not(.locked):focus, .f textarea:focus, .f select:focus, .extra input:focus { border-color: var(--accent); }
+input::placeholder, textarea::placeholder { color: var(--ink); opacity: .28; font-style: normal; }
+fieldset:disabled .f input, fieldset:disabled .f textarea, fieldset:disabled .f select, fieldset:disabled .extra input { border-color: var(--rule); }
+/* a box only Themis fills: no box look at all, just the value in full ink on a tinted strip with a lock mark */
+.f input.locked { background: color-mix(in srgb, var(--accent) 9%, var(--card)); color: var(--ink); font-weight: 700; font-size: 18px;
+  border: 0; border-left: 3px solid var(--accent); border-radius: 6px; box-shadow: none; cursor: default; padding-left: 34px;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23777' stroke-width='2' stroke-linecap='round'%3E%3Crect x='5' y='11' width='14' height='9' rx='2'/%3E%3Cpath d='M8 11V8a4 4 0 0 1 8 0v3'/%3E%3C/svg%3E");
+  background-repeat: no-repeat; background-position: 10px center; background-size: 16px; }
+.f input.locked::placeholder { font-style: normal; font-weight: 500; font-size: 14px; opacity: .7; }
+/* the summary in the submit box */
+.sub-sum { margin: 0; display: grid; grid-template-columns: 1fr auto; gap: 6px 14px; font-size: 14px; }
+.sub-sum dt { color: var(--ink-soft); } .sub-sum dd { margin: 0; text-align: right; }
+.sub-sum .tot { color: var(--ink); font-weight: 700; font-size: 16px; border-top: 1px solid var(--rule); padding-top: 6px; }
+.sub-sum dd.tot { color: var(--accent); }
+/* member tabs on top; the day's plan and clock only on シフト表 */
+.bar-tabs .tabs { width: 100%; display: grid; grid-auto-flow: column; grid-auto-columns: 1fr; }
+.bar-tabs .tabs button { text-align: center; }
+.bar-tabs .tabs button[hidden] { display: none; }
+#member-ui:not([data-tab="card"]) > .shifts, #member-ui:not([data-tab="card"]) > .clock { display: none; }
+/* 更新 on the admin screen is for a mouse; on a touch screen the pull-down does it */
+@media (hover: none) and (pointer: coarse) { #ad-reload { display: none; } }
 .same-last { font-weight: 700; }
 .inv-ok { align-items: flex-start; background: color-mix(in srgb, var(--accent) 8%, var(--card)); border: 1px solid color-mix(in srgb, var(--accent) 35%, var(--rule));
   border-radius: 10px; padding: 10px 12px; font-size: 14px; line-height: 1.6; }
@@ -513,15 +535,18 @@ input::placeholder, textarea::placeholder { color: var(--ink-soft); opacity: .4;
 .brand { flex-wrap: wrap; row-gap: 10px; }
 .brand-side { display: flex; align-items: center; gap: 8px; min-width: 0; flex-wrap: wrap; justify-content: flex-end; margin-left: auto; }
 /* pull-to-refresh: a plain small circle, its ring drawn by the pull, spinning while it refreshes */
-.ptr { position: fixed; top: env(safe-area-inset-top, 0px); left: 50%; z-index: 40; width: 36px; height: 36px; margin-left: -18px; display: grid; place-items: center;
-  background: var(--card); border-radius: 50%; box-shadow: 0 2px 8px rgb(0 0 0 / .18); transform: translateY(-48px); transition: transform .2s; pointer-events: none; }
-.ptr svg { width: 22px; height: 22px; transform: rotate(-90deg); }
-.ptr circle { fill: none; stroke-width: 2.4; stroke-linecap: round; }
-.ptr-track { stroke: var(--rule); }
-.ptr-ring { stroke: var(--ink-soft); transition: stroke .15s; }
+.own-ptr, .own-ptr body { overscroll-behavior-y: contain; }
+.ptr { position: fixed; top: env(safe-area-inset-top, 0px); left: 50%; z-index: 40; width: 48px; height: 48px; margin-left: -24px; display: grid; place-items: center;
+  background: rgb(255 255 255 / .55); -webkit-backdrop-filter: blur(10px) saturate(1.4); backdrop-filter: blur(10px) saturate(1.4);
+  border: 1px solid rgb(255 255 255 / .85); border-radius: 50%; box-shadow: 0 4px 16px rgb(0 0 0 / .12);
+  transform: translateY(-60px); transition: transform .2s; pointer-events: none; }
+.ptr svg { width: 28px; height: 28px; transform: rotate(-90deg); }
+.ptr circle { fill: none; stroke-width: 2.2; stroke-linecap: round; }
+.ptr-track { stroke: rgb(255 255 255 / .9); }
+.ptr-ring { stroke: color-mix(in srgb, var(--ink-soft) 70%, transparent); transition: stroke .15s; }
 .ptr.drag { transition: none; }
 .ptr.ready .ptr-ring { stroke: var(--accent); }
-.ptr.busy { transform: translateY(14px); }
+.ptr.busy { transform: translateY(16px); }
 .ptr.busy svg { animation: ptr-spin .9s linear infinite; }
 .ptr.busy .ptr-ring { stroke: var(--accent); }
 @keyframes ptr-spin { from { transform: rotate(-90deg); } to { transform: rotate(270deg); } }
@@ -917,7 +942,15 @@ button.pcal-c { cursor: pointer; }
     </div>
   </div>
 
-  <div id="member-ui" class="member-ui" hidden>
+  <div id="member-ui" class="member-ui" hidden data-tab="card">
+  <!-- the three screens come first; on シフト希望 and 請求書 the day's plan, the clock and the calendar step aside -->
+  <div class="bar bar-tabs">
+    <div class="tabs" role="tablist">
+      <button type="button" role="tab" id="tab-card" aria-selected="true" aria-controls="p-card">シフト表</button>
+      <button type="button" role="tab" id="tab-hope" aria-selected="false" aria-controls="p-hope">シフト希望</button>
+      <button type="button" role="tab" id="tab-inv" aria-selected="false" aria-controls="p-inv">請求書</button>
+    </div>
+  </div>
   <section class="shifts" aria-label="予定">
     <div class="shift-today big" id="shift-today">
       <span class="st-label">今日の予定</span>
@@ -956,12 +989,7 @@ button.pcal-c { cursor: pointer; }
     <div class="msg" id="msg" role="status" aria-live="polite"></div>
   </section>
 
-  <div class="bar">
-    <div class="tabs" role="tablist">
-      <button type="button" role="tab" id="tab-card" aria-selected="true" aria-controls="p-card">シフト表</button>
-      <button type="button" role="tab" id="tab-hope" aria-selected="false" aria-controls="p-hope">シフト希望</button>
-      <button type="button" role="tab" id="tab-inv" aria-selected="false" aria-controls="p-inv">請求書</button>
-    </div>
+  <div class="bar bar-month">
     <div class="month-nav">
       <button type="button" id="m-prev" aria-label="前の月">‹</button>
       <b id="m-label">—</b>
@@ -1019,13 +1047,11 @@ button.pcal-c { cursor: pointer; }
     <div class="steps">
       <ol id="inv-steps">
         <li id="st-1">Themisが入力した請求金額を確かめる（交通費などがあれば明細に追加）</li>
-        <li id="st-2">下の見本で金額と内容を確認し、「間違いがないことを確認しました」にチェックする</li>
-        <li id="st-4">「Themisに提出」を押す（請求書PDFがメールでThemisに届きます）</li>
+        <li id="st-2">下の見本で金額と内容を確認する</li>
+        <li id="st-4">「内容を確認して提出」を押し、金額に間違いがなければ提出する（請求書PDFがメールでThemisに届きます）</li>
       </ol>
-      <!-- the amount comes from Themis; the person confirms it before the invoice can be sent -->
-      <label class="check inv-ok" id="a-ok-box" hidden><input type="checkbox" id="a-ok"><span>請求金額 <b id="a-ok-amt"></b> に間違いがないことを確認しました</span></label>
       <div class="actions">
-        <button type="button" class="btn okay" id="a-submit">Themisに提出</button>
+        <button type="button" class="btn okay" id="a-submit">内容を確認して提出</button>
         <button type="button" class="btn okay" id="a-paid" hidden>入金を確認しました</button>
         <button type="button" class="btn danger" id="a-undo" hidden>提出を取り消す</button>
       </div>
@@ -1054,7 +1080,7 @@ button.pcal-c { cursor: pointer; }
       <fieldset id="fs-set">
         <legend>毎月共通の設定</legend>
         <!-- most months nothing here changes: ticked, it folds down to a one-line summary; unticked, it opens for changes -->
-        <label class="check same-last"><input type="checkbox" id="b-same"> 登録済みの内容で請求する（変更なし）</label>
+        <label class="check same-last"><input type="checkbox" id="b-same"> 登録済みの内容で請求する</label>
         <p class="set-sum" id="set-sum"></p>
         <div class="set-body" id="set-body">
         <div class="f">請求先<span class="fixed-to">株式会社Themis 御中</span></div>
@@ -1097,7 +1123,7 @@ button.pcal-c { cursor: pointer; }
       <button type="button" class="thumb" id="inv-thumb" aria-label="請求書を大きく表示"><img id="inv-img" alt="請求書の見本"></button>
       <span class="thumb-cap" id="inv-cap">請求書を作成しています…</span>
     </div>
-    <p class="hint">「Themisに提出」を押すと、請求書PDFがThemisの担当者にメールで届きます。メールアドレスを入れておくと、控えがあなたにも届きます。交通費の証明画像は、シフト表の日付から添付してください（請求書とは別にThemisに届きます）。</p>
+    <p class="hint">提出すると、請求書PDFがThemisの担当者にメールで届きます。メールアドレスを入れておくと、控えがあなたにも届きます。交通費の証明画像は、シフト表の日付から添付してください（請求書とは別にThemisに届きます）。</p>
   </section>
   </div>
 </div>
@@ -1177,6 +1203,18 @@ button.pcal-c { cursor: pointer; }
       </div>
     </div>
   </form>
+</div>
+<!-- the last look before an invoice goes out -->
+<div class="modal-bg" id="sub-sheet" hidden>
+  <div class="modal" role="dialog" aria-modal="true" aria-labelledby="sub-h">
+    <h3 id="sub-h">請求書を提出</h3>
+    <div id="sub-body"></div>
+    <span class="hint perr" id="sub-err" role="alert"></span>
+    <div class="modal-actions">
+      <button type="button" class="btn" id="sub-cancel">戻る</button>
+      <div><button type="button" class="btn okay" id="sub-go">この内容で提出する</button></div>
+    </div>
+  </div>
 </div>
 <div class="modal-bg" id="setup-sheet" hidden>
   <form class="modal" id="setup-form" novalidate>
@@ -1574,6 +1612,7 @@ window.addEventListener("error", function (e) {
       $("tab-" + k).setAttribute("aria-selected", t === k);
       $("p-" + k).hidden = t !== k;
     }
+    $("member-ui").dataset.tab = t;
     render();
   }
   $("tab-card").onclick = () => setTab("card");
@@ -1790,9 +1829,8 @@ window.addEventListener("error", function (e) {
       : "請求金額はThemisが入力します。入力されると、ここに表示されて提出できるようになります。";
     const box = $("extras");
     if (force || !box.contains(document.activeElement)) {
-      // with no lines yet, one empty line is shown ready to fill; it is saved once something is typed into it
-      const lines = inv.extras?.length ? inv.extras : [{ name: "", amount: "" }];
-      box.replaceChildren(...lines.map((x, i) => {
+      // lines appear only once 「＋ 明細を追加」 is pressed
+      box.replaceChildren(...(inv.extras || []).map((x, i) => {
         const row = document.createElement("div"); row.className = "extra";
         row.innerHTML = `<input type="text" id="x-name-${i}" maxlength="40" placeholder="例：交通費" aria-label="品目"><input type="number" id="x-amt-${i}" min="0" step="10" inputmode="numeric" placeholder="例：1200" aria-label="金額"><button type="button" aria-label="この明細を削除">×</button>`;
         row.children[0].value = x.name || ""; row.children[1].value = x.amount || "";
@@ -1940,13 +1978,8 @@ window.addEventListener("error", function (e) {
     $("fs-bill").disabled = locked; $("fs-set").disabled = locked;
     // Themis marks the payment; the member then confirms the money arrived. A paid invoice can no longer be withdrawn
     $("a-submit").hidden = locked; $("a-paid").hidden = !(st === "paid" && !inv.confirmedOn); $("a-undo").hidden = st !== "submitted";
-    // a draft can go out only with Themis's amount in it, once the person has ticked that it is right
-    const fixed = inv.fixedAmount != null;
-    $("a-ok-box").hidden = locked || !fixed;
-    if (locked || !fixed) $("a-ok").checked = false;
-    // the amount billed (with any extra lines); after withholding, what is actually paid is shown beside it
-    $("a-ok-amt").textContent = fixed ? `${yen(v.gross)}${v.wh ? `（源泉徴収後のお支払額 ${yen(v.total)}）` : ""}` : "";
-    $("a-submit").disabled = !fixed || !$("a-ok").checked;
+    // a draft can go out only once Themis's amount is in it
+    $("a-submit").disabled = inv.fixedAmount == null;
     const b = doc("billing"), ready = !!(b.from && b.bank && v.lines[0].amount);
     $("i-hours").textContent = `${v.days}日`;
     $("b-wh").checked = v.whOn;
@@ -2054,13 +2087,28 @@ ${v.addr}`;
     return { subject: t.slice(0, i).replace(/^件名：/, ""), body: t.slice(i + 1).replace(/^\n/, "") };
   }
   // submitting builds the PDF here, then the server files it in Drive and emails it to Themis
-  $("a-submit").onclick = async () => {
+  // 「内容を確認して提出」 shows the amounts once more; the invoice goes out from that box
+  $("a-submit").onclick = () => {
     const ym = viewYm(), inv = doc("inv-" + ym), b = doc("billing");
     const v = computeInvoice(ym, Date.now());
     if (ym >= ymOf(dayKey(new Date()))) { invMsg("今月以降の請求書は提出できません。月が明けてから提出してください。"); return; }
     if (inv.fixedAmount == null) { invMsg("請求金額がまだ入力されていません。Themisが金額を入力してから提出してください。"); return; }
-    if (!$("a-ok").checked) { invMsg("請求金額を確かめて、「間違いがないことを確認しました」にチェックしてください。"); return; }
     if (!(b.from && b.bank)) { invMsg("氏名・振込先を入力してから提出してください。"); return; }
+    const [y, m] = ym.split("-").map(Number);
+    $("sub-h").textContent = `${y}年${m}月分の請求書を提出`;
+    $("sub-body").innerHTML = `<dl class="sub-sum">` +
+      v.lines.map((l) => `<dt>${esc(l.name)}</dt><dd class="num">${yen(l.amount)}</dd>`).join("") +
+      `<dt class="tot">ご請求金額（税込）</dt><dd class="num tot">${yen(v.gross)}</dd>` +
+      (v.wh ? `<dt>源泉徴収税</dt><dd class="num">− ${yen(v.wh)}</dd><dt class="tot">お支払額</dt><dd class="num tot">${yen(v.total)}</dd>` : "") +
+      `</dl><p class="hint">金額と内容に間違いがなければ「この内容で提出する」を押してください。請求書PDFがメールでThemisに届きます。違う場合は提出せず、Themisの担当者に連絡してください。</p>`;
+    $("sub-err").textContent = "";
+    $("sub-sheet").hidden = false;
+  };
+  $("sub-cancel").onclick = () => { $("sub-sheet").hidden = true; };
+  $("sub-go").onclick = async () => {
+    const ym = viewYm(), inv = doc("inv-" + ym), b = doc("billing");
+    const v = computeInvoice(ym, Date.now());
+    $("sub-sheet").hidden = true;
     $("a-submit").disabled = true; invMsg("請求書PDFを作って、Themisに送っています…");
     try {
       const b64 = await buildPdf(ym, v);
@@ -2073,7 +2121,6 @@ ${v.addr}`;
       invMsg(e?.message ? `提出できませんでした。${e.message}` : "提出できませんでした。通信状況を確認して、もう一度押してください。");
     } finally { renderInvoice(); }
   };
-  $("a-ok").addEventListener("change", () => { renderInvoice(); if ($("a-ok").checked) invMsg(""); });
   $("a-paid").onclick = async () => {
     const ym = viewYm(), inv = doc("inv-" + ym);
     $("a-paid").disabled = true;
@@ -2932,9 +2979,12 @@ ${v.addr}`;
 
   // ---- pull down to refresh: the installed app has no browser bar to reload from ----
   (() => {
-    if (!standalone()) return;
+    // the installed app, and any touch screen (where the admin screen has no 更新 button); the browser's own
+    // pull-to-refresh is turned off so the two never both fire
+    if (!standalone() && !matchMedia("(hover: none) and (pointer: coarse)").matches) return;
+    document.documentElement.classList.add("own-ptr");
     // a small circle whose ring is drawn as the finger pulls; a full ring means "let go to refresh", then it spins
-    const PULL = 80, R = 9, LEN = 2 * Math.PI * R, bar = document.createElement("div");
+    const PULL = 80, R = 10, LEN = 2 * Math.PI * R, bar = document.createElement("div");
     bar.className = "ptr"; bar.setAttribute("aria-hidden", "true");
     bar.innerHTML = `<svg viewBox="0 0 24 24"><circle class="ptr-track" cx="12" cy="12" r="${R}"/><circle class="ptr-ring" cx="12" cy="12" r="${R}" stroke-dasharray="${LEN}" stroke-dashoffset="${LEN}"/></svg>`;
     document.body.prepend(bar);
@@ -2952,7 +3002,7 @@ ${v.addr}`;
       if (window.scrollY > 0) { y0 = null; bar.classList.remove("drag", "ready"); bar.style.transform = ""; return; }
       dy = Math.max(0, e.touches[0].clientY - y0);
       bar.classList.add("drag"); bar.classList.toggle("ready", dy > PULL);
-      bar.style.transform = `translateY(${Math.min(dy, PULL * 1.5) * 0.6 - 48}px) rotate(${Math.min(dy, PULL) * 3}deg)`;
+      bar.style.transform = `translateY(${Math.min(dy, PULL * 1.5) * 0.6 - 60}px) rotate(${Math.min(dy, PULL) * 3}deg)`;
       draw(dy / PULL);
     }, { passive: true });
     addEventListener("touchend", () => {
