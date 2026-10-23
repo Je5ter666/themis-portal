@@ -495,6 +495,67 @@ legend { font-weight: 700; font-size: 14px; padding: 0 6px; }
 .sig-box .sig-hint { position: absolute; inset: 0; display: grid; place-items: center; color: #9a9a96; font-size: 16px; pointer-events: none; }
 .sig-box .tool { position: absolute; top: 8px; right: 8px; }
 
+/* the member screens sit straight in the page grid; the wrapper only exists to hide them together */
+.member-ui { display: contents; }
+.brand-side { display: flex; align-items: center; gap: 10px; min-width: 0; }
+.brand-side .tool { font-size: 12px; padding: 4px 10px; white-space: nowrap; }
+
+/* Login: one centred card under the brand line */
+.login { display: grid; justify-items: center; padding: 12px 0 40px; }
+.login-card { width: min(420px, 100%); background: var(--card); border: 1px solid var(--rule); border-radius: 14px; padding: 24px 22px; display: grid; gap: 14px; }
+.login-card h2 { margin: 0; font-size: 20px; }
+.login-form { display: grid; gap: 12px; }
+.login-form .btn { padding: 12px; font-size: 15px; }
+.link-btn { background: none; border: 0; padding: 4px 0; color: var(--accent); font-size: 14px; font-weight: 700; text-align: left; text-decoration: underline; text-underline-offset: 3px; }
+
+/* Admin: tabs + month, then cards and wide tables that scroll sideways on a phone */
+.admin { display: grid; gap: 14px; }
+.ad-tabs { flex-wrap: wrap; }
+.ad-body { display: grid; gap: 14px; }
+.ad-h { margin: 0; font-size: 18px; }
+.ad-stats { display: grid; grid-template-columns: repeat(auto-fill, minmax(120px, 1fr)); gap: 8px; }
+.ad-stat { background: var(--card); border: 1px solid var(--rule); border-radius: var(--r); padding: 10px 14px; display: grid; gap: 2px; }
+.ad-stat span { font-size: 12px; color: var(--ink-soft); }
+.ad-stat b { font-size: 22px; }
+.ad-stat.warn { border-color: var(--stamp-red); }
+.ad-stat.warn b { color: var(--stamp-red); }
+.ad-scroll { overflow-x: auto; background: var(--card); border: 1px solid var(--rule); border-radius: var(--r); -webkit-overflow-scrolling: touch; }
+.ad-table { border-collapse: collapse; width: 100%; font-size: 13px; }
+.ad-table th, .ad-table td { padding: 8px 10px; border-bottom: 1px solid var(--rule); text-align: left; white-space: nowrap; vertical-align: middle; }
+.ad-table th { font-size: 11px; font-weight: 700; color: var(--ink-soft); background: var(--paper); position: sticky; top: 0; }
+.ad-table tr:last-child td { border-bottom: 0; }
+.ad-table .nm { font-weight: 700; position: sticky; left: 0; background: var(--card); z-index: 1; }
+.ad-table th.nm { background: var(--paper); z-index: 2; }
+.ad-table .r { text-align: right; }
+.ad-table tr.dim td { color: var(--ink-soft); }
+.ad-table a { color: var(--accent); font-weight: 700; }
+.ad-table .wd-0, .ad-table .hol { color: var(--sun); } .ad-table .wd-6 { color: var(--sat); }
+.ad-in { font: inherit; font-size: 13px; padding: 5px 8px; border: 1px solid var(--rule); border-radius: 6px; background: var(--paper); color: var(--ink); min-width: 220px; }
+.st { display: inline-block; font-size: 11px; font-weight: 700; border-radius: 999px; padding: 2px 10px; border: 1px solid currentColor; }
+.st-work { color: var(--stamp); } .st-done { color: var(--ok); } .st-move { color: var(--dep); } .st-wake { color: var(--break); }
+.st-late, .st-abs { color: var(--stamp-red); } .st-plan, .st-none { color: var(--ink-soft); }
+.ad-person { background: var(--card); border: 1px solid var(--rule); border-radius: var(--r); }
+.ad-person summary { display: flex; flex-wrap: wrap; gap: 4px 18px; align-items: baseline; padding: 12px 16px; cursor: pointer; font-size: 13px; color: var(--ink-soft); }
+.ad-person summary .nm { font-size: 15px; font-weight: 700; color: var(--ink); min-width: 8em; }
+.ad-person summary b { color: var(--ink); font-size: 15px; }
+.ad-person .ad-scroll { border: 0; border-top: 1px solid var(--rule); border-radius: 0 0 var(--r) var(--r); box-shadow: none !important; }
+.hint.pad { padding: 0 16px 14px; }
+.ad-grid th, .ad-grid td { padding: 6px 5px; text-align: center; }
+.ad-grid th small { display: block; font-size: 9px; font-weight: 500; }
+.ad-grid td.nm, .ad-grid th.nm { text-align: left; padding-left: 12px; }
+.ad-grid td.mk { font-weight: 700; font-size: 14px; min-width: 30px; }
+.ad-grid td.v-ok { background: color-mix(in srgb, var(--accent) 14%, var(--card)); color: var(--accent); }
+.ad-grid td.v-maybe { background: color-mix(in srgb, var(--break) 16%, var(--card)); color: var(--break); }
+.ad-grid tr.sum td { font-weight: 700; background: var(--paper); }
+.far-tag { font-size: 9px; color: #fff; background: var(--accent); border-radius: 3px; padding: 0 3px; margin-left: 1px; vertical-align: 1px; }
+.ad-add { background: var(--card); border: 1px solid var(--rule); border-radius: var(--r); padding: 14px 16px; display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 10px; align-items: end; }
+.ad-add > b, .ad-add > .hint { grid-column: 1 / -1; }
+.ad-acts { display: flex; gap: 6px; }
+.ad-temp { background: var(--card); border: 2px solid var(--accent); border-radius: var(--r); padding: 14px 16px; display: grid; gap: 8px; }
+.ad-temp dl { margin: 0; display: grid; grid-template-columns: max-content 1fr; gap: 4px 14px; align-items: baseline; }
+.ad-temp dt { font-size: 12px; color: var(--ink-soft); }
+.ad-temp dd { margin: 0; font-size: 22px; font-weight: 700; letter-spacing: .08em; }
+
 /* Depth: cards float a little above the paper, buttons stand up with a solid bottom edge and sink when pressed,
    selected tabs and marks look pushed in; one light source from above, the same in both themes */
 :root {
@@ -524,7 +585,7 @@ legend { font-weight: 700; font-size: 14px; padding: 0 6px; }
   --gloss: linear-gradient(180deg, rgb(255 255 255 / .06), rgb(255 255 255 / 0) 50%, rgb(0 0 0 / .12));
 }
 /* cards */
-.clock, .shifts .shift-today, .hope-head, .hope-cal, .cal, .steps, fieldset, .sheet-scroll {
+.clock, .shifts .shift-today, .hope-head, .hope-cal, .cal, .steps, fieldset, .sheet-scroll, .login-card, .ad-stat, .ad-scroll, .ad-person, .ad-add {
   box-shadow: var(--shine), var(--lift);
   background-image: var(--gloss);
 }
@@ -578,8 +639,50 @@ legend { font-weight: 700; font-size: 14px; padding: 0 6px; }
 <div class="wrap">
   <header class="brand">
     <div class="brand-mark"><img class="logo" alt="Themis" src="data:image/png;base64,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"><span class="brand-name">Themis Portal</span></div>
-    <span class="brand-who" id="who"></span>
+    <div class="brand-side"><span class="brand-who" id="who"></span><button type="button" class="tool" id="chpass" hidden>パスワード変更</button><button type="button" class="tool" id="logout" hidden>ログアウト</button></div>
   </header>
+
+  <section class="login" id="login" hidden aria-label="ログイン">
+    <div class="login-card">
+      <h2 id="l-title">ログイン</h2>
+      <form id="l-form" class="login-form" novalidate>
+        <label class="f">ログインID<input id="l-id" type="text" autocomplete="username" autocapitalize="none" autocorrect="off" spellcheck="false"></label>
+        <label class="f">パスワード<input id="l-pass" type="password" autocomplete="current-password"></label>
+        <div class="msg" id="l-msg" role="status" aria-live="polite"></div>
+        <button type="submit" class="btn primary" id="l-submit">ログイン</button>
+      </form>
+      <button type="button" class="link-btn" id="l-forgot">はじめての方・パスワードを忘れた方</button>
+      <p class="hint" id="l-forgot-note" hidden>ログインIDと仮パスワードは、Themisの担当者から届きます。パスワードを忘れたときも、担当者に仮パスワードの発行を依頼してください。仮パスワードでログインすると、自分のパスワードを決める画面になります。</p>
+      <form id="p-form" class="login-form" novalidate hidden>
+        <p class="hint" id="p-note">これから使うパスワードを決めてください。</p>
+        <label class="f" id="p-cur-box">いまのパスワード<input id="p-cur" type="password" autocomplete="current-password"></label>
+        <label class="f">新しいパスワード（8文字以上）<input id="p-new" type="password" autocomplete="new-password"></label>
+        <label class="f">新しいパスワード（確認のためもう一度）<input id="p-new2" type="password" autocomplete="new-password"></label>
+        <div class="msg" id="p-msg" role="status" aria-live="polite"></div>
+        <button type="submit" class="btn primary" id="p-submit">パスワードを設定する</button>
+        <button type="button" class="link-btn" id="p-cancel" hidden>‹ もどる</button>
+      </form>    </div>
+  </section>
+
+  <section class="admin" id="admin" hidden aria-label="管理画面">
+    <div class="bar">
+      <div class="tabs ad-tabs" role="tablist" id="ad-tabs">
+        <button type="button" role="tab" data-t="today" aria-selected="true">今日</button>
+        <button type="button" role="tab" data-t="work" aria-selected="false">勤怠</button>
+        <button type="button" role="tab" data-t="hope" aria-selected="false">シフト希望</button>
+        <button type="button" role="tab" data-t="inv" aria-selected="false">請求書</button>
+        <button type="button" role="tab" data-t="members" aria-selected="false">メンバー</button>
+      </div>
+      <div class="month-nav">
+        <span class="month-nav" id="ad-month"><button type="button" id="ad-prev" aria-label="前の月">‹</button><b id="ad-label">—</b><button type="button" id="ad-next" aria-label="次の月">›</button></span>
+        <button type="button" id="ad-reload">更新</button>
+      </div>
+    </div>
+    <div class="msg" id="ad-msg" role="status" aria-live="polite"></div>
+    <div class="ad-body" id="ad-body"></div>
+  </section>
+
+  <div id="member-ui" class="member-ui" hidden>
   <section class="shifts" aria-label="予定">
     <div class="shift-today big" id="shift-today">
       <span class="st-label">今日の予定</span>
@@ -754,6 +857,7 @@ legend { font-weight: 700; font-size: 14px; padding: 0 6px; }
     </div>
     <p class="hint">「Themisに提出」を押すと、請求書PDF（交通費の証明画像のページを含む）がThemisの担当者にメールで届きます。メールアドレスを入れておくと、控えがあなたにも届きます。</p>
   </section>
+  </div>
 </div>
 
 <div class="modal-bg" id="sheet" hidden>
@@ -1015,21 +1119,14 @@ legend { font-weight: 700; font-size: 14px; padding: 0 6px; }
 
 <script src="config.js"></script>
 <script>
-(function () {
-  var q = new URLSearchParams(location.search).get("u"), t = q;
-  try { if (q) localStorage.setItem("tc_token", q); else t = localStorage.getItem("tc_token"); } catch (e) {}
-  window.TC_TOKEN = t && /^[0-9a-f]{32}$/.test(t) ? t : null;
-  window.TC_NAME = "";
-  if ("serviceWorker" in navigator) navigator.serviceWorker.register("sw.js").catch(function () {});
-})();
+if ("serviceWorker" in navigator) navigator.serviceWorker.register("sw.js").catch(function () {});
 </script>
 <script>
 // if the main script fails to start, say so on screen (with the line) instead of leaving dead buttons
 window.addEventListener("error", function (e) {
   var t = "画面の読み込みでエラーが起きました：" + e.message + "（" + e.lineno + "行目）";
-  var m = document.getElementById("msg"), w = document.getElementById("where");
-  if (m) m.textContent = t;
-  if (w) w.textContent = t;
+  // shown wherever the person is looking: the clock, the login card or the admin screen
+  ["msg", "where", "l-msg", "ad-msg"].forEach(function (id) { var el = document.getElementById(id); if (el) el.textContent = t; });
 });
 </script>
 <script>
@@ -1061,15 +1158,25 @@ window.addEventListener("error", function (e) {
 
   // every call carries the member's token from their personal link; the server checks it against
   // the メンバー sheet and only ever reads or writes that member's rows
-  // opened from Apps Script, the page talks through google.script.run; as the installed app (served from its
+  // the first argument of every call is the sign-in session ("<id>.<session>"), kept on this device after login.
+  // Opened from Apps Script, the page talks through google.script.run; as the installed app (served from its
   // own site) it posts the same call as JSON to the Apps Script web app's URL, window.TC_API from config.js
-  const TOKEN = window.TC_TOKEN;
+  const CRED_KEY = "tc_cred";
+  let CRED = null, mode = "login";   // login | member | admin
+  try { CRED = localStorage.getItem(CRED_KEY); } catch (e) {}
+  const setCred = (c) => { CRED = c; try { if (c) localStorage.setItem(CRED_KEY, c); else localStorage.removeItem(CRED_KEY); } catch (e) {} };
   const viaGas = !!window.google?.script?.run;
-  const call = (fn, ...args) => viaGas
-    ? new Promise((res, rej) => { google.script.run.withSuccessHandler(res).withFailureHandler(rej)[fn](TOKEN, ...args); })
-    : fetch(window.TC_API, { method: "POST", headers: { "Content-Type": "text/plain;charset=utf-8" }, body: JSON.stringify({ fn, args: [TOKEN, ...args] }) })
+  const rawCall = (fn, ...args) => viaGas
+    ? new Promise((res, rej) => { google.script.run.withSuccessHandler(res).withFailureHandler(rej)[fn](CRED, ...args); })
+    : fetch(window.TC_API, { method: "POST", headers: { "Content-Type": "text/plain;charset=utf-8" }, body: JSON.stringify({ fn, args: [CRED, ...args] }) })
       .then((r) => r.json())
       .then((d) => { if (!d.ok) throw new Error(d.error); return d.value; });
+  // a call refused because the session ended (or the account was stopped) goes back to the login screen
+  const isSignedOut = (e) => /ログインの有効期限|アカウントは使えなく/.test(String(e?.message || e || ""));
+  const call = (fn, ...args) => rawCall(fn, ...args).catch((e) => {
+    if (isSignedOut(e)) { setCred(null); showLogin(errText(e)); }
+    throw e;
+  });
   // documents are loaded once per page view (no live updates); proof images are fetched one by one
   function gasBackend() {
     const loaded = new Set(), chains = {};
@@ -1765,6 +1872,7 @@ ${v.addr}`;
   // ---- render ----
   let lastCalSig = "";
   function render() {
+    if (mode !== "member") return;   // the login and admin screens have nothing on the clock
     const now = Date.now(), nd = new Date(now);
     $("date").textContent = `${nd.getFullYear()}年${nd.getMonth() + 1}月${nd.getDate()}日（${WD[nd.getDay()]}）`;
     $("time").innerHTML = `${pad(nd.getHours())}:${pad(nd.getMinutes())}<span class="sec">:${pad(nd.getSeconds())}</span>`;
@@ -2442,16 +2550,290 @@ ${v.addr}`;
   fillForms(true);
   setInterval(render, 1000);
 
-  (async () => {
-    if (!TOKEN || (!viaGas && !window.TC_API)) { $("where").textContent = "このページは、Themisから届いた専用URLで開いてください。"; return; }
-    // the installed app has no server-filled name: ask for it, which also checks the link is still valid
-    if (!viaGas) {
-      try { window.TC_NAME = await call("api_me"); }
-      catch (e) {
-        msg(/URL/.test(e?.message || "") ? e.message : "つながりませんでした。通信状況を確認して、アプリを開き直してください。");
-        $("where").textContent = ""; return;
-      }
+  // ---- sign-in ----
+  // the session string is kept on this device; without one (or once it has expired) the login screen shows
+  let signedInOnce = false;
+  const errText = (e) => {
+    const t = String(e?.message || e || "").replace(/^(\w*(Error|Exception):\s*)+/, "");
+    return /[ぁ-んァ-ヶ一-龠]/.test(t) ? t : `つながりませんでした。通信状況を確認して、もう一度お試しください。${t ? `（詳細：${t.slice(0, 120)}）` : ""}`;
+  };
+  function showLogin(note) {
+    mode = "login";
+    for (const m of document.querySelectorAll(".modal-bg")) m.hidden = true;
+    $("member-ui").hidden = true; $("admin").hidden = true; $("logout").hidden = true; $("chpass").hidden = true;
+    $("login").hidden = false; $("who").textContent = "";
+    loginStep("login");
+    $("l-msg").textContent = note || "";
+  }
+  // login: ID + password · first: choose a password after a 仮パスワード · change: a signed-in person changes theirs
+  function loginStep(s) {
+    $("l-form").hidden = s !== "login"; $("l-forgot").hidden = s !== "login"; $("l-forgot-note").hidden = true;
+    $("p-form").hidden = s === "login";
+    $("p-cur-box").hidden = s !== "change"; $("p-cancel").hidden = s !== "change";
+    $("p-note").textContent = s === "first" ? "仮パスワードでログインしました。これから使うパスワードを決めてください。" : "新しいパスワードを決めてください。ほかの端末はログアウトされます。";
+    $("l-title").textContent = s === "login" ? "ログイン" : s === "first" ? "パスワードの設定" : "パスワードの変更";
+    $("p-form").dataset.step = s; $("p-msg").textContent = "";
+    for (const id of ["p-cur", "p-new", "p-new2"]) $(id).value = "";
+  }
+  function enter(me) {
+    signedInOnce = true;
+    window.TC_NAME = me.name;
+    if (me.mustChange) { showLogin(); loginStep("first"); $("logout").hidden = false; return; }
+    $("login").hidden = true; $("logout").hidden = false; $("chpass").hidden = false;
+    if (me.admin) { mode = "admin"; $("admin").hidden = false; $("who").textContent = `${me.name}（管理者）`; startAdmin(); }
+    else { mode = "member"; $("member-ui").hidden = false; startMember(); }
+  }
+  // after a session ran out mid-use, a fresh page is the only safe way to switch person (no records left in memory)
+  function signedIn(json) {
+    const r = JSON.parse(json);
+    setCred(r.cred);
+    if (signedInOnce && !r.mustChange) { location.reload(); return; }
+    enter(r);
+  }
+  const busyBtn = async (btn, fn) => { btn.disabled = true; try { await fn(); } finally { btn.disabled = false; } };
+  $("l-form").addEventListener("submit", (e) => {
+    e.preventDefault();
+    // a Japanese keyboard may type the ID in full-width letters; the server reads both the same way
+    const id = $("l-id").value.normalize("NFKC").trim().toLowerCase(), pass = $("l-pass").value.trim();
+    if (!id || !pass) { $("l-msg").textContent = "ログインIDとパスワードを入れてください。"; return; }
+    $("l-msg").textContent = "ログインしています…";
+    busyBtn($("l-submit"), async () => {
+      try { signedIn(await rawCall("api_login", id, pass)); }
+      catch (err) { $("l-msg").textContent = errText(err); }
+    });
+  });
+  $("l-forgot").onclick = () => { $("l-forgot-note").hidden = !$("l-forgot-note").hidden; };
+  $("p-form").addEventListener("submit", (e) => {
+    e.preventDefault();
+    // spaces at either end (easy to pick up when copying a password) are never part of it
+    const step = $("p-form").dataset.step, pass = $("p-new").value.trim(), cur = $("p-cur").value.trim();
+    if (step === "change" && !cur) { $("p-msg").textContent = "いまのパスワードを入れてください。"; return; }
+    if (pass.length < 8) { $("p-msg").textContent = "パスワードは8文字以上にしてください。"; return; }
+    if (pass !== $("p-new2").value.trim()) { $("p-msg").textContent = "確認のために入れたパスワードが一致しません。"; return; }
+    $("p-msg").textContent = "設定しています…";
+    busyBtn($("p-submit"), async () => {
+      try {
+        const r = JSON.parse(await call("api_changePassword", pass, cur));
+        setCred(r.cred);
+        // a changed password starts clean; after the first one, carry straight on into the app
+        if (step === "change") { location.reload(); return; }
+        enter(r);
+      } catch (err) { $("p-msg").textContent = errText(err); }
+    });
+  });
+  $("chpass").onclick = () => { showLogin(); loginStep("change"); $("logout").hidden = false; };
+  $("p-cancel").onclick = () => location.reload();
+  $("logout").onclick = async () => {
+    $("logout").disabled = true;
+    try { await rawCall("api_logout"); } catch (e) {}
+    setCred(null); location.reload();
+  };
+  // ---- admin ----
+  // the admin screen reads one month at a time from the readable sheets (勤怠一覧・シフト希望・請求書一覧・メンバー)
+  const AD_TABS = { today: "今日", work: "勤怠", hope: "シフト希望", inv: "請求書", members: "メンバー" };
+  const DH = { name: 0, date: 1, kind: 3, store: 4, pIn: 5, pOut: 6, in: 7, out: 8, work: 9, absWhy: 10, wake: 11, dep: 12,
+    transport: 13, ride: 14, km: 15, imgs: 16, result: 17, memo: 18, early: 20, earlyWhy: 21 };
+  let adTab = "today", adData = null, adKey = "";
+  const adMonth = (() => { const d = new Date(), m = (n) => ymOf(dayKey(new Date(d.getFullYear(), d.getMonth() + n, 1))); return { work: m(0), inv: m(-1), hope: m(1), today: m(0), members: m(0) }; })();
+  const adMsg = (t) => { $("ad-msg").textContent = t || ""; };
+  const adYen = (s) => (s === "" || s == null ? "" : "¥" + Number(s).toLocaleString("ja-JP"));
+  const minOf = (hm) => { const m = /^(\d+):(\d{2})$/.exec(hm || ""); return m ? Number(m[1]) * 60 + Number(m[2]) : 0; };
+  const ymLabel = (ym) => { const [y, m] = ym.split("-").map(Number); return `${y}年${m}月`; };
+  const link = (url, text) => (url ? `<a href="${esc(url)}" target="_blank" rel="noopener">${esc(text)}</a>` : "");
+
+  function startAdmin() {
+    for (const b of $("ad-tabs").querySelectorAll("button")) b.onclick = () => { adTab = b.dataset.t; adLoad(); };
+    $("ad-prev").onclick = () => adShift(-1);
+    $("ad-next").onclick = () => adShift(1);
+    $("ad-reload").onclick = () => adLoad(true);
+    adLoad();
+  }
+  function adShift(n) {
+    const [y, m] = adMonth[adTab].split("-").map(Number);
+    adMonth[adTab] = ymOf(dayKey(new Date(y, m - 1 + n, 1)));
+    adLoad();
+  }
+  async function adLoad(force) {
+    for (const b of $("ad-tabs").querySelectorAll("button")) b.setAttribute("aria-selected", b.dataset.t === adTab);
+    const monthly = adTab === "work" || adTab === "inv" || adTab === "hope";
+    $("ad-month").hidden = !monthly;
+    $("ad-label").textContent = ymLabel(adMonth[adTab]);
+    const ym = adTab === "inv" ? adMonth.inv : adMonth.work, key = `${adTab === "inv" ? adMonth.inv : adMonth.work}|${adMonth.hope}`;
+    if (force || key !== adKey || !adData) {
+      adMsg("読み込んでいます…");
+      // a reply that never comes (or a page error) must not leave the screen on 読み込んでいます
+      const slow = new Promise((_, rej) => setTimeout(() => rej(new Error("読み込みに時間がかかりすぎています。「更新」を押してください。")), 60000));
+      try { adData = JSON.parse(await Promise.race([call("api_adminData", ym, adMonth.hope), slow])); adKey = key; adMsg(""); }
+      catch (e) { adMsg(errText(e)); return; }
     }
+    try { ({ today: adToday, work: adWork, hope: adHope, inv: adInv, members: adMembers })[adTab](); }
+    catch (e) { adMsg(`画面を作れませんでした：${e.message}`); }
+  }
+  const adRows = (pred) => adData.days.filter(pred);
+  const statusOf = (r) => {
+    if (!r) return { k: "none", t: "予定なし" };
+    if (r[DH.kind] === "欠勤") return { k: "abs", t: "欠勤" };
+    if (r[DH.out]) return { k: "done", t: "退勤済み" };
+    if (r[DH.in]) return { k: "work", t: "勤務中" };
+    if (r[DH.dep]) return { k: "move", t: "移動中" };
+    if (r[DH.wake]) return { k: "wake", t: "起床済み" };
+    const now = new Date(), late = r[DH.pIn] && minOf(r[DH.pIn]) < now.getHours() * 60 + now.getMinutes();
+    return late ? { k: "late", t: "未出勤" } : { k: "plan", t: "予定" };
+  };
+
+  function adToday() {
+    const today = adData.today, live = adData.members.filter((m) => m.active && !m.admin);
+    const rec = Object.fromEntries(adRows((r) => r[DH.date] === today).map((r) => [r[DH.name], r]));
+    const list = live.map((m) => ({ m, r: rec[m.name], s: statusOf(rec[m.name]) }));
+    const order = { late: 0, wake: 1, move: 2, work: 3, plan: 4, done: 5, abs: 6, none: 7 };
+    list.sort((a, b) => order[a.s.k] - order[b.s.k] || (a.r?.[DH.pIn] || "").localeCompare(b.r?.[DH.pIn] || ""));
+    const count = (k) => list.filter((x) => x.s.k === k).length;
+    const d = new Date(today);
+    $("ad-body").innerHTML =
+      `<h2 class="ad-h">${d.getMonth() + 1}月${d.getDate()}日（${WD[d.getDay()]}）</h2>` +
+      `<div class="ad-stats">` +
+      [["予定", list.length - count("none")], ["勤務中", count("work")], ["退勤済み", count("done")], ["移動中・起床済み", count("move") + count("wake")], ["未出勤", count("late")], ["欠勤", count("abs")]]
+        .map(([t, n], i) => `<div class="ad-stat${i === 4 && n ? " warn" : ""}"><span>${t}</span><b class="num">${n}</b></div>`).join("") +
+      `</div><div class="ad-scroll"><table class="ad-table"><thead><tr><th>氏名</th><th>状態</th><th>店舗</th><th>予定</th><th>起床</th><th>出発</th><th>出勤</th><th>退勤</th></tr></thead><tbody>` +
+      list.map(({ m, r, s }) => `<tr class="${s.k === "none" ? "dim" : ""}"><td class="nm">${esc(m.name)}</td><td><span class="st st-${s.k}">${s.t}</span></td>` +
+        `<td>${esc(r?.[DH.store] || "")}</td><td class="num">${r?.[DH.pIn] ? esc(`${r[DH.pIn]}–${r[DH.pOut]}`) : ""}</td>` +
+        [DH.wake, DH.dep, DH.in, DH.out].map((i) => `<td class="num">${esc(r?.[i] || "")}</td>`).join("") + `</tr>`).join("") +
+      `</tbody></table></div>`;
+  }
+
+  function adWork() {
+    const ym = adMonth.work, live = adData.members.filter((m) => !m.admin);
+    const rows = adRows((r) => r[DH.date].slice(0, 7) === ym);
+    $("ad-body").innerHTML = `<p class="hint">名前を押すと、その月の日ごとの記録が開きます。</p>` + live.map((m) => {
+      const mine = rows.filter((r) => r[DH.name] === m.name).sort((a, b) => a[DH.date].localeCompare(b[DH.date]));
+      const worked = mine.filter((r) => r[DH.kind] === "打刻あり"), abs = mine.filter((r) => r[DH.kind] === "欠勤").length;
+      const total = worked.reduce((s, r) => s + minOf(r[DH.work]), 0), km = mine.reduce((s, r) => s + (Number(r[DH.km]) || 0), 0);
+      const early = mine.filter((r) => r[DH.early]).length;
+      return `<details class="ad-person"><summary><span class="nm">${esc(m.name)}</span>` +
+        `<span>出勤 <b class="num">${worked.length}</b>日</span><span>実働 <b class="num">${dur(total)}</b></span>` +
+        `<span>欠勤 <b class="num">${abs}</b></span><span>早退 <b class="num">${early}</b></span><span>距離 <b class="num">${Math.round(km * 10) / 10}</b>km</span></summary>` +
+        (mine.length ? `<div class="ad-scroll"><table class="ad-table"><thead><tr><th>日付</th><th>区分</th><th>店舗</th><th>予定</th><th>出勤</th><th>退勤</th><th>実働</th><th>交通</th><th>km</th><th>画像</th><th>メモ・理由</th></tr></thead><tbody>` +
+          mine.map((r) => {
+            const [y, mo, d] = r[DH.date].split("-").map(Number), wd = new Date(y, mo - 1, d).getDay();
+            return `<tr><td class="num wd-${wd}">${mo}/${d}（${WD[wd]}）</td><td>${esc(r[DH.kind])}${r[DH.early] ? "・早退" : ""}</td><td>${esc(r[DH.store])}</td>` +
+              `<td class="num">${r[DH.pIn] ? esc(`${r[DH.pIn]}–${r[DH.pOut]}`) : ""}</td><td class="num">${esc(r[DH.in])}</td><td class="num">${esc(r[DH.out])}</td><td class="num">${esc(r[DH.work])}</td>` +
+              `<td>${esc(r[DH.transport])}${r[DH.ride] ? `（${esc(r[DH.ride])}）` : ""}</td><td class="num">${esc(r[DH.km])}</td>` +
+              `<td>${r[DH.imgs] ? r[DH.imgs].split("\n").map((u, i) => link(u, `画像${i + 1}`)).join(" ") : ""}</td>` +
+              `<td>${esc([r[DH.absWhy], r[DH.earlyWhy], r[DH.result], r[DH.memo]].filter(Boolean).join(" / "))}</td></tr>`;
+          }).join("") + `</tbody></table></div>` : `<p class="hint pad">この月の記録はありません。</p>`) + `</details>`;
+    }).join("");
+  }
+
+  function adHope() {
+    const ym = adMonth.hope, [y, mo] = ym.split("-").map(Number), n = new Date(y, mo, 0).getDate();
+    const live = adData.members.filter((m) => m.active && !m.admin);
+    const byName = Object.fromEntries(adData.hopes.map((r) => [r[0], r]));
+    const days = Array.from({ length: n }, (_, i) => new Date(y, mo - 1, i + 1));
+    const sent = live.filter((m) => byName[m.name]).length;
+    const perDay = days.map((_, i) => live.filter((m) => /○/.test(byName[m.name]?.[6 + i] || "")).length);
+    $("ad-body").innerHTML =
+      `<div class="ad-stats"><div class="ad-stat"><span>提出済み</span><b class="num">${sent} / ${live.length}</b></div>` +
+      `<div class="ad-stat${live.length - sent ? " warn" : ""}"><span>未提出</span><b class="num">${live.length - sent}</b></div></div>` +
+      `<p class="hint">○ 稼働できる　<b class="far-tag">遠</b> 遠方も可　△ 要相談　空欄は稼働不可。いちばん下の行は、その日に○の人数です。</p>` +
+      `<div class="ad-scroll"><table class="ad-table ad-grid"><thead><tr><th class="nm">氏名</th><th>○</th><th>△</th>` +
+      days.map((d) => `<th class="wd-${d.getDay()}${holidayName(dayKey(d)) ? " hol" : ""}">${d.getDate()}<small>${WD[d.getDay()]}</small></th>`).join("") + `</tr></thead><tbody>` +
+      live.map((m) => {
+        const r = byName[m.name];
+        if (!r) return `<tr class="dim"><td class="nm">${esc(m.name)}</td><td colspan="${n + 2}">未提出</td></tr>`;
+        return `<tr><td class="nm" title="提出 ${esc(r[2])}">${esc(m.name)}</td><td class="num">${esc(r[3])}</td><td class="num">${esc(r[5])}</td>` +
+          days.map((d, i) => { const v = r[6 + i] || ""; return `<td class="mk ${v === "△" ? "v-maybe" : v ? "v-ok" : ""}">${v === "○遠方可" ? `○<b class="far-tag">遠</b>` : esc(v)}</td>`; }).join("") + `</tr>`;
+      }).join("") +
+      `<tr class="sum"><td class="nm">○の人数</td><td></td><td></td>${perDay.map((c) => `<td class="num">${c || ""}</td>`).join("")}</tr></tbody></table></div>`;
+  }
+
+  function adInv() {
+    const ym = adMonth.inv, byName = Object.fromEntries(adData.invs.map((r) => [r[0], r]));
+    const live = adData.members.filter((m) => !m.admin && (m.active || byName[m.name]));
+    const sentTotal = adData.invs.filter((r) => r[4] !== "下書き").reduce((s, r) => s + (Number(r[3]) || 0), 0);
+    const cnt = (s) => adData.invs.filter((r) => r[4] === s).length;
+    $("ad-body").innerHTML =
+      `<div class="ad-stats"><div class="ad-stat"><span>提出済み</span><b class="num">${cnt("提出済み")}</b></div><div class="ad-stat"><span>入金済み</span><b class="num">${cnt("入金済み")}</b></div>` +
+      `<div class="ad-stat"><span>未提出</span><b class="num">${live.length - cnt("提出済み") - cnt("入金済み")}</b></div><div class="ad-stat"><span>請求の合計</span><b class="num">${adYen(sentTotal)}</b></div></div>` +
+      `<div class="ad-scroll"><table class="ad-table"><thead><tr><th>氏名</th><th>状態</th><th>請求番号</th><th class="r">ご請求金額</th><th>提出日</th><th>入金日</th><th>PDF</th><th></th></tr></thead><tbody>` +
+      live.map((m) => {
+        const r = byName[m.name], st = r ? r[4] : "未作成", done = st === "提出済み" || st === "入金済み";
+        return `<tr class="${done ? "" : "dim"}"><td class="nm">${esc(m.name)}</td><td><span class="st st-${{ 提出済み: "work", 入金済み: "done" }[st] || "none"}">${esc(st === "下書き" ? "未提出" : st)}</span></td>` +
+          `<td class="num">${done ? esc(r[2]) : ""}</td><td class="num r">${done ? adYen(r[3]) : ""}</td><td class="num">${done ? esc(r[5]) : ""}</td><td class="num">${esc(r?.[6] || "")}</td>` +
+          `<td>${done ? link(r[7], "開く") : ""}</td><td>${st === "提出済み" ? `<button type="button" class="tool" data-paid="${esc(m.id)}">入金済みにする</button>` : st === "入金済み" ? `<button type="button" class="tool" data-unpaid="${esc(m.id)}">入金を取り消す</button>` : ""}</td></tr>`;
+      }).join("") + `</tbody></table></div>`;
+    for (const b of $("ad-body").querySelectorAll("[data-paid],[data-unpaid]")) b.onclick = () => busyBtn(b, async () => {
+      const paid = b.hasAttribute("data-paid");
+      try { await call("api_adminSetPaid", b.dataset.paid || b.dataset.unpaid, ym, paid); adMsg(paid ? "入金済みにしました。" : "入金を取り消しました。"); await adLoad(true); }
+      catch (e) { adMsg(errText(e)); }
+    });
+  }
+
+  function adMembers() {
+    const list = adData.members;
+    $("ad-body").innerHTML =
+      `<div class="ad-temp" id="ad-temp" hidden></div>` +
+      `<form class="ad-add" id="ad-add" novalidate><b>メンバーを追加</b>` +
+      `<label class="f">氏名<input id="ad-name" autocomplete="off"></label><label class="f">ログインID（半角英小文字・数字）<input id="ad-login" autocomplete="off" autocapitalize="none" spellcheck="false"></label>` +
+      `<label class="check"><input type="checkbox" id="ad-admin">管理者</label><button type="submit" class="btn primary" id="ad-add-btn">追加</button>` +
+      `<p class="hint">追加すると仮パスワードが出ます。アプリのURL・ログインID・仮パスワードを本人に伝えてください。最初のログインで、本人が自分のパスワードを決めます。</p></form>` +
+      `<div class="ad-scroll"><table class="ad-table"><thead><tr><th>氏名</th><th>ログインID</th><th>役割</th><th>契約</th><th>状態</th><th></th></tr></thead><tbody>` +
+      list.map((m) => `<tr class="${m.active ? "" : "dim"}" data-id="${esc(m.id)}" data-name="${esc(m.name)}"><td class="nm">${esc(m.name)}</td>` +
+        `<td><input class="ad-in" value="${esc(m.loginId)}" data-k="loginId" autocapitalize="none" spellcheck="false" aria-label="${esc(m.name)}のログインID"></td>` +
+        `<td><label class="check"><input type="checkbox" data-k="admin"${m.admin ? " checked" : ""}>管理者</label></td>` +
+        `<td>${m.contractUrl ? link(m.contractUrl, m.contract.split("（")[0] || "契約書") : m.admin ? "—" : `<span class="st st-late">未締結</span>`}</td>` +
+        `<td><label class="check"><input type="checkbox" data-k="active"${m.active ? " checked" : ""}>有効</label></td>` +
+        `<td class="ad-acts"><button type="button" class="tool" data-save>保存</button><button type="button" class="tool" data-temp>仮パスワード</button></td></tr>`).join("") + `</tbody></table></div>`;
+    // a 仮パスワード is shown once, here, to pass on to the person
+    const showTemp = (name, r) => {
+      const box = $("ad-temp");
+      box.innerHTML = `<b>${esc(name)}さんの仮パスワード</b><dl><dt>ログインID</dt><dd class="num">${esc(r.loginId)}</dd><dt>仮パスワード</dt><dd class="num">${esc(r.temp)}</dd></dl>` +
+        `<div class="ad-acts"><button type="button" class="tool" id="ad-copy">ログイン情報をコピー</button><span class="hint" id="ad-copied"></span></div>` +
+        `<p class="hint">本人に伝えてください（7日間有効）。この表示を閉じたり画面を移ったりすると、もう表示できません。</p>`;
+      box.hidden = false; box.scrollIntoView({ block: "nearest" });
+      const text = `${name}さんのログイン情報\nログインID：${r.loginId}\n仮パスワード：${r.temp}\n（7日間有効。最初のログインで、新しいパスワードを決めてください）`;
+      $("ad-copy").onclick = async () => {
+        try { await navigator.clipboard.writeText(text); $("ad-copied").textContent = "コピーしました"; }
+        catch (e) { $("ad-copied").textContent = "コピーできませんでした。文字を長押しして選んでください。"; }
+      };
+    };
+    $("ad-add").addEventListener("submit", (e) => {
+      e.preventDefault();
+      const name = $("ad-name").value.trim();
+      busyBtn($("ad-add-btn"), async () => {
+        try {
+          const r = JSON.parse(await call("api_adminSaveMember", { name, loginId: $("ad-login").value, admin: $("ad-admin").checked }));
+          await adLoad(true); adMsg(`${name}さんを追加しました。`); showTemp(name, r);
+        } catch (err) { adMsg(errText(err)); }
+      });
+    });
+    for (const b of $("ad-body").querySelectorAll("[data-save]")) b.onclick = () => {
+      const tr = b.closest("tr"), v = (k) => tr.querySelector(`[data-k="${k}"]`);
+      busyBtn(b, async () => {
+        try {
+          await call("api_adminSaveMember", { id: tr.dataset.id, loginId: v("loginId").value, admin: v("admin").checked, active: v("active").checked });
+          adMsg("保存しました。"); await adLoad(true);
+        } catch (err) { adMsg(errText(err)); }
+      });
+    };
+    for (const b of $("ad-body").querySelectorAll("[data-temp]")) b.onclick = () => {
+      const tr = b.closest("tr");
+      if (b.dataset.armed !== "1") { b.dataset.armed = "1"; b.textContent = "もう一度押して発行"; setTimeout(() => { b.dataset.armed = ""; b.textContent = "仮パスワード"; }, 4000); return; }
+      busyBtn(b, async () => {
+        try { showTemp(tr.dataset.name, JSON.parse(await call("api_adminIssueTemp", tr.dataset.id))); adMsg(""); }
+        catch (err) { adMsg(errText(err)); }
+        b.dataset.armed = ""; b.textContent = "仮パスワード";
+      });
+    };
+  }
+  // ---- signed-in start ----
+  (async () => {
+    if (!viaGas && !window.TC_API) { showLogin("アプリの設定（接続先）が入っていません。Themisの担当者にお問い合わせください。"); return; }
+    if (!CRED) { showLogin(); return; }
+    try { enter(JSON.parse(await rawCall("api_me"))); }
+    catch (e) { showLogin(isSignedOut(e) ? errText(e) : "つながりませんでした。通信状況を確認して、もう一度お試しください。"); }
+  })();
+
+  async function startMember() {
     // load this month, last month (invoices) and the open-shift pointer before any punch is allowed
     const b = gasBackend(), d = new Date();
     const cur = ymOf(dayKey(d)), prev = ymOf(dayKey(new Date(d.getFullYear(), d.getMonth() - 1, 1)));
@@ -2467,7 +2849,7 @@ ${v.addr}`;
     // first the name and address, then the contract; both are asked once and block the app until done
     if (!doc("billing").from || !doc("billing").addr) openSetup();
     else if (!doc("contract").signedAt) openContract();
-  })();
+  }
 })();
 </script>
 </body>

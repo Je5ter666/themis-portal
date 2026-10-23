@@ -2,6 +2,7 @@
   "name": "Themis Portal",
   "short_name": "Themis",
   "id": "./",
+  "start_url": "./",
   "scope": "./",
   "display": "standalone",
   "orientation": "portrait",
