@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <html lang="ja">
 <head>
-<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover, maximum-scale=1, user-scalable=no">
 <link rel="manifest" href="manifest.webmanifest">
 <link rel="icon" type="image/png" href="icons/favicon-32.png">
 <link rel="apple-touch-icon" href="icons/apple-touch-icon.png">
@@ -65,7 +65,8 @@
 :root[data-theme="dark"] .logo { filter: invert(1); }
 * { box-sizing: border-box; }
 /* phones must not enlarge text on their own; it breaks fixed layouts like the invoice */
-html { -webkit-text-size-adjust: 100%; text-size-adjust: 100%; }
+/* manipulation drops double-tap zoom, so quick taps on buttons don't blow the page up (pinch is handled in the script) */
+html { -webkit-text-size-adjust: 100%; text-size-adjust: 100%; touch-action: manipulation; }
 [hidden] { display: none !important; }
 body {
   background: var(--paper); color: var(--ink); font-family: var(--f-body); font-size: 15px; line-height: 1.6;
@@ -318,7 +319,11 @@ button.hc:not(:disabled):hover { filter: brightness(.97); }
   #p-inv > .inv-actions { grid-area: 5 / 2 / 6 / 3; }
   #p-inv > .hint { grid-area: 6 / 1 / 7 / 3; }
 }
-fieldset { margin: 0; border: 1px solid var(--rule); border-radius: 12px; background: var(--card); padding: 14px 16px 16px; display: grid; gap: 10px; min-width: 0; }
+/* fieldset only groups the boxes (so a sent invoice can lock them all at once) and draws nothing: iPhone paints a
+   styled fieldset's top dark. The card look is on .fs-card inside it */
+fieldset { margin: 0; border: 0; padding: 0; min-width: 0; background: none; box-shadow: none; }
+.fs-card { border: 1px solid var(--rule); border-radius: 12px; background: var(--card); padding: 14px 16px 16px; display: grid; gap: 10px; min-width: 0; }
+.fs-h { margin: 0 0 2px; font-weight: 700; font-size: 15px; }
 fieldset:disabled { opacity: .7; }
 /* anything that can't be used right now reads as dimmed, wherever it sits */
 input:disabled, select:disabled, textarea:disabled { color: var(--ink-soft); opacity: .55; cursor: not-allowed; }
@@ -328,9 +333,11 @@ fieldset:disabled .f, fieldset:disabled .check, fieldset:disabled .hint, fieldse
 .check:has(input:disabled) { opacity: .5; cursor: not-allowed; }
 /* inside a locked block the block itself is already dimmed; don't dim the fields twice */
 .fields .locked :is(input, select, textarea):disabled { opacity: 1; }
-/* the heading sits inside the card like any other heading: drawn across the border (the usual legend), iPhone
-   paints the card's shading dark behind it */
-legend { float: left; width: 100%; margin: 0; padding: 0 0 2px; font-weight: 700; font-size: 15px; }
+/* a field reacts only on its own box: its caption, its note and the space around them are not tappable
+   (a <label> otherwise passes every tap anywhere inside it on to the box) */
+label.f { pointer-events: none; }
+label.f > :is(input, select, textarea, .sfx-in, button) { pointer-events: auto; }
+label.check { -webkit-tap-highlight-color: transparent; }
 .f { display: grid; gap: 3px; font-size: 12px; color: var(--ink-soft); letter-spacing: .04em; min-width: 0; }
 .f2 { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); gap: 10px; }
 /* iPhone draws date fields wider than their box unless their own styling is switched off */
@@ -514,7 +521,7 @@ fieldset:disabled .f input, fieldset:disabled .f textarea, fieldset:disabled .f 
 
 /* Finish: soft corners, each punch key in its own muted colour, and a three-colour stripe on the clock;
    colour stays in small doses so the page is cheerful without getting loud */
-.clock, .table-box, .cal, .steps, fieldset, .modal, .sheet-scroll, .key, .key-sub, .btn, .tool, .month-nav button, .proof,
+.clock, .table-box, .cal, .steps, .fs-card, .modal, .sheet-scroll, .key, .key-sub, .btn, .tool, .month-nav button, .proof,
 .f input, .f select, .f textarea, .extra input, .extra button { border-radius: var(--r); }
 .clock { position: relative; overflow: hidden; box-shadow: 0 1px 0 var(--rule), 0 6px 18px -12px rgb(31 42 58 / .25); }
 .clock::before { content: ""; position: absolute; inset: 0 0 auto 0; height: 5px;
@@ -829,7 +836,7 @@ button.pcal-c { cursor: pointer; }
   --gloss: linear-gradient(180deg, rgb(255 255 255 / .06), rgb(255 255 255 / 0) 50%, rgb(0 0 0 / .12));
 }
 /* cards */
-.clock, .shifts .shift-today, .hope-head, .hope-cal, .cal, .steps, fieldset, .sheet-scroll, .login-card, .ad-stat, .ad-scroll, .ad-person, .ad-add {
+.clock, .shifts .shift-today, .hope-head, .hope-cal, .cal, .steps, .fs-card, .sheet-scroll, .login-card, .ad-stat, .ad-scroll, .ad-person, .ad-add {
   box-shadow: var(--shine), var(--lift);
   background-image: var(--gloss);
 }
@@ -1079,8 +1086,8 @@ button.pcal-c { cursor: pointer; }
     </div>
 
     <div class="forms">
-      <fieldset id="fs-bill">
-        <legend>請求書の内容（<span id="fs-month">—</span>）</legend>
+      <fieldset id="fs-bill"><div class="fs-card">
+        <h3 class="fs-h">請求書の内容（<span id="fs-month">—</span>）</h3>
         <div class="f2">
           <label class="f">請求番号<input id="i-no" type="text" maxlength="30"></label>
           <label class="f">請求日<input id="i-date" type="date"></label>
@@ -1095,10 +1102,10 @@ button.pcal-c { cursor: pointer; }
         </div>
         <label class="f">備考<textarea id="i-note" maxlength="300" placeholder="例：御社都合の交通費の為"></textarea></label>
         <div class="hours"><span>この月の稼働日数（シフト表から）</span><b id="i-hours">0日</b></div>
-      </fieldset>
+      </div></fieldset>
 
-      <fieldset id="fs-set">
-        <legend>毎月共通の設定</legend>
+      <fieldset id="fs-set"><div class="fs-card">
+        <h3 class="fs-h">毎月共通の設定</h3>
         <!-- most months nothing here changes: ticked, it folds down to a one-line summary; unticked, it opens for changes -->
         <label class="check same-last"><input type="checkbox" id="b-same"> 登録済みの内容で請求する</label>
         <p class="set-sum" id="set-sum"></p>
@@ -1136,7 +1143,7 @@ button.pcal-c { cursor: pointer; }
           <label class="f">口座名義（カタカナ）<input id="b-acctName" type="text" maxlength="40" placeholder="ヤマダ タロウ"></label>
         </div>
         </div>
-      </fieldset>
+      </div></fieldset>
     </div>
 
     <div class="sheet-scroll">
@@ -2041,10 +2048,22 @@ window.addEventListener("error", function (e) {
     try { return (await html2canvas(node, { scale: 2, backgroundColor: "#ffffff" })).toDataURL("image/jpeg", 0.9); }
     finally { node.remove(); }
   }
-  const closeViewer = () => { $("inv-view").hidden = true; };
+  // the page never zooms (no pinch, no double tap); only the invoice / PDF viewers let fingers zoom in to check
+  // the details. Android follows the viewport tag; iPhone ignores user-scalable there, so its pinch is stopped by hand
+  const VP = document.querySelector('meta[name="viewport"]'), VP_BASE = "width=device-width, initial-scale=1, viewport-fit=cover";
+  let zoomOK = false;
+  function allowZoom(on) {
+    zoomOK = on;
+    // putting maximum-scale back also snaps a zoomed-in page back to normal size
+    if (VP) VP.content = on ? VP_BASE + ", maximum-scale=5" : VP_BASE + ", maximum-scale=1, user-scalable=no";
+  }
+  for (const ev of ["gesturestart", "gesturechange"]) document.addEventListener(ev, (e) => { if (!zoomOK) e.preventDefault(); }, { passive: false });
+  document.addEventListener("touchmove", (e) => { if (!zoomOK && e.touches.length > 1) e.preventDefault(); }, { passive: false });
+  allowZoom(false);
+  const closeViewer = () => { $("inv-view").hidden = true; allowZoom(false); };
   $("inv-thumb").onclick = () => {
     if (!$("inv-big").getAttribute("src")) return;
-    $("inv-view").hidden = false;
+    $("inv-view").hidden = false; allowZoom(true);
     $("inv-view").querySelector(".viewer-scroll").scrollTop = 0;
   };
   $("inv-view").addEventListener("click", (e) => { if (e.target === $("inv-view") || e.target.classList.contains("viewer-scroll")) closeViewer(); });
@@ -3060,7 +3079,7 @@ ${v.addr}`;
     $("install").hidden = true;
     try { localStorage.setItem(LATER, String(Date.now())); } catch (e) {}
   };
-  let adStarted = false;
+  let adStarted = false, adReady = Promise.resolve();   // adReady settles once the admin screen has drawn
   $("adminbtn").onclick = () => {
     const toAdmin = mode === "member";
     // the admin screen opens only once the person's own first steps (はじめに・契約) are done
@@ -3069,7 +3088,7 @@ ${v.addr}`;
     $("admin").hidden = !toAdmin; $("member-ui").hidden = toAdmin;
     $("adminbtn").textContent = toAdmin ? "通常画面" : "管理画面";
     window.scrollTo(0, 0);
-    if (toAdmin) { if (!adStarted) { adStarted = true; startAdmin(); } else adLoad(); }
+    if (toAdmin) { if (!adStarted) { adStarted = true; adReady = startAdmin(); } else adReady = adLoad(); }
     else render();
   };
   // after a session ran out mid-use, a fresh page is the only safe way to switch person (no records left in memory)
@@ -3134,7 +3153,7 @@ ${v.addr}`;
     $("ad-prev").onclick = () => adShift(-1);
     $("ad-next").onclick = () => adShift(1);
     $("ad-reload").onclick = () => adLoad(true);
-    adLoad();
+    return adLoad();
   }
   // invoices are for finished months: the 請求書 tab goes no later than last month, as on the member's screen
   const adLastBillable = () => { const d = new Date(); return ymOf(dayKey(new Date(d.getFullYear(), d.getMonth() - 1, 1))); };
@@ -3303,7 +3322,8 @@ ${v.addr}`;
 
   // one person's month: 勤怠 shows each day's store and times (tap a day for every item); シフト shows their marks
   let adPerson = null;   // { id, day }
-  function adOpenPerson(id) { adPerson = { id, day: "" }; window.scrollTo(0, 0); adLoad(); }
+  let adListY = 0;       // where the list was scrolled, so 一覧に戻る lands back on the same person
+  function adOpenPerson(id) { adListY = window.scrollY; adPerson = { id, day: "" }; window.scrollTo(0, 0); adLoad(); }
   function adPersonView() {
     const m = adData.members.find((x) => x.id === adPerson.id);
     if (!m) { adPerson = null; adLoad(); return; }
@@ -3343,7 +3363,7 @@ ${v.addr}`;
         $("pcal-detail").innerHTML = dayDetail(b.dataset.day, rows[b.dataset.day]);
       };
     }
-    $("ad-back").onclick = () => { adPerson = null; adLoad(); };
+    $("ad-back").onclick = async () => { adPerson = null; await adLoad(); window.scrollTo(0, adListY); };
   }
   // every item recorded for one day, only the ones that have a value
   function dayDetail(key, r) {
@@ -3443,7 +3463,7 @@ ${v.addr}`;
   let pdfShown = null;   // { bytes, fname } of the PDF in the viewer, for its ダウンロード button
   async function showPdf(title, id, what, ym, fname) {
     $("pdf-h").textContent = title; $("pdf-pages").innerHTML = ""; $("pdf-msg").textContent = "読み込んでいます…";
-    $("pdf-view").hidden = false; $("pdf-save").disabled = true; pdfShown = null;
+    $("pdf-view").hidden = false; $("pdf-save").disabled = true; pdfShown = null; allowZoom(true);
     const turn = $("pdf-view").dataset.turn = String(Date.now());
     try {
       const [bytes] = await Promise.all([pdfBytes(id, what, ym), pdfLib()]);
@@ -3471,7 +3491,7 @@ ${v.addr}`;
       catch (e) { window.pdfjsLib.GlobalWorkerOptions.workerSrc = base + "pdf.worker.min.js"; }
     }).catch((e) => { pdfReady = null; throw e; }));
   }
-  $("pdf-close").onclick = () => { $("pdf-view").hidden = true; $("pdf-view").dataset.turn = ""; $("pdf-pages").innerHTML = ""; pdfShown = null; };
+  $("pdf-close").onclick = () => { $("pdf-view").hidden = true; allowZoom(false); $("pdf-view").dataset.turn = ""; $("pdf-pages").innerHTML = ""; pdfShown = null; };
   $("pdf-save").onclick = () => { if (pdfShown) busyBtn($("pdf-save"), () => savePdf(pdfShown.bytes, pdfShown.fname).catch((e) => { $("pdf-msg").textContent = errText(e); })); };
 
   // the clipboard API is blocked inside the Apps Script frame, so fall back to selecting a hidden copy
@@ -3531,7 +3551,7 @@ ${v.addr}`;
     const badge = (m) => m.role === "運営" ? `<span class="st st-done">運営</span>` : m.role === "管理者" ? `<span class="st st-work">管理者</span>` : "";
     $("ad-body").innerHTML =
       (owner ? `<form class="ad-add" id="ad-add" novalidate><b>メンバーを追加</b>` +
-        `<label class="f">氏名<input id="ad-name" autocomplete="off"></label>` +
+        `<label class="f">氏名<input id="ad-who" autocomplete="off" autocorrect="off" spellcheck="false" enterkeyhint="done"></label>` +
         `<label class="f">勤務形態${workSel("", 'id="ad-work"')}</label>` +
         `<label class="f">役割${roleSel("", 'id="ad-role"')}</label><button type="submit" class="btn primary" id="ad-add-btn">追加</button>` +
         `<p class="hint">ログインIDと仮パスワードは自動で作られます。追加したあとに出る画面からコピーして、本人に伝えてください。</p></form>` : "") +
@@ -3550,10 +3570,12 @@ ${v.addr}`;
           `</div>`;
       }).join("") + `</div>`).join("");
     const card = (el) => el.closest(".ad-card"), person = (c) => adData.members.find((m) => m.id === c.dataset.id);
+    // the phone must not offer the contacts list (自動入力) for the new person's name
+    if (owner) noAutofill($("ad-who"));
     if (owner) $("ad-add").addEventListener("submit", (e) => {
       e.preventDefault();
-      const name = $("ad-name").value.trim(), workType = $("ad-work").value, role = $("ad-role").value;
-      if (!name) { adMsg("氏名を入れてください。"); $("ad-name").focus(); return; }
+      const name = $("ad-who").value.trim(), workType = $("ad-work").value, role = $("ad-role").value;
+      if (!name) { adMsg("氏名を入れてください。"); $("ad-who").focus(); return; }
       if (!workType) { adMsg("勤務形態（常勤か週末か）を選んでください。"); $("ad-work").focus(); return; }
       busyBtn($("ad-add-btn"), async () => {
         adMsg("追加しています…");
@@ -3665,9 +3687,34 @@ ${v.addr}`;
     if (!needsSetup()) {
       const paid = [prev, cur].filter((ym) => doc("inv-" + ym).status === "paid" && !doc("inv-" + ym).confirmedOn);
       if (paid.length) msg(`${paid.map((ym) => Number(ym.slice(5))).join("・")}月分の入金が完了しました。請求書タブで金額を確かめて「入金を確認しました」を押してください。`);
+      restoreView();
     }
     if (window.TC_ADMIN) adPrefetch();
     cacheSoon();
+  }
+  // a reload (pull to refresh, the browser's 更新) comes back on the same screen, tab, month and scroll position.
+  // sessionStorage lasts only while this tab / app stays open, so a fresh start still opens on the shift calendar
+  const VIEW_KEY = "tc_view";
+  addEventListener("pagehide", () => {
+    if (!CRED || !backend) return;
+    const ym = (d) => `${d.getFullYear()}-${pad(d.getMonth() + 1)}`;
+    const months = Object.fromEntries(Object.entries({ ...tabView, [tab]: view }).map(([k, d]) => [k, ym(d)]));
+    try { sessionStorage.setItem(VIEW_KEY, JSON.stringify({ mode, tab, months, y: window.scrollY, adTab, adMonth, adPerson, adListY })); } catch (e) {}
+  });
+  function restoreView() {
+    let v = null;
+    try { v = JSON.parse(sessionStorage.getItem(VIEW_KEY) || "null"); sessionStorage.removeItem(VIEW_KEY); } catch (e) {}
+    if (!v) return;
+    for (const k of Object.keys(tabView)) if (/^\d{4}-\d{2}$/.test(v.months?.[k] || "")) { const [y, m] = v.months[k].split("-").map(Number); tabView[k] = new Date(y, m - 1, 1); }
+    view = tabView[tab];
+    setTab(v.tab === "inv" || (v.tab === "hope" && window.TC_WORK !== "常勤") ? v.tab : "card");
+    if (v.mode === "admin" && window.TC_ADMIN) {
+      adTab = v.adTab === "inv" && !window.TC_OWNER ? "today" : v.adTab || adTab;
+      Object.assign(adMonth, v.adMonth || {});
+      adPerson = v.adPerson || null; adListY = v.adListY || 0;
+      $("adminbtn").click();
+      adReady.then(() => window.scrollTo(0, v.y || 0));
+    } else requestAnimationFrame(() => window.scrollTo(0, v.y || 0));
   }
   // first the name, address and 勤務形態, then the contract; both block the app (admins too) until done
   function needsSetup() {
