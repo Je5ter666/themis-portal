@@ -137,7 +137,8 @@ button:focus-visible, input:focus-visible, select:focus-visible, textarea:focus-
 .keys { display: grid; grid-template-columns: repeat(4, 1fr); gap: 10px; }
 @media (max-width: 560px) { .keys { grid-template-columns: repeat(2, 1fr); } }
 .key.dep:not(:disabled) { border-color: var(--ink); color: var(--ink); }
-.sub-keys { display: flex; justify-content: flex-end; margin-top: -8px; }
+/* 欠勤にする sits under the status, beside the clock, instead of on a row of its own */
+.clock-side { display: flex; flex-direction: column; align-items: flex-end; gap: 8px; }
 .key-sub { border: 1px solid var(--stamp-red); color: var(--stamp-red); background: transparent; border-radius: 8px; padding: 6px 14px; font-size: 13px; font-weight: 500; }
 .key-sub.armed { background: var(--stamp-red); color: var(--card); }
 .key-sub:disabled { opacity: .38; cursor: not-allowed; }
@@ -152,11 +153,22 @@ button:focus-visible, input:focus-visible, select:focus-visible, textarea:focus-
 .key:not(:disabled):hover { background: var(--today); }
 
 .today { display: grid; grid-template-columns: repeat(5, minmax(0, 1fr)); border-top: 1px dashed var(--rule); padding-top: 16px; gap: 12px; margin: 0; }
-@media (max-width: 560px) { .today { grid-template-columns: repeat(3, minmax(0, 1fr)); } }
 .today dt { font-size: 12px; color: var(--ink-soft); letter-spacing: .1em; }
 .today dd { margin: 0; font-family: var(--f-num); font-size: 22px; font-weight: 500; font-variant-numeric: tabular-nums; }
 .today dd.in { color: var(--stamp); } .today dd.out { color: var(--stamp-red); }
 .msg { min-height: 1.4em; font-size: 13px; color: var(--ink-soft); }
+/* on a phone all five times still fit on one line, so there is no half-empty second row */
+@media (max-width: 560px) {
+  .clock { padding: 20px 18px; gap: 16px; }
+  .today { gap: 6px; padding-top: 14px; }
+  .today dt { font-size: 11px; letter-spacing: .04em; }
+  .today dd { font-size: 16px; letter-spacing: -.02em; white-space: nowrap; }
+}
+/* an empty message line would only leave a gap at the bottom of the card */
+.clock .msg:empty { display: none; }
+/* no scroll bar sliding in at the right edge while scrolling (the page still scrolls as before) */
+html, body, * { scrollbar-width: none; }
+::-webkit-scrollbar { display: none; width: 0; height: 0; }
 
 /* Bar: tabs + month */
 .bar { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 12px; }
@@ -1003,7 +1015,10 @@ button.pcal-c { cursor: pointer; }
         <div class="date" id="date">—</div>
         <div class="time" id="time">--:--<span class="sec">:--</span></div>
       </div>
-      <span class="pill" id="status" data-s="off">勤務外</span>
+      <div class="clock-side">
+        <span class="pill" id="status" data-s="off">勤務外</span>
+        <button type="button" class="key-sub" id="k-abs">欠勤にする</button>
+      </div>
     </div>
     <div class="keys">
       <button class="key brk" id="k-wake" type="button">起床<small>WAKE</small></button>
@@ -1011,7 +1026,6 @@ button.pcal-c { cursor: pointer; }
       <button class="key in" id="k-in" type="button">出勤<small>IN</small></button>
       <button class="key out" id="k-out" type="button" disabled>退勤<small>OUT</small></button>
     </div>
-    <div class="sub-keys"><button type="button" class="key-sub" id="k-abs">欠勤にする</button></div>
     <dl class="today">
       <div><dt>起床</dt><dd id="t-wake">--:--</dd></div>
       <div><dt>出発</dt><dd id="t-dep">--:--</dd></div>
@@ -1887,7 +1901,8 @@ window.addEventListener("error", function (e) {
   let sameLast = null;
   function setSummary() {
     const b = doc("billing"), ready = !!(b.from && b.bank);
-    if (sameLast === null && backend) sameLast = ready;
+    // the quick copy from the last visit already knows the settings are complete, so the box is ticked from the start
+    if (sameLast === null && (backend || ready)) sameLast = ready;
     const on = !!sameLast && ready;
     $("b-same").checked = on; $("b-same").disabled = !ready;
     $("set-body").hidden = on; $("set-sum").hidden = !on;
