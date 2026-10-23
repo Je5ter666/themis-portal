@@ -497,7 +497,10 @@ legend { font-weight: 700; font-size: 14px; padding: 0 6px; }
 
 /* the member screens sit straight in the page grid; the wrapper only exists to hide them together */
 .member-ui { display: contents; }
-.brand-side { display: flex; align-items: center; gap: 10px; min-width: 0; }
+.brand { flex-wrap: wrap; row-gap: 10px; }
+.brand-side { display: flex; align-items: center; gap: 8px; min-width: 0; flex-wrap: wrap; justify-content: flex-end; margin-left: auto; }
+/* on a phone the name and buttons get their own line under the logo instead of squeezing it */
+@media (max-width: 560px) { .brand-side { width: 100%; } .brand-side .brand-who { margin-right: auto; } .brand-side { gap: 6px; } .brand-side .tool { font-size: 11px; padding: 4px 8px; } }
 .brand-side .tool { font-size: 12px; padding: 4px 10px; white-space: nowrap; }
 
 /* Login: one centred card under the brand line */
@@ -555,6 +558,19 @@ legend { font-weight: 700; font-size: 14px; padding: 0 6px; }
 .ad-temp dl { margin: 0; display: grid; grid-template-columns: max-content 1fr; gap: 4px 14px; align-items: baseline; }
 .ad-temp dt { font-size: 12px; color: var(--ink-soft); }
 .ad-temp dd { margin: 0; font-size: 22px; font-weight: 700; letter-spacing: .08em; }
+.ad-temp dd { display: flex; align-items: center; gap: 10px; }
+.ad-temp dd .tool { font-size: 12px; letter-spacing: 0; font-weight: 500; }
+.ad-copied { color: var(--accent); font-size: 13px; font-weight: 700; min-height: 1.2em; }
+/* 常勤 and 週末 are listed apart: a heading row (in tables) or a heading line (in the 勤怠 list) above each group */
+.ad-table tr.grp td { background: var(--paper); font-weight: 700; font-size: 12px; color: var(--ink); letter-spacing: .06em; }
+.ad-grp { margin: 6px 0 -6px; font-size: 14px; display: flex; align-items: center; gap: 8px; }
+.ad-grp::before { content: ""; width: 4px; height: 1em; border-radius: 2px; background: var(--accent); }
+.no { font-family: var(--f-num); font-weight: 500; color: var(--ink-soft); font-size: .85em; margin-right: 8px; letter-spacing: .04em; }
+.ad-id { display: flex; align-items: center; gap: 6px; font-family: var(--f-num); font-weight: 700; font-size: 14px; letter-spacing: .06em; }
+.ad-sel { font: inherit; font-size: 13px; padding: 4px 6px; border: 1px solid var(--rule); border-radius: 6px; background: var(--paper); color: var(--ink); }
+.tool.danger { color: var(--stamp-red); border-color: color-mix(in srgb, var(--stamp-red) 45%, var(--rule)); }
+.s-work { display: flex; gap: 18px; padding: 4px 0; }
+.s-work .check { font-size: 15px; color: var(--ink); }
 
 /* Depth: cards float a little above the paper, buttons stand up with a solid bottom edge and sink when pressed,
    selected tabs and marks look pushed in; one light source from above, the same in both themes */
@@ -639,7 +655,7 @@ legend { font-weight: 700; font-size: 14px; padding: 0 6px; }
 <div class="wrap">
   <header class="brand">
     <div class="brand-mark"><img class="logo" alt="Themis" src="data:image/png;base64,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"><span class="brand-name">Themis Portal</span></div>
-    <div class="brand-side"><span class="brand-who" id="who"></span><button type="button" class="tool" id="chpass" hidden>パスワード変更</button><button type="button" class="tool" id="logout" hidden>ログアウト</button></div>
+    <div class="brand-side"><span class="brand-who" id="who"></span><button type="button" class="tool" id="adminbtn" hidden>管理画面</button><button type="button" class="tool" id="chpass" hidden>パスワード変更</button><button type="button" class="tool" id="logout" hidden>ログアウト</button></div>
   </header>
 
   <section class="login" id="login" hidden aria-label="ログイン">
@@ -681,6 +697,18 @@ legend { font-weight: 700; font-size: 14px; padding: 0 6px; }
     <div class="msg" id="ad-msg" role="status" aria-live="polite"></div>
     <div class="ad-body" id="ad-body"></div>
   </section>
+  <!-- admin: asks before 仮パスワード / 削除, then shows the result (ID and password, each copyable) in the same box -->
+  <div class="modal-bg" id="ad-dlg" hidden>
+    <div class="modal" role="dialog" aria-modal="true" aria-labelledby="ad-dlg-h">
+      <h3 id="ad-dlg-h"></h3>
+      <div id="ad-dlg-body"></div>
+      <span class="hint perr" id="ad-dlg-err" role="alert"></span>
+      <div class="modal-actions">
+        <button type="button" class="btn" id="ad-dlg-close">やめる</button>
+        <div><button type="button" class="btn primary" id="ad-dlg-ok"></button></div>
+      </div>
+    </div>
+  </div>
 
   <div id="member-ui" class="member-ui" hidden>
   <section class="shifts" aria-label="予定">
@@ -948,6 +976,9 @@ legend { font-weight: 700; font-size: 14px; padding: 0 6px; }
     <label class="f">住所<input id="s-address" type="text" autocomplete="off" maxlength="100" placeholder="東京都新宿区西新宿1-2-3"></label>
     <label class="f">建物名・部屋番号（任意）<input id="s-building" type="text" autocomplete="off" maxlength="60" placeholder="〇〇マンション 101"></label>
     <label class="f">電話番号<input id="s-tel" type="tel" inputmode="tel" autocomplete="off" maxlength="15" placeholder="090-1234-5678"></label>
+    <div class="f" role="radiogroup" aria-labelledby="s-work-h"><span id="s-work-h">勤務形態</span>
+      <div class="s-work"><label class="check"><input type="radio" name="s-work" value="常勤"> 常勤</label><label class="check"><input type="radio" name="s-work" value="週末"> 週末</label></div>
+      <span class="hint">常勤の人は、シフト希望の提出はありません。</span></div>
     <span class="hint perr" id="s-err" role="alert"></span>
     <div class="modal-actions">
       <span></span>
@@ -1327,6 +1358,12 @@ window.addEventListener("error", function (e) {
   }
   $("tab-card").onclick = () => setTab("card");
   $("tab-hope").onclick = () => setTab("hope");
+  // 常勤 staff hand in no shift wishes, so they never see that tab
+  function applyWork() {
+    const full = window.TC_WORK === "常勤";
+    $("tab-hope").hidden = full;
+    if (full && tab === "hope") setTab("card");
+  }
   $("tab-inv").onclick = () => setTab("inv");
 
   let view = new Date(); view = new Date(view.getFullYear(), view.getMonth(), 1);
@@ -2379,6 +2416,7 @@ ${v.addr}`;
     splitOldBilling(b);
     $("s-from").value = b.from || window.TC_NAME || "";
     for (const k of ADDR) $("s-" + k).value = b[k] || "";
+    for (const r of document.getElementsByName("s-work")) r.checked = r.value === window.TC_WORK;
     $("s-err").textContent = "";
     $("setup-sheet").hidden = false;
     focusIfMouse($("s-from"));
@@ -2390,6 +2428,15 @@ ${v.addr}`;
     if (!from) { $("s-err").textContent = "氏名・屋号を入力してください。"; $("s-from").focus(); return; }
     if (!val("address")) { $("s-err").textContent = "住所を入力してください。"; $("s-address").focus(); return; }
     if (!val("tel")) { $("s-err").textContent = "電話番号を入力してください。"; $("s-tel").focus(); return; }
+    const work = [...document.getElementsByName("s-work")].find((r) => r.checked)?.value;
+    if (!work) { $("s-err").textContent = "勤務形態（常勤か週末か）を選んでください。"; return; }
+    if (work !== window.TC_WORK) {
+      const btn = e.submitter || $("setup-form").querySelector("[type=submit]");
+      btn.disabled = true; $("s-err").textContent = "保存しています…";
+      try { await call("api_setWorkType", work); window.TC_WORK = work; applyWork(); $("s-err").textContent = ""; }
+      catch (err) { $("s-err").textContent = errText(err); return; }
+      finally { btn.disabled = false; }
+    }
     const b = doc("billing"); b.from = from;
     for (const k of ADDR) b[k] = val(k);
     b.tel = b.tel.normalize("NFKC").replace(/[^\d-]/g, "");
@@ -2560,7 +2607,7 @@ ${v.addr}`;
   function showLogin(note) {
     mode = "login";
     for (const m of document.querySelectorAll(".modal-bg")) m.hidden = true;
-    $("member-ui").hidden = true; $("admin").hidden = true; $("logout").hidden = true; $("chpass").hidden = true;
+    $("member-ui").hidden = true; $("admin").hidden = true; $("logout").hidden = true; $("chpass").hidden = true; $("adminbtn").hidden = true;
     $("login").hidden = false; $("who").textContent = "";
     loginStep("login");
     $("l-msg").textContent = note || "";
@@ -2580,9 +2627,23 @@ ${v.addr}`;
     window.TC_NAME = me.name;
     if (me.mustChange) { showLogin(); loginStep("first"); $("logout").hidden = false; return; }
     $("login").hidden = true; $("logout").hidden = false; $("chpass").hidden = false;
-    if (me.admin) { mode = "admin"; $("admin").hidden = false; $("who").textContent = `${me.name}（管理者）`; startAdmin(); }
-    else { mode = "member"; $("member-ui").hidden = false; startMember(); }
+    // admins use the normal site too; the header button switches to the admin screen and back
+    window.TC_WORK = me.workType || "";
+    mode = "member"; $("member-ui").hidden = false; startMember();
+    if (me.admin) { $("adminbtn").hidden = false; $("who").textContent = `${me.name}（管理者）`; }
   }
+  let adStarted = false;
+  $("adminbtn").onclick = () => {
+    const toAdmin = mode === "member";
+    // the admin screen opens only once the person's own first steps (はじめに・契約) are done
+    if (toAdmin && (!backend || needsSetup())) return;
+    mode = toAdmin ? "admin" : "member";
+    $("admin").hidden = !toAdmin; $("member-ui").hidden = toAdmin;
+    $("adminbtn").textContent = toAdmin ? "通常画面" : "管理画面";
+    window.scrollTo(0, 0);
+    if (toAdmin) { if (!adStarted) { adStarted = true; startAdmin(); } else adLoad(); }
+    else render();
+  };
   // after a session ran out mid-use, a fresh page is the only safe way to switch person (no records left in memory)
   function signedIn(json) {
     const r = JSON.parse(json);
@@ -2681,8 +2742,15 @@ ${v.addr}`;
     return late ? { k: "late", t: "未出勤" } : { k: "plan", t: "予定" };
   };
 
+  // 常勤 and 週末 are always listed apart, each numbered from 001 so the head count is plain to see
+  const WORK_GROUPS = ["常勤", "週末", ""];
+  const groupName = (t) => t || "勤務形態が未回答";
+  const byWork = (list, key = (x) => x) => WORK_GROUPS.map((t) => [t, list.filter((x) => (key(x).workType || "") === t)]).filter(([, l]) => l.length);
+  const numName = (i, name) => `<span class="no">${String(i + 1).padStart(3, "0")}</span>${esc(name)}`;
+  const grpRow = (t, n, cols) => `<tr class="grp"><td colspan="${cols}">${esc(groupName(t))}（${n}人）</td></tr>`;
+
   function adToday() {
-    const today = adData.today, live = adData.members.filter((m) => m.active && !m.admin);
+    const today = adData.today, live = adData.members.filter((m) => m.active);
     const rec = Object.fromEntries(adRows((r) => r[DH.date] === today).map((r) => [r[DH.name], r]));
     const list = live.map((m) => ({ m, r: rec[m.name], s: statusOf(rec[m.name]) }));
     const order = { late: 0, wake: 1, move: 2, work: 3, plan: 4, done: 5, abs: 6, none: 7 };
@@ -2695,21 +2763,23 @@ ${v.addr}`;
       [["予定", list.length - count("none")], ["勤務中", count("work")], ["退勤済み", count("done")], ["移動中・起床済み", count("move") + count("wake")], ["未出勤", count("late")], ["欠勤", count("abs")]]
         .map(([t, n], i) => `<div class="ad-stat${i === 4 && n ? " warn" : ""}"><span>${t}</span><b class="num">${n}</b></div>`).join("") +
       `</div><div class="ad-scroll"><table class="ad-table"><thead><tr><th>氏名</th><th>状態</th><th>店舗</th><th>予定</th><th>起床</th><th>出発</th><th>出勤</th><th>退勤</th></tr></thead><tbody>` +
-      list.map(({ m, r, s }) => `<tr class="${s.k === "none" ? "dim" : ""}"><td class="nm">${esc(m.name)}</td><td><span class="st st-${s.k}">${s.t}</span></td>` +
-        `<td>${esc(r?.[DH.store] || "")}</td><td class="num">${r?.[DH.pIn] ? esc(`${r[DH.pIn]}–${r[DH.pOut]}`) : ""}</td>` +
-        [DH.wake, DH.dep, DH.in, DH.out].map((i) => `<td class="num">${esc(r?.[i] || "")}</td>`).join("") + `</tr>`).join("") +
+      byWork(list, (x) => x.m).map(([t, g]) => grpRow(t, g.length, 8) +
+        g.map(({ m, r, s }, i) => `<tr class="${s.k === "none" ? "dim" : ""}"><td class="nm">${numName(i, m.name)}</td><td><span class="st st-${s.k}">${s.t}</span></td>` +
+          `<td>${esc(r?.[DH.store] || "")}</td><td class="num">${r?.[DH.pIn] ? esc(`${r[DH.pIn]}–${r[DH.pOut]}`) : ""}</td>` +
+          [DH.wake, DH.dep, DH.in, DH.out].map((k) => `<td class="num">${esc(r?.[k] || "")}</td>`).join("") + `</tr>`).join("")).join("") +
       `</tbody></table></div>`;
   }
 
   function adWork() {
-    const ym = adMonth.work, live = adData.members.filter((m) => !m.admin);
+    const ym = adMonth.work, live = adData.members.filter((m) => m.active || adData.days.some((r) => r[DH.name] === m.name && r[DH.date].slice(0, 7) === ym));
     const rows = adRows((r) => r[DH.date].slice(0, 7) === ym);
-    $("ad-body").innerHTML = `<p class="hint">名前を押すと、その月の日ごとの記録が開きます。</p>` + live.map((m) => {
+    $("ad-body").innerHTML = `<p class="hint">名前を押すと、その月の日ごとの記録が開きます。</p>` + byWork(live).map(([t, g]) =>
+      `<h3 class="ad-grp">${esc(groupName(t))}（${g.length}人）</h3>` + g.map((m, i) => {
       const mine = rows.filter((r) => r[DH.name] === m.name).sort((a, b) => a[DH.date].localeCompare(b[DH.date]));
       const worked = mine.filter((r) => r[DH.kind] === "打刻あり"), abs = mine.filter((r) => r[DH.kind] === "欠勤").length;
       const total = worked.reduce((s, r) => s + minOf(r[DH.work]), 0), km = mine.reduce((s, r) => s + (Number(r[DH.km]) || 0), 0);
       const early = mine.filter((r) => r[DH.early]).length;
-      return `<details class="ad-person"><summary><span class="nm">${esc(m.name)}</span>` +
+      return `<details class="ad-person"><summary><span class="nm">${numName(i, m.name)}</span>` +
         `<span>出勤 <b class="num">${worked.length}</b>日</span><span>実働 <b class="num">${dur(total)}</b></span>` +
         `<span>欠勤 <b class="num">${abs}</b></span><span>早退 <b class="num">${early}</b></span><span>距離 <b class="num">${Math.round(km * 10) / 10}</b>km</span></summary>` +
         (mine.length ? `<div class="ad-scroll"><table class="ad-table"><thead><tr><th>日付</th><th>区分</th><th>店舗</th><th>予定</th><th>出勤</th><th>退勤</th><th>実働</th><th>交通</th><th>km</th><th>画像</th><th>メモ・理由</th></tr></thead><tbody>` +
@@ -2721,12 +2791,13 @@ ${v.addr}`;
               `<td>${r[DH.imgs] ? r[DH.imgs].split("\n").map((u, i) => link(u, `画像${i + 1}`)).join(" ") : ""}</td>` +
               `<td>${esc([r[DH.absWhy], r[DH.earlyWhy], r[DH.result], r[DH.memo]].filter(Boolean).join(" / "))}</td></tr>`;
           }).join("") + `</tbody></table></div>` : `<p class="hint pad">この月の記録はありません。</p>`) + `</details>`;
-    }).join("");
+    }).join("")).join("");
   }
 
   function adHope() {
     const ym = adMonth.hope, [y, mo] = ym.split("-").map(Number), n = new Date(y, mo, 0).getDate();
-    const live = adData.members.filter((m) => m.active && !m.admin);
+    // 常勤 staff hand in no wishes, so only 週末 (and anyone who has not said yet) are counted here
+    const live = adData.members.filter((m) => m.active && m.workType !== "常勤");
     const byName = Object.fromEntries(adData.hopes.map((r) => [r[0], r]));
     const days = Array.from({ length: n }, (_, i) => new Date(y, mo - 1, i + 1));
     const sent = live.filter((m) => byName[m.name]).length;
@@ -2734,33 +2805,33 @@ ${v.addr}`;
     $("ad-body").innerHTML =
       `<div class="ad-stats"><div class="ad-stat"><span>提出済み</span><b class="num">${sent} / ${live.length}</b></div>` +
       `<div class="ad-stat${live.length - sent ? " warn" : ""}"><span>未提出</span><b class="num">${live.length - sent}</b></div></div>` +
-      `<p class="hint">○ 稼働できる　<b class="far-tag">遠</b> 遠方も可　△ 要相談　空欄は稼働不可。いちばん下の行は、その日に○の人数です。</p>` +
+      `<p class="hint">○ 稼働できる　<b class="far-tag">遠</b> 遠方も可　△ 要相談　空欄は稼働不可。いちばん下の行は、その日に○の人数です。常勤の人はシフト希望がないので、ここには出ません。</p>` +
       `<div class="ad-scroll"><table class="ad-table ad-grid"><thead><tr><th class="nm">氏名</th><th>○</th><th>△</th>` +
       days.map((d) => `<th class="wd-${d.getDay()}${holidayName(dayKey(d)) ? " hol" : ""}">${d.getDate()}<small>${WD[d.getDay()]}</small></th>`).join("") + `</tr></thead><tbody>` +
-      live.map((m) => {
+      byWork(live).map(([t, g]) => grpRow(t, g.length, n + 3) + g.map((m, j) => {
         const r = byName[m.name];
-        if (!r) return `<tr class="dim"><td class="nm">${esc(m.name)}</td><td colspan="${n + 2}">未提出</td></tr>`;
-        return `<tr><td class="nm" title="提出 ${esc(r[2])}">${esc(m.name)}</td><td class="num">${esc(r[3])}</td><td class="num">${esc(r[5])}</td>` +
+        if (!r) return `<tr class="dim"><td class="nm">${numName(j, m.name)}</td><td colspan="${n + 2}">未提出</td></tr>`;
+        return `<tr><td class="nm" title="提出 ${esc(r[2])}">${numName(j, m.name)}</td><td class="num">${esc(r[3])}</td><td class="num">${esc(r[5])}</td>` +
           days.map((d, i) => { const v = r[6 + i] || ""; return `<td class="mk ${v === "△" ? "v-maybe" : v ? "v-ok" : ""}">${v === "○遠方可" ? `○<b class="far-tag">遠</b>` : esc(v)}</td>`; }).join("") + `</tr>`;
-      }).join("") +
+      }).join("")).join("") +
       `<tr class="sum"><td class="nm">○の人数</td><td></td><td></td>${perDay.map((c) => `<td class="num">${c || ""}</td>`).join("")}</tr></tbody></table></div>`;
   }
 
   function adInv() {
     const ym = adMonth.inv, byName = Object.fromEntries(adData.invs.map((r) => [r[0], r]));
-    const live = adData.members.filter((m) => !m.admin && (m.active || byName[m.name]));
+    const live = adData.members.filter((m) => m.active || byName[m.name]);
     const sentTotal = adData.invs.filter((r) => r[4] !== "下書き").reduce((s, r) => s + (Number(r[3]) || 0), 0);
     const cnt = (s) => adData.invs.filter((r) => r[4] === s).length;
     $("ad-body").innerHTML =
       `<div class="ad-stats"><div class="ad-stat"><span>提出済み</span><b class="num">${cnt("提出済み")}</b></div><div class="ad-stat"><span>入金済み</span><b class="num">${cnt("入金済み")}</b></div>` +
       `<div class="ad-stat"><span>未提出</span><b class="num">${live.length - cnt("提出済み") - cnt("入金済み")}</b></div><div class="ad-stat"><span>請求の合計</span><b class="num">${adYen(sentTotal)}</b></div></div>` +
       `<div class="ad-scroll"><table class="ad-table"><thead><tr><th>氏名</th><th>状態</th><th>請求番号</th><th class="r">ご請求金額</th><th>提出日</th><th>入金日</th><th>PDF</th><th></th></tr></thead><tbody>` +
-      live.map((m) => {
+      byWork(live).map(([t, g]) => grpRow(t, g.length, 8) + g.map((m, i) => {
         const r = byName[m.name], st = r ? r[4] : "未作成", done = st === "提出済み" || st === "入金済み";
-        return `<tr class="${done ? "" : "dim"}"><td class="nm">${esc(m.name)}</td><td><span class="st st-${{ 提出済み: "work", 入金済み: "done" }[st] || "none"}">${esc(st === "下書き" ? "未提出" : st)}</span></td>` +
+        return `<tr class="${done ? "" : "dim"}"><td class="nm">${numName(i, m.name)}</td><td><span class="st st-${{ 提出済み: "work", 入金済み: "done" }[st] || "none"}">${esc(st === "下書き" ? "未提出" : st)}</span></td>` +
           `<td class="num">${done ? esc(r[2]) : ""}</td><td class="num r">${done ? adYen(r[3]) : ""}</td><td class="num">${done ? esc(r[5]) : ""}</td><td class="num">${esc(r?.[6] || "")}</td>` +
           `<td>${done ? link(r[7], "開く") : ""}</td><td>${st === "提出済み" ? `<button type="button" class="tool" data-paid="${esc(m.id)}">入金済みにする</button>` : st === "入金済み" ? `<button type="button" class="tool" data-unpaid="${esc(m.id)}">入金を取り消す</button>` : ""}</td></tr>`;
-      }).join("") + `</tbody></table></div>`;
+      }).join("")).join("") + `</tbody></table></div>`;
     for (const b of $("ad-body").querySelectorAll("[data-paid],[data-unpaid]")) b.onclick = () => busyBtn(b, async () => {
       const paid = b.hasAttribute("data-paid");
       try { await call("api_adminSetPaid", b.dataset.paid || b.dataset.unpaid, ym, paid); adMsg(paid ? "入金済みにしました。" : "入金を取り消しました。"); await adLoad(true); }
@@ -2768,61 +2839,103 @@ ${v.addr}`;
     });
   }
 
+  // the clipboard API is blocked inside the Apps Script frame, so fall back to selecting a hidden copy
+  async function copyText(t) {
+    try { await navigator.clipboard.writeText(t); return true; } catch (e) {}
+    const ta = document.createElement("textarea");
+    ta.value = t; ta.setAttribute("readonly", ""); ta.style.cssText = "position:fixed;top:0;left:0;opacity:0";
+    $("ad-dlg").hidden ? document.body.appendChild(ta) : $("ad-dlg-body").appendChild(ta);
+    ta.select(); ta.setSelectionRange(0, t.length);
+    let ok = false;
+    try { ok = document.execCommand("copy"); } catch (e) {}
+    ta.remove();
+    return ok;
+  }
+  // one box for every admin action that needs a second look: it asks first, then shows what happened
+  function adDialog(title, body, okText, run) {
+    $("ad-dlg-h").textContent = title; $("ad-dlg-body").innerHTML = body; $("ad-dlg-err").textContent = "";
+    $("ad-dlg-ok").textContent = okText; $("ad-dlg-ok").hidden = false; $("ad-dlg-ok").className = `btn ${/削除/.test(okText) ? "danger armed" : "primary"}`;
+    $("ad-dlg-close").textContent = "やめる";
+    $("ad-dlg").hidden = false;
+    $("ad-dlg-ok").onclick = () => busyBtn($("ad-dlg-ok"), async () => {
+      $("ad-dlg-err").textContent = "処理しています…";
+      try { await run(); $("ad-dlg-err").textContent = ""; }
+      catch (err) { $("ad-dlg-err").textContent = errText(err); }
+    });
+  }
+  $("ad-dlg-close").onclick = () => { $("ad-dlg").hidden = true; };
+  // the new ID and 仮パスワード, each with its own copy button; shown only this once
+  function showCreds(name, r) {
+    const appUrl = adData.appUrl || "";
+    $("ad-dlg-h").textContent = `${name}さんのログイン情報`;
+    $("ad-dlg-body").innerHTML = `<div class="ad-temp"><dl>` +
+      `<dt>ログインID</dt><dd class="num">${esc(r.loginId)}<button type="button" class="tool" data-copy="${esc(r.loginId)}">コピー</button></dd>` +
+      `<dt>仮パスワード</dt><dd class="num">${esc(r.temp)}<button type="button" class="tool" data-copy="${esc(r.temp)}">コピー</button></dd></dl>` +
+      `<div class="ad-acts"><button type="button" class="tool" id="ad-copy-all">まとめてコピー（本人に送る文）</button></div>` +
+      `<span class="ad-copied" id="ad-copied" role="status"></span>` +
+      `<p class="hint">仮パスワードは7日間有効です。最初のログインで、本人が自分のパスワードを決めます。この画面を閉じると、仮パスワードはもう表示できません。</p></div>`;
+    $("ad-dlg-err").textContent = ""; $("ad-dlg-ok").hidden = true; $("ad-dlg-close").textContent = "閉じる";
+    $("ad-dlg").hidden = false;
+    const text = `${name}さんのThemis Portalのログイン情報\n${appUrl ? `アプリ：${appUrl}\n` : ""}ログインID：${r.loginId}\n仮パスワード：${r.temp}\n（7日間有効。最初のログインで、新しいパスワードを決めてください）`;
+    const done = async (t, what) => { $("ad-copied").textContent = (await copyText(t)) ? `${what}をコピーしました` : "コピーできませんでした。文字を長押しして選んでください。"; };
+    for (const b of $("ad-dlg-body").querySelectorAll("[data-copy]")) b.onclick = () => done(b.dataset.copy, b.closest("dd").previousElementSibling.textContent);
+    $("ad-copy-all").onclick = () => done(text, "ログイン情報");
+  }
+
   function adMembers() {
-    const list = adData.members;
+    const list = adData.members, workSel = (v, attr) => `<select class="ad-sel" ${attr}>` +
+      [["", "未回答"], ["常勤", "常勤"], ["週末", "週末"]].map(([k, t]) => `<option value="${k}"${k === (v || "") ? " selected" : ""}>${t}</option>`).join("") + `</select>`;
     $("ad-body").innerHTML =
-      `<div class="ad-temp" id="ad-temp" hidden></div>` +
       `<form class="ad-add" id="ad-add" novalidate><b>メンバーを追加</b>` +
-      `<label class="f">氏名<input id="ad-name" autocomplete="off"></label><label class="f">ログインID（半角英小文字・数字）<input id="ad-login" autocomplete="off" autocapitalize="none" spellcheck="false"></label>` +
+      `<label class="f">氏名<input id="ad-name" autocomplete="off"></label>` +
+      `<label class="f">勤務形態${workSel("", 'id="ad-work"')}</label>` +
       `<label class="check"><input type="checkbox" id="ad-admin">管理者</label><button type="submit" class="btn primary" id="ad-add-btn">追加</button>` +
-      `<p class="hint">追加すると仮パスワードが出ます。アプリのURL・ログインID・仮パスワードを本人に伝えてください。最初のログインで、本人が自分のパスワードを決めます。</p></form>` +
-      `<div class="ad-scroll"><table class="ad-table"><thead><tr><th>氏名</th><th>ログインID</th><th>役割</th><th>契約</th><th>状態</th><th></th></tr></thead><tbody>` +
-      list.map((m) => `<tr class="${m.active ? "" : "dim"}" data-id="${esc(m.id)}" data-name="${esc(m.name)}"><td class="nm">${esc(m.name)}</td>` +
-        `<td><input class="ad-in" value="${esc(m.loginId)}" data-k="loginId" autocapitalize="none" spellcheck="false" aria-label="${esc(m.name)}のログインID"></td>` +
+      `<p class="hint">ログインIDと仮パスワードは自動で作られます。追加したあとに出る画面からコピーして、本人に伝えてください。</p></form>` +
+      `<div class="ad-scroll"><table class="ad-table"><thead><tr><th class="nm">氏名</th><th>ログインID</th><th>勤務形態</th><th>役割</th><th>契約</th><th>状態</th><th></th></tr></thead><tbody>` +
+      byWork(list).map(([t, g]) => grpRow(t, g.length, 7) + g.map((m, i) =>
+        `<tr class="${m.active ? "" : "dim"}" data-id="${esc(m.id)}" data-name="${esc(m.name)}"><td class="nm">${numName(i, m.name)}</td>` +
+        `<td><span class="ad-id">${esc(m.loginId || "—")}${m.loginId ? `<button type="button" class="tool" data-copyid="${esc(m.loginId)}">コピー</button>` : ""}</span></td>` +
+        `<td>${workSel(m.workType, 'data-k="workType"')}</td>` +
         `<td><label class="check"><input type="checkbox" data-k="admin"${m.admin ? " checked" : ""}>管理者</label></td>` +
-        `<td>${m.contractUrl ? link(m.contractUrl, m.contract.split("（")[0] || "契約書") : m.admin ? "—" : `<span class="st st-late">未締結</span>`}</td>` +
+        `<td>${m.contractUrl ? link(m.contractUrl, m.contract.split("（")[0] || "契約書") : `<span class="st st-late">未締結</span>`}</td>` +
         `<td><label class="check"><input type="checkbox" data-k="active"${m.active ? " checked" : ""}>有効</label></td>` +
-        `<td class="ad-acts"><button type="button" class="tool" data-save>保存</button><button type="button" class="tool" data-temp>仮パスワード</button></td></tr>`).join("") + `</tbody></table></div>`;
-    // a 仮パスワード is shown once, here, to pass on to the person
-    const showTemp = (name, r) => {
-      const box = $("ad-temp");
-      box.innerHTML = `<b>${esc(name)}さんの仮パスワード</b><dl><dt>ログインID</dt><dd class="num">${esc(r.loginId)}</dd><dt>仮パスワード</dt><dd class="num">${esc(r.temp)}</dd></dl>` +
-        `<div class="ad-acts"><button type="button" class="tool" id="ad-copy">ログイン情報をコピー</button><span class="hint" id="ad-copied"></span></div>` +
-        `<p class="hint">本人に伝えてください（7日間有効）。この表示を閉じたり画面を移ったりすると、もう表示できません。</p>`;
-      box.hidden = false; box.scrollIntoView({ block: "nearest" });
-      const text = `${name}さんのログイン情報\nログインID：${r.loginId}\n仮パスワード：${r.temp}\n（7日間有効。最初のログインで、新しいパスワードを決めてください）`;
-      $("ad-copy").onclick = async () => {
-        try { await navigator.clipboard.writeText(text); $("ad-copied").textContent = "コピーしました"; }
-        catch (e) { $("ad-copied").textContent = "コピーできませんでした。文字を長押しして選んでください。"; }
-      };
-    };
+        `<td class="ad-acts"><button type="button" class="tool" data-save>保存</button><button type="button" class="tool" data-temp>仮パスワード</button>` +
+        `<button type="button" class="tool danger" data-del>削除</button></td></tr>`).join("")).join("") + `</tbody></table></div>`;
     $("ad-add").addEventListener("submit", (e) => {
       e.preventDefault();
       const name = $("ad-name").value.trim();
+      if (!name) { adMsg("氏名を入れてください。"); $("ad-name").focus(); return; }
       busyBtn($("ad-add-btn"), async () => {
+        adMsg("追加しています…");
         try {
-          const r = JSON.parse(await call("api_adminSaveMember", { name, loginId: $("ad-login").value, admin: $("ad-admin").checked }));
-          await adLoad(true); adMsg(`${name}さんを追加しました。`); showTemp(name, r);
+          const r = JSON.parse(await call("api_adminSaveMember", { name, workType: $("ad-work").value, admin: $("ad-admin").checked }));
+          await adLoad(true); adMsg(`${name}さんを追加しました。`); showCreds(name, r);
         } catch (err) { adMsg(errText(err)); }
       });
     });
+    for (const b of $("ad-body").querySelectorAll("[data-copyid]")) b.onclick = async () => {
+      const ok = await copyText(b.dataset.copyid);
+      b.textContent = ok ? "コピー済み" : "失敗"; setTimeout(() => { b.textContent = "コピー"; }, 1500);
+    };
     for (const b of $("ad-body").querySelectorAll("[data-save]")) b.onclick = () => {
       const tr = b.closest("tr"), v = (k) => tr.querySelector(`[data-k="${k}"]`);
       busyBtn(b, async () => {
+        adMsg("保存しています…");
         try {
-          await call("api_adminSaveMember", { id: tr.dataset.id, loginId: v("loginId").value, admin: v("admin").checked, active: v("active").checked });
-          adMsg("保存しました。"); await adLoad(true);
+          await call("api_adminSaveMember", { id: tr.dataset.id, workType: v("workType").value, admin: v("admin").checked, active: v("active").checked });
+          await adLoad(true); adMsg(`${tr.dataset.name}さんを保存しました。`);
         } catch (err) { adMsg(errText(err)); }
       });
     };
     for (const b of $("ad-body").querySelectorAll("[data-temp]")) b.onclick = () => {
-      const tr = b.closest("tr");
-      if (b.dataset.armed !== "1") { b.dataset.armed = "1"; b.textContent = "もう一度押して発行"; setTimeout(() => { b.dataset.armed = ""; b.textContent = "仮パスワード"; }, 4000); return; }
-      busyBtn(b, async () => {
-        try { showTemp(tr.dataset.name, JSON.parse(await call("api_adminIssueTemp", tr.dataset.id))); adMsg(""); }
-        catch (err) { adMsg(errText(err)); }
-        b.dataset.armed = ""; b.textContent = "仮パスワード";
-      });
+      const tr = b.closest("tr"), name = tr.dataset.name;
+      adDialog(`${name}さんの仮パスワード`, `<p>${esc(name)}さんに新しい仮パスワードを発行します。<br>いまのパスワードは使えなくなり、${esc(name)}さんはすべての端末でログアウトされます。</p>`,
+        "発行する", async () => showCreds(name, JSON.parse(await call("api_adminIssueTemp", tr.dataset.id))));
+    };
+    for (const b of $("ad-body").querySelectorAll("[data-del]")) b.onclick = () => {
+      const tr = b.closest("tr"), name = tr.dataset.name;
+      adDialog(`${name}さんを削除`, `<p>${esc(name)}さんをメンバーから削除します。ログインできなくなります。<br>これまでの勤怠・請求書の記録はシートに残ります。</p>`,
+        "削除する", async () => { await call("api_adminDeleteMember", tr.dataset.id); $("ad-dlg").hidden = true; await adLoad(true); adMsg(`${name}さんを削除しました。`); });
     };
   }
   // ---- signed-in start ----
@@ -2844,11 +2957,15 @@ ${v.addr}`;
     if (next !== cur) await b.load(["m-" + next]);
     backend = b;
     $("where").textContent = `${window.TC_NAME || ""}さんの記録です。記録と画像はThemisの勤怠シートに保存され、Themisの担当者が確認できます。`;
-    watchView();
+    watchView(); applyWork();
     fillForms(true); render();
-    // first the name and address, then the contract; both are asked once and block the app until done
-    if (!doc("billing").from || !doc("billing").addr) openSetup();
-    else if (!doc("contract").signedAt) openContract();
+    needsSetup();
+  }
+  // first the name, address and 勤務形態, then the contract; both block the app (admins too) until done
+  function needsSetup() {
+    if (!doc("billing").from || !doc("billing").addr || !window.TC_WORK) { openSetup(); return true; }
+    if (!doc("contract").signedAt) { openContract(); return true; }
+    return false;
   }
 })();
 </script>
