@@ -92,7 +92,6 @@ body {
 .num { font-family: var(--f-num); font-variant-numeric: tabular-nums; }
 /* every place that uses the number face gets even-width digits, so times and amounts line up */
 .time, .today dd, .totals b, .day .dn, .day .tm, .day .plan, .work-now, .hours b, .f select.tsel, .f input[type="number"], .f input[type="date"], .extra input[type="number"] { font-variant-numeric: tabular-nums; }
-.time { letter-spacing: -.03em; font-weight: 600; }
 button { font: inherit; color: inherit; cursor: pointer; }
 button:focus-visible, input:focus-visible, select:focus-visible, textarea:focus-visible, tr:focus-visible { outline: 2px solid var(--stamp); outline-offset: 2px; }
 
@@ -100,10 +99,10 @@ button:focus-visible, input:focus-visible, select:focus-visible, textarea:focus-
 .clock { background: var(--card); border: 1px solid var(--rule); border-radius: 14px; padding: 24px; display: grid; gap: 20px; }
 .clock-top { display: flex; flex-wrap: wrap; justify-content: space-between; align-items: flex-end; gap: 12px; }
 .date { color: var(--ink-soft); font-size: 15px; letter-spacing: .04em; }
-.time { font-family: var(--f-num); font-size: clamp(48px, 13vw, 84px); font-weight: 500; line-height: 1; letter-spacing: -.02em; font-variant-numeric: tabular-nums; }
+.time { font-family: var(--f-num); font-size: clamp(48px, 13vw, 84px); font-weight: 400; line-height: 1; letter-spacing: -.01em; font-variant-numeric: tabular-nums; }
 /* the seconds share the class name with the sheet's section headings; keep their rule off the clock */
 .time .sec { font-size: .42em; color: var(--ink-soft); margin: 0 0 0 .05em; border-top: 0; padding-top: 0; letter-spacing: 0; }
-.pill { display: inline-flex; align-items: center; gap: 8px; padding: 6px 14px; border-radius: 999px; border: 1.5px solid currentColor; font-weight: 700; font-size: 14px; letter-spacing: .08em; }
+.pill { display: inline-flex; align-items: center; gap: 8px; padding: 4px 12px; border-radius: 999px; border: 1px solid currentColor; font-weight: 700; font-size: 13px; letter-spacing: .08em; }
 .pill::before { content: ""; width: 8px; height: 8px; border-radius: 50%; background: currentColor; }
 .pill[data-s="off"], .pill[data-s="draft"] { color: var(--ink-soft); }
 .pill[data-s="work"], .pill[data-s="submitted"] { color: var(--stamp); }
@@ -155,12 +154,10 @@ button:focus-visible, input:focus-visible, select:focus-visible, textarea:focus-
 /* 欠勤にする sits under the status, beside the clock, instead of on a row of its own */
 .clock-side { display: flex; flex-direction: column; align-items: flex-end; gap: 8px; }
 .key-sub { border: 1px solid var(--stamp-red); color: var(--stamp-red); background: transparent; border-radius: 8px; padding: 6px 14px; font-size: 13px; font-weight: 500; }
-.key-sub.armed { background: var(--stamp-red); color: var(--card); }
 .key-sub:disabled { opacity: .38; cursor: not-allowed; }
 .pill[data-s="absent"] { color: var(--stamp-red); }
-.key { border: 1.5px solid var(--rule); background: var(--paper); border-radius: 10px; padding: 14px 8px; display: grid; gap: 2px; justify-items: center; font-weight: 700; font-size: 17px; letter-spacing: .1em; transition: transform .08s, background .15s; }
+.key { border: 1.5px solid var(--rule); background: var(--paper); border-radius: 10px; padding: 14px 8px; display: grid; gap: 2px; justify-items: center; font-weight: 700; font-size: 17px; letter-spacing: .1em; }
 .key small { font-size: 11px; font-weight: 500; letter-spacing: .12em; color: var(--ink-soft); font-family: var(--f-num); }
-.key:not(:disabled):active { transform: translateY(1px); }
 .key:disabled { opacity: .38; cursor: not-allowed; }
 .key.in:not(:disabled) { border-color: var(--stamp); color: var(--stamp); }
 .key.out:not(:disabled) { border-color: var(--stamp-red); color: var(--stamp-red); }
@@ -187,8 +184,8 @@ html, body, * { scrollbar-width: none; }
 
 /* Bar: tabs + month */
 .bar { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 12px; }
-.tabs { display: inline-flex; background: var(--card); border: 1px solid var(--rule); border-radius: 10px; padding: 3px; }
-.tabs button { border: 0; background: transparent; padding: 7px 16px; border-radius: 7px; font-size: 14px; font-weight: 500; color: var(--ink-soft); }
+.tabs { display: inline-flex; background: var(--card); border: 1px solid var(--rule); border-radius: 999px; padding: 4px; }
+.tabs button { border: 0; background: transparent; padding: 6px 18px; border-radius: 999px; font-size: 14px; font-weight: 500; color: var(--ink-soft); }
 .tabs button[aria-selected="true"] { background: var(--ink); color: var(--card); }
 .month-nav { display: flex; align-items: center; gap: 6px; }
 .month-nav b { font-size: 15px; min-width: 7.5em; text-align: center; font-variant-numeric: tabular-nums; }
@@ -201,19 +198,6 @@ html, body, * { scrollbar-width: none; }
 /* Ledger */
 .totals { display: flex; flex-wrap: wrap; gap: 8px 28px; font-size: 13px; color: var(--ink-soft); }
 .totals b { font-family: var(--f-num); font-size: 18px; color: var(--ink); font-weight: 600; margin-left: 6px; font-variant-numeric: tabular-nums; }
-.table-box { overflow-x: auto; background: var(--card); border: 1px solid var(--rule); border-radius: 12px; }
-.ledger { width: 100%; border-collapse: collapse; min-width: 880px; }
-.ledger td.txt { white-space: normal; min-width: 8em; }
-.ledger th, .ledger td { padding: 7px 12px; text-align: left; border-bottom: 1px solid var(--rule); white-space: nowrap; }
-.ledger th { font-size: 11px; letter-spacing: .12em; color: var(--ink-soft); font-weight: 500; }
-.ledger td.n { font-family: var(--f-num); font-variant-numeric: tabular-nums; }
-.ledger td.in { color: var(--stamp); } .ledger td.out { color: var(--stamp-red); }
-.ledger td.dim { color: var(--rule); }
-.ledger td.memo { white-space: normal; color: var(--ink-soft); font-size: 13px; min-width: 120px; }
-.ledger tr:last-child td { border-bottom: 0; }
-.ledger tbody tr { cursor: pointer; }
-.ledger tbody tr:hover td { background: var(--paper); }
-.ledger tr.is-today td { background: var(--today); }
 .wd-6 .d { color: var(--sat); } .wd-0 .d { color: var(--sun); }
 .d { font-family: var(--f-num); }
 .live { font-size: 10px; letter-spacing: .1em; color: var(--stamp); border: 1px solid currentColor; border-radius: 4px; padding: 0 4px; margin-left: 6px; font-family: var(--f-body); }
@@ -229,7 +213,6 @@ button.day:hover { background: var(--paper); }
 .day.wd-0, .day.wd-6, .day.hol { background: var(--hol-bg); }
 button.day.wd-0:hover, button.day.wd-6:hover, button.day.hol:hover { background: var(--hol-bg); filter: brightness(.97); }
 .day.hol .dn, .day.wd-0 .dn { color: var(--sun); font-weight: 700; }
-.day .fp { font-family: var(--f-body); font-size: 9px; color: var(--ink-soft); margin-left: 4px; letter-spacing: .04em; }
 .day .pl { font-family: var(--f-num); font-size: 10px; color: var(--ink-soft); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
 .day .plan { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: 100%; font-variant-numeric: tabular-nums; }
 .day .np { font-size: 10px; font-weight: 700; color: var(--stamp-red); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
@@ -244,7 +227,6 @@ button.day.wd-0:hover, button.day.wd-6:hover, button.day.hol:hover { background:
 .day .tm { font-family: var(--f-num); font-size: 11px; color: var(--stamp); font-variant-numeric: tabular-nums; }
 .day .plan { font-size: 10px; letter-spacing: .1em; color: var(--ink-soft); border: 1px dashed var(--ink-soft); border-radius: 4px; padding: 0 4px; align-self: flex-start; }
 .day .tr { font-size: 11px; color: var(--ink-soft); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-.day .wk { font-family: var(--f-num); font-size: 10px; color: var(--ink-soft); font-variant-numeric: tabular-nums; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
 .day.worked { background: var(--today); }
 .day.worked:hover { background: var(--today); filter: brightness(.97); }
 .day .live { margin-left: 4px; }
@@ -253,7 +235,7 @@ button.day.wd-0:hover, button.day.wd-6:hover, button.day.hol:hover { background:
 /* phone: a cell is ~48px wide, so keep only the essentials, small and stacked, nothing running off the edge */
 @media (max-width: 560px) {
   /* the calendar runs almost to the screen edges (4px) so each day gets as much width as possible */
-  .cal { margin-inline: calc(4px - max(16px, env(safe-area-inset-left, 0px))); border-radius: 8px; }
+  .cal { margin-inline: calc(4px - max(16px, env(safe-area-inset-left, 0px))); }
   .cal-wd div { padding: 4px 0; font-size: 10px; letter-spacing: 0; }
   .day { min-height: 66px; padding: 3px 3px 4px; gap: 1px; overflow: hidden; }
   .day .dn { font-size: 12px; padding: 0 4px; margin-left: -2px; }
@@ -262,7 +244,7 @@ button.day.wd-0:hover, button.day.wd-6:hover, button.day.hol:hover { background:
   .day .tt { display: flex; flex-direction: column; }
   .day .tt .sep, .day .pw { display: none; }
   .day .plan { border: 0; border-left: 2px dashed var(--ink-soft); border-radius: 0; padding: 0 0 0 3px; }
-  .day .tr, .day .wk, .day .pf, .day .pl, .day .fp, .day .hn, .day .live { display: none; }
+  .day .tr, .day .pf, .day .pl, .day .hn, .day .live { display: none; }
   .day .ab, .day .el { font-size: 8.5px; letter-spacing: 0; padding: 0 3px; }
   .day .np { font-size: 8.5px; }
 }
@@ -317,7 +299,6 @@ button.hc:not(:disabled):hover { filter: brightness(.97); }
 .lg.hol::before { background: var(--hol-bg); border-color: var(--sun); }
 .lg.planned::before { background: var(--card); border-style: dashed; border-color: var(--ink-soft); }
 .foot { display: flex; flex-wrap: wrap; gap: 8px 16px; justify-content: space-between; align-items: center; font-size: 12px; color: var(--ink-soft); }
-.foot .tools { display: flex; gap: 8px; }
 
 /* Invoice workspace */
 .inv-head { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 12px; }
@@ -396,15 +377,14 @@ label.check { -webkit-tap-highlight-color: transparent; }
 .sfx { font-size: 15px; color: var(--ink); white-space: nowrap; }
 .extras { display: grid; gap: 6px; }
 .extra { display: grid; grid-template-columns: minmax(0, 1fr) 110px 32px; gap: 6px; }
-.extra input { font: inherit; font-size: 14px; padding: 6px 8px; border-radius: 8px; border: 1px solid var(--rule); background: var(--paper); color: var(--ink); width: 100%; min-width: 0; }
+.extra input { font: inherit; font-size: 15px; padding: 7px 9px; color: var(--ink); width: 100%; min-width: 0; }
 .extra input[type="number"] { font-family: var(--f-num); }
 /* a box you can type in: white with a firm border; its example text is the only faint thing in it */
 .f input:not(.locked):not([type="checkbox"]):not([type="radio"]), .f textarea, .f select, .extra input {
   background: var(--card); border: 1.5px solid color-mix(in srgb, var(--ink) 38%, transparent); }
 .f input:not(.locked):focus, .f textarea:focus, .f select:focus, .extra input:focus { border-color: var(--accent); }
 /* the extra lines and 備考 look exactly like the boxes above them; only the example text is pale grey */
-.extra input, .f textarea { font-size: 15px; padding: 7px 9px; color: var(--ink); }
-.extra button { background: var(--card); border: 1.5px solid color-mix(in srgb, var(--ink) 38%, transparent); color: var(--ink-soft); }
+.f textarea { font-size: 15px; padding: 7px 9px; color: var(--ink); }
 input::placeholder, textarea::placeholder { color: var(--ink-soft); opacity: .6; font-style: normal; -webkit-text-fill-color: color-mix(in srgb, var(--ink-soft) 60%, transparent); }
 .inv-actions { display: grid; gap: 8px; }
 .inv-actions .actions { display: flex; flex-wrap: wrap; gap: 8px; }
@@ -429,15 +409,10 @@ fieldset:disabled .f input, fieldset:disabled .f textarea, fieldset:disabled .f 
 /* 更新 on the admin screen is for a mouse; on a touch screen the pull-down does it */
 @media (hover: none) and (pointer: coarse) { #ad-reload { display: none; } }
 .same-last { font-weight: 700; }
-.inv-ok { align-items: flex-start; background: color-mix(in srgb, var(--accent) 8%, var(--card)); border: 1px solid color-mix(in srgb, var(--accent) 35%, var(--rule));
-  border-radius: 10px; padding: 10px 12px; font-size: 14px; line-height: 1.6; }
-.inv-ok input { margin-top: .3em; width: 18px; height: 18px; flex: none; }
-.inv-ok b { font-family: var(--f-num); color: var(--accent); }
-.inv-ok[hidden] { display: none; }
 .set-sum { margin: 0; font-size: 13px; color: var(--ink-soft); background: var(--paper); border-radius: 8px; padding: 8px 10px; }
 .set-sum[hidden], .set-body[hidden] { display: none; }
 .set-body { display: grid; gap: inherit; }
-.extra button { border: 1px solid var(--rule); background: transparent; border-radius: 8px; color: var(--ink-soft); }
+.extra button { border: 1px solid var(--rule); background: transparent; color: var(--ink-soft); }
 .hint { font-size: 12px; color: var(--ink-soft); margin: 0; }
 .hours { display: flex; justify-content: space-between; align-items: baseline; border-top: 1px dashed var(--rule); padding-top: 10px; font-size: 13px; color: var(--ink-soft); }
 .hours b { font-family: var(--f-num); font-size: 18px; color: var(--ink); font-variant-numeric: tabular-nums; }
@@ -454,7 +429,7 @@ fieldset:disabled .f input, fieldset:disabled .f textarea, fieldset:disabled .f 
 .viewer-scroll img { display: block; width: 100%; max-width: 720px; margin: 0 auto; background: #fff; }
 /* same square-cornered button as the 戻る on the day sheet, so the viewer reads as part of the app */
 .viewer-close { position: fixed; top: 12px; right: 12px; z-index: 2; color: var(--ink); font-weight: 500; box-shadow: 0 1px 3px rgb(0 0 0 / .25); }
-.invoice { width: 720px; min-height: 1018px; margin: 0 auto; background: var(--doc-bg); color: var(--doc-ink); padding: 56px 56px 48px; font-family: var(--f-doc); font-size: 13px; line-height: 1.7; box-shadow: 0 1px 3px rgb(0 0 0 / .12); display: flex; flex-direction: column; gap: 26px; }
+.invoice { width: 720px; min-height: 1018px; margin: 0 auto; background: var(--doc-bg); color: var(--doc-ink); padding: 56px 56px 48px; font-family: var(--f-doc); font-size: 13px; line-height: 1.7; box-shadow: 0 2px 6px rgb(0 0 0 / .1), 0 18px 40px -16px rgb(0 0 0 / .3); display: flex; flex-direction: column; gap: 26px; }
 .invoice .ttl { text-align: center; font-size: 28px; letter-spacing: .6em; font-weight: 700; padding-left: .6em; }
 .invoice .meta { display: grid; grid-template-columns: auto auto; justify-content: end; gap: 0 14px; font-size: 12px; }
 .invoice .meta dt { color: var(--doc-soft); } .invoice .meta dd { margin: 0; }
@@ -532,14 +507,9 @@ fieldset:disabled .f input, fieldset:disabled .f textarea, fieldset:disabled .f 
 .modal-actions { display: flex; flex-wrap: wrap; gap: 8px; justify-content: space-between; }
 .modal-actions div { display: flex; gap: 8px; }
 #pdf-host { position: fixed; left: -10000px; top: 0; }
-.proof-page .pp-h { font-size: 18px; font-weight: 700; border-bottom: 2px solid var(--doc-ink); padding-bottom: 6px; }
-.proof-page .pp-meta { display: grid; grid-template-columns: 6em 1fr; gap: 2px 12px; margin: 0; }
-.proof-page .pp-meta dt { color: var(--doc-soft); }
-.proof-page .pp-meta dd { margin: 0; }
-.proof-page img { max-width: 100%; max-height: 780px; object-fit: contain; align-self: center; border: 1px solid var(--doc-rule); }
 
 /* Brand line: the Themis logo on the left, the person's name on the right */
-.brand { display: flex; align-items: flex-end; justify-content: space-between; gap: 16px; border-bottom: 1px solid var(--rule); padding-bottom: 12px; }
+.brand { display: flex; flex-wrap: wrap; align-items: flex-end; justify-content: space-between; gap: 10px 16px; border-bottom: 1px solid var(--rule); padding-bottom: 12px; }
 .brand-mark { display: flex; align-items: center; gap: 14px; min-width: 0; }
 .logo { display: block; height: 48px; width: auto; }
 .brand-name { font-size: 20px; font-weight: 700; letter-spacing: .04em; color: var(--ink); white-space: nowrap; line-height: 1.1; padding: 4px 0 4px 14px; border-left: 2px solid var(--accent); }
@@ -548,12 +518,11 @@ fieldset:disabled .f input, fieldset:disabled .f textarea, fieldset:disabled .f 
 
 /* Finish: soft corners, each punch key in its own muted colour, and a three-colour stripe on the clock;
    colour stays in small doses so the page is cheerful without getting loud */
-.clock, .table-box, .cal, .steps, .fs-card, .modal, .sheet-scroll, .key, .key-sub, .btn, .tool, .month-nav button, .proof,
+.clock, .cal, .steps, .fs-card, .modal, .sheet-scroll, .key, .key-sub, .btn, .tool, .month-nav button, .proof,
 .f input, .f select, .f textarea, .extra input, .extra button { border-radius: var(--r); }
-.clock { position: relative; overflow: hidden; box-shadow: 0 1px 0 var(--rule), 0 6px 18px -12px rgb(31 42 58 / .25); }
+.clock { position: relative; overflow: hidden; }
 .clock::before { content: ""; position: absolute; inset: 0 0 auto 0; height: 5px;
   background: linear-gradient(90deg, var(--stamp) 0 33.3%, var(--break) 33.3% 66.6%, var(--stamp-red) 66.6%); }
-.time { font-weight: 400; letter-spacing: -.01em; }
 .key { border-width: 1.5px; }
 .key.brk:not(:disabled) { background: color-mix(in srgb, var(--break) 12%, var(--card)); }
 .key.dep:not(:disabled) { border-color: var(--dep); color: var(--dep); background: color-mix(in srgb, var(--dep) 10%, var(--card)); }
@@ -561,9 +530,7 @@ fieldset:disabled .f input, fieldset:disabled .f textarea, fieldset:disabled .f 
 .key.out:not(:disabled) { background: color-mix(in srgb, var(--stamp-red) 10%, var(--card)); }
 .key:not(:disabled):hover { filter: brightness(.97); }
 .key.brk:not(:disabled) small, .key.dep:not(:disabled) small, .key.in:not(:disabled) small, .key.out:not(:disabled) small { color: inherit; opacity: .7; }
-.pill { background: color-mix(in srgb, currentColor 9%, transparent); border-width: 1px; padding: 4px 12px; font-size: 13px; }
-.tabs { border-radius: 999px; padding: 4px; }
-.tabs button { border-radius: 999px; padding: 6px 18px; font-size: 14px; }
+.pill { background: color-mix(in srgb, currentColor 9%, transparent); }
 .tabs button[aria-selected="true"] { background: var(--accent); color: #fff; font-weight: 700; }
 .btn.primary, .btn.okay { background: var(--accent); border-color: var(--accent); color: #fff; }
 .btn.primary:not(:disabled):hover, .btn.okay:not(:disabled):hover { filter: brightness(1.06); }
@@ -581,7 +548,7 @@ fieldset:disabled .f input, fieldset:disabled .f textarea, fieldset:disabled .f 
 .contract-text h4:first-child { margin-top: 0; }
 .contract-text p { margin: 0; }
 .contract-text .t { text-align: center; font-size: 16px; font-weight: 700; letter-spacing: .3em; margin-bottom: 10px; }
-.contract-text .in1 { padding-left: 1em; } .contract-text .in2 { padding-left: 2em; }
+.contract-text .in1 { padding-left: 1em; }
 .contract-text .who { font-weight: 700; border-bottom: 1px solid var(--ink); padding: 0 .3em; }
 /* a long press on the pad must keep drawing, not select text or open the copy / save-image menu */
 .sig-box { position: relative; -webkit-user-select: none; user-select: none; -webkit-touch-callout: none; }
@@ -592,7 +559,6 @@ fieldset:disabled .f input, fieldset:disabled .f textarea, fieldset:disabled .f 
 
 /* the member screens sit straight in the page grid; the wrapper only exists to hide them together */
 .member-ui { display: contents; }
-.brand { flex-wrap: wrap; row-gap: 10px; }
 .brand-side { display: flex; align-items: center; gap: 8px; min-width: 0; flex-wrap: wrap; justify-content: flex-end; margin-left: auto; }
 /* pull-to-refresh: a plain small circle, its ring drawn by the pull, spinning while it refreshes */
 .own-ptr, .own-ptr body { overscroll-behavior-y: contain; }
@@ -661,7 +627,7 @@ fieldset:disabled .f input, fieldset:disabled .f textarea, fieldset:disabled .f 
 .im-tile { display: inline-grid; justify-items: center; gap: 4px; font-size: 11px; color: var(--ink-soft); }
 .im-tile img { width: 48px; height: 48px; border-radius: 12px; box-shadow: 0 4px 10px -4px rgb(0 0 0 / .35); background: var(--paper); }
 .im-ok { width: 100%; padding: 12px; font-size: 15px; }
-.brand-btns { display: flex; gap: 8px; }
+.brand-btns { display: flex; }
 .brand-btns:not(:has(.tool:not([hidden]))) { display: none; }
 /* on a phone: the logo and Themis Portal with the name beside them (sitting a little low, on the baseline),
    then the buttons side by side at equal width */
@@ -695,44 +661,13 @@ fieldset:disabled .f input, fieldset:disabled .f textarea, fieldset:disabled .f 
 .ad-stat b { font-size: 22px; }
 .ad-stat.warn { border-color: var(--stamp-red); }
 .ad-stat.warn b { color: var(--stamp-red); }
-.ad-scroll { overflow-x: auto; background: var(--card); border: 1px solid var(--rule); border-radius: var(--r); -webkit-overflow-scrolling: touch; }
-.ad-table { border-collapse: collapse; width: 100%; font-size: 13px; }
-.ad-table th, .ad-table td { padding: 8px 10px; border-bottom: 1px solid var(--rule); text-align: left; white-space: nowrap; vertical-align: middle; }
-.ad-table th { font-size: 11px; font-weight: 700; color: var(--ink-soft); background: var(--paper); position: sticky; top: 0; }
-.ad-table tr:last-child td { border-bottom: 0; }
-.ad-table .nm { font-weight: 700; position: sticky; left: 0; background: var(--card); z-index: 1; }
-.ad-table th.nm { background: var(--paper); z-index: 2; }
-.ad-table .r { text-align: right; }
-.ad-table tr.dim td { color: var(--ink-soft); }
-.ad-table a { color: var(--accent); font-weight: 700; }
-.ad-table .wd-0, .ad-table .hol { color: var(--sun); } .ad-table .wd-6 { color: var(--sat); }
-.ad-in { font: inherit; font-size: 13px; padding: 5px 8px; border: 1px solid var(--rule); border-radius: 6px; background: var(--paper); color: var(--ink); min-width: 220px; }
 .st { display: inline-block; font-size: 11px; font-weight: 700; border-radius: 999px; padding: 2px 10px; border: 1px solid currentColor; }
 .st-work { color: var(--stamp); } .st-done { color: var(--ok); } .st-move { color: var(--dep); } .st-wake { color: var(--break); }
 .st-late, .st-abs { color: var(--stamp-red); } .st-plan, .st-none { color: var(--ink-soft); }
-.ad-person { background: var(--card); border: 1px solid var(--rule); border-radius: var(--r); }
-.ad-person summary { display: flex; flex-wrap: wrap; gap: 4px 18px; align-items: baseline; padding: 12px 16px; cursor: pointer; font-size: 13px; color: var(--ink-soft); }
-.ad-person summary .nm { font-size: 15px; font-weight: 700; color: var(--ink); min-width: 8em; }
-.ad-person summary b { color: var(--ink); font-size: 15px; }
-.ad-person .ad-scroll { border: 0; border-top: 1px solid var(--rule); border-radius: 0 0 var(--r) var(--r); box-shadow: none !important; }
-.hint.pad { padding: 0 16px 14px; }
-.ad-grid th, .ad-grid td { padding: 6px 5px; text-align: center; }
-.ad-grid th small { display: block; font-size: 9px; font-weight: 500; }
-.ad-grid td.nm, .ad-grid th.nm { text-align: left; padding-left: 12px; }
-.ad-grid td.mk { font-weight: 700; font-size: 14px; min-width: 30px; }
-.ad-grid td.v-ok { background: color-mix(in srgb, var(--accent) 14%, var(--card)); color: var(--accent); }
-.ad-grid td.v-maybe { background: color-mix(in srgb, var(--break) 16%, var(--card)); color: var(--break); }
-.ad-grid tr.sum td { font-weight: 700; background: var(--paper); }
 .far-tag { font-size: 9px; color: #fff; background: var(--accent); border-radius: 3px; padding: 0 3px; margin-left: 1px; vertical-align: 1px; }
 .ad-add { background: var(--card); border: 1px solid var(--rule); border-radius: var(--r); padding: 14px 16px; display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 10px; align-items: end; }
 .ad-add > b, .ad-add > .hint { grid-column: 1 / -1; }
 .ad-acts { display: flex; gap: 6px; }
-.ad-temp { background: var(--card); border: 2px solid var(--accent); border-radius: var(--r); padding: 14px 16px; display: grid; gap: 8px; }
-.ad-temp dl { margin: 0; display: grid; grid-template-columns: max-content 1fr; gap: 4px 14px; align-items: baseline; }
-.ad-temp dt { font-size: 12px; color: var(--ink-soft); }
-.ad-temp dd { margin: 0; font-size: 22px; font-weight: 700; letter-spacing: .08em; }
-.ad-temp dd { display: flex; align-items: center; gap: 10px; }
-.ad-temp dd .tool { font-size: 12px; letter-spacing: 0; font-weight: 500; }
 /* the new ID and 仮パスワード: one block each, value large and easy to read out, copy button full width */
 .creds { display: grid; gap: 10px; }
 .cred { display: grid; gap: 6px; background: var(--paper); border: 1px solid var(--rule); border-radius: 12px; padding: 12px 14px; }
@@ -742,7 +677,6 @@ fieldset:disabled .f input, fieldset:disabled .f textarea, fieldset:disabled .f 
 .cred-all { width: 100%; padding: 12px; font-size: 15px; }
 .ad-copied { color: var(--accent); font-size: 13px; font-weight: 700; min-height: 1.2em; }
 /* 常勤 and 週末 are listed apart: a heading row (in tables) or a heading line (in the 勤怠 list) above each group */
-.ad-table tr.grp td { background: var(--paper); font-weight: 700; font-size: 12px; color: var(--ink); letter-spacing: .06em; }
 .ad-grp { margin: 6px 0 -6px; font-size: 14px; display: flex; align-items: center; gap: 8px; }
 .ad-grp::before { content: ""; width: 4px; height: 1em; border-radius: 2px; background: var(--accent); }
 /* admin tabs: one even row, every tab the same width, on a phone too */
@@ -867,13 +801,12 @@ button.pcal-c { cursor: pointer; }
   --gloss: linear-gradient(180deg, rgb(255 255 255 / .06), rgb(255 255 255 / 0) 50%, rgb(0 0 0 / .12));
 }
 /* cards */
-.clock, .shifts .shift-today, .hope-head, .hope-cal, .cal, .steps, .fs-card, .sheet-scroll, .login-card, .ad-stat, .ad-scroll, .ad-person, .ad-add {
+.clock, .shifts .shift-today, .hope-head, .hope-cal, .cal, .steps, .fs-card, .sheet-scroll, .login-card, .ad-stat, .ad-add {
   box-shadow: var(--shine), var(--lift);
   background-image: var(--gloss);
 }
 .shift-today.big { box-shadow: var(--shine), var(--lift-hi); }
 .modal { box-shadow: var(--lift-hi), 0 30px 60px -20px rgb(0 0 0 / .35); }
-.invoice { box-shadow: 0 2px 6px rgb(0 0 0 / .1), 0 18px 40px -16px rgb(0 0 0 / .3); }
 /* punch keys: raised in their own colour, pressed down on tap, flat when not available */
 .key { box-shadow: var(--shine), 0 5px 0 var(--edge), 0 12px 18px -8px rgb(31 42 58 / .35); background-image: var(--gloss); transition: transform .08s, box-shadow .08s, filter .15s; }
 .key.brk:not(:disabled) { box-shadow: var(--shine), 0 5px 0 color-mix(in srgb, var(--break) 55%, transparent), 0 12px 18px -8px color-mix(in srgb, var(--break) 60%, transparent); }
@@ -1536,7 +1469,7 @@ window.addEventListener("error", function (e) {
   let CRED = null, mode = "login";   // login | member | admin
   try { CRED = localStorage.getItem(CRED_KEY); } catch (e) {}
   // signing out also forgets the copy of the records kept for a quick start
-  const setCred = (c) => { CRED = c; try { if (c) localStorage.setItem(CRED_KEY, c); else { localStorage.removeItem(CRED_KEY); localStorage.removeItem("tc_cache"); localStorage.removeItem("tc_view"); sessionStorage.removeItem("tc_view"); } } catch (e) {} };
+  const setCred = (c) => { CRED = c; try { if (c) localStorage.setItem(CRED_KEY, c); else { localStorage.removeItem(CRED_KEY); localStorage.removeItem("tc_cache"); dropView(); } } catch (e) {} };
   const viaGas = !!window.google?.script?.run;
   const rawCall = (fn, ...args) => viaGas
     ? new Promise((res, rej) => { google.script.run.withSuccessHandler(res).withFailureHandler(rej)[fn](CRED, ...args); })
@@ -1603,17 +1536,11 @@ window.addEventListener("error", function (e) {
   }
 
   // ---- record math ----
-  function breakMin(r, now) {
-    let m = r.breakMin || 0;
-    for (const b of r.breaks || []) m += ((b.e ?? now) - b.s) / 60000;
-    return m;
-  }
   function workMin(r, now) {
     if (!r || !r.in) return 0;
     // breaks are no longer recorded; old break entries (some left open) are ignored so they can't swallow the shift
     return Math.max(0, ((r.out ?? now) - r.in) / 60000);
   }
-  const onBreak = (r) => !!r && !r.out && (r.breaks || []).some((b) => b.e == null);
   // a worked day that claims travel (transport or distance) needs at least one proof image
   // walking or cycling alone needs neither a distance nor a proof image; any other mode mixed in does
   const NO_PROOF = new Set(["徒歩", "自転車"]);
@@ -1676,9 +1603,7 @@ window.addEventListener("error", function (e) {
   }
   $("k-wake").onclick = () => punch("wake");
   $("k-dep").onclick = () => punch("dep");
-  // marking absent takes a second press; cancelling an absence does not
-  let absArmed = false, absTimer = null;
-  const resetAbs = () => { clearTimeout(absTimer); absArmed = false; $("k-abs").classList.remove("armed"); render(); };
+  // marking absent opens the absence form (with its reason); cancelling an absence is one press
   $("k-abs").onclick = () => {
     if (rec(dayKey(new Date()))?.absent) { punch("abs"); return; }
     openAbsence(dayKey(new Date()));
@@ -2301,7 +2226,7 @@ ${v.addr}`;
     $("k-dep").disabled = s === "work" || absent || !!todayRec?.depart || !todayRec?.wake;
     $("k-in").disabled = s === "work" || absent || !!todayRec?.out || !todayRec?.depart;
     $("k-abs").disabled = s === "work" || !!todayRec?.in;
-    if (!absArmed) $("k-abs").textContent = absent ? "欠勤を取り消す" : "欠勤にする";
+    $("k-abs").textContent = absent ? "欠勤を取り消す" : "欠勤にする";
     $("k-out").disabled = s !== "work";
 
     // today's and tomorrow's store with their planned times (a shift still open from yesterday stands in for today)
@@ -2955,16 +2880,73 @@ ${v.addr}`;
     } finally { $("c-submit").disabled = false; }
   });
 
-  // ---- CSV ----
-  function csv() {
-    const now = Date.now(), q = (s) => `"${String(s ?? "").replace(/"/g, '""')}"`;
-    const lines = ["日付,曜日,稼働店舗,予定開始,予定終了,欠勤,欠勤理由,起床,出発,出勤,退勤,実働,交通機関,同乗者,距離(km),稼働実績,メモ"];
-    for (const { key, date, r } of monthRows()) {
-      if (!r) continue;
-      const on = !!r.in;
-      lines.push([key, WD[date.getDay()], q(r.store), r.planIn || "", r.planOut || "", r.absent ? "欠勤" : "", q(r.absent ? r.absentReason : ""), r.wake ? hm(r.wake) : "", r.depart ? hm(r.depart) : "", on ? hm(r.in) : "", r.out ? hm(r.out) : "",on ? dur(workMin(r, now)) : "", q(r.transport), q(r.rideWith), r.km ?? "", q(r.result), q(r.memo)].join(","));
-    }
-    return lines.join("\n");
+  // ---- the same screen after a reload ----
+  // a reload (pull to refresh, a 更新 button or the browser's, or iPhone reopening the app after switching away)
+  // comes back on the same screen, tab, month and scroll position:
+  //   - the spot is saved on every change, not only as the page goes away (a write made while the page is being
+  //     reloaded may not have landed when the new page reads it), in localStorage and in the tab's sessionStorage;
+  //     the newer copy wins. It lasts VIEW_TTL, so opening the app the next day starts on the shift calendar
+  //   - while the quick copy shows, it already uses the saved tab and, for the admin screen, shows that (still
+  //     loading), so nothing flashes; once loaded, startMember calls showMode and then restoreView puts back the rest
+  //   - a tab picked by hand while the page loads (viewPicked) wins over the saved one
+  const VIEW_KEY = "tc_view", VIEW_TTL = 30 * 60 * 1000;
+  let viewReady = false;   // no saving until the saved spot has been put back, or it would be overwritten
+  function saveView() {
+    if (!viewReady || !CRED || !backend) return;
+    const ym = (d) => `${d.getFullYear()}-${pad(d.getMonth() + 1)}`;
+    const months = Object.fromEntries(Object.entries({ ...tabView, [tab]: view }).map(([k, d]) => [k, ym(d)]));
+    const s = JSON.stringify({ at: Date.now(), mode, tab, months, y: window.scrollY, adTab, adMonth, adPerson, adListY });
+    for (const st of [localStorage, sessionStorage]) try { st.setItem(VIEW_KEY, s); } catch (e) {}
+  }
+  addEventListener("pagehide", saveView);
+  document.addEventListener("visibilitychange", () => { if (document.visibilityState === "hidden") saveView(); });
+  let scrollSave = null;
+  addEventListener("scroll", () => { clearTimeout(scrollSave); scrollSave = setTimeout(saveView, 300); }, { passive: true });
+  function savedView() {
+    const read = (st) => { try { return JSON.parse(st.getItem(VIEW_KEY) || "null"); } catch (e) { return null; } };
+    const a = read(sessionStorage), b = read(localStorage);
+    const v = a && (!b || a.at >= b.at) ? a : b;
+    return v && Date.now() - (v.at || 0) < VIEW_TTL ? v : null;
+  }
+  const dropView = () => { for (const st of [localStorage, sessionStorage]) try { st.removeItem(VIEW_KEY); } catch (e) {} };
+  // the normal screen's tab and the month of each tab (シフト希望 not for 常勤)
+  function showSavedTab(v) {
+    if (!v) return;
+    for (const k of Object.keys(tabView)) if (/^\d{4}-\d{2}$/.test(v.months?.[k] || "")) { const [y, m] = v.months[k].split("-").map(Number); tabView[k] = new Date(y, m - 1, 1); }
+    view = tabView[tab];
+    setTab(v.tab === "inv" || (v.tab === "hope" && window.TC_WORK !== "常勤") ? v.tab : "card");
+  }
+  // the admin screen's tab (請求書 only for 運営) and months
+  function adoptAdminView(v) {
+    adTab = v.adTab === "inv" && !window.TC_OWNER ? "today" : v.adTab || adTab;
+    Object.assign(adMonth, v.adMonth || {});
+  }
+  // while the quick copy shows: the admin screen, still loading, with its read starting alongside the sign-in check
+  function showSavedAdmin(v) {
+    if (!v || v.mode !== "admin" || !window.TC_ADMIN) return;
+    adoptAdminView(v);
+    $("member-ui").hidden = true; $("admin").hidden = false; $("adminbtn").textContent = "通常画面";
+    for (const b of $("ad-tabs").querySelectorAll("button")) b.setAttribute("aria-selected", b.dataset.t === adTab);
+    adMsg("読み込んでいます…");
+    adPrefetch();
+  }
+  // the screen that `mode` says (the admin screen shown above is only a look until restoreView opens it)
+  function showMode() {
+    const ad = mode === "admin";
+    $("admin").hidden = !ad; $("member-ui").hidden = ad; $("adminbtn").textContent = ad ? "通常画面" : "管理画面";
+  }
+  function restoreView() {
+    const v = savedView();
+    viewReady = true;
+    // nothing to put back, or a tab was picked while loading (not saved then): record what is on screen now
+    if (!v || viewPicked) { saveView(); return; }
+    showSavedTab(v);
+    if (v.mode === "admin" && window.TC_ADMIN) {
+      adoptAdminView(v);
+      adPerson = v.adPerson || null; adListY = v.adListY || 0;
+      switchMode();
+      adReady.then(() => window.scrollTo(0, v.y || 0));
+    } else requestAnimationFrame(() => window.scrollTo(0, v.y || 0));
   }
 
   // ---- boot ----
@@ -3228,7 +3210,6 @@ ${v.addr}`;
   };
   // ---- admin ----
   // the admin screen reads one month at a time from the readable sheets (勤怠一覧・シフト希望・請求書一覧・メンバー)
-  const AD_TABS = { today: "今日", work: "勤怠", hope: "シフト希望", inv: "請求書", members: "メンバー" };
   const DH = { name: 0, date: 1, kind: 3, store: 4, pIn: 5, pOut: 6, in: 7, out: 8, work: 9, absWhy: 10, wake: 11, dep: 12,
     transport: 13, ride: 14, km: 15, imgs: 16, result: 17, memo: 18, early: 20, earlyWhy: 21 };
   let adTab = "today", adData = null, adKey = "";
@@ -3319,7 +3300,6 @@ ${v.addr}`;
   const groupName = (t) => t || "勤務形態が未回答";
   const byWork = (list, key = (x) => x) => WORK_GROUPS.map((t) => [t, list.filter((x) => (key(x).workType || "") === t)]).filter(([, l]) => l.length);
   const numName = (i, name) => `<span class="no">${String(i + 1).padStart(3, "0")}</span>${esc(name)}`;
-  const grpRow = (t, n, cols) => `<tr class="grp"><td colspan="${cols}">${esc(groupName(t))}（${n}人）</td></tr>`;
 
   function adToday() {
     const today = adData.today, live = adData.members.filter((m) => m.active);
@@ -3756,7 +3736,9 @@ ${v.addr}`;
       mode = "member"; $("login").hidden = true; $("member-ui").hidden = false;
       showPerson(cached.me);
       document.body.classList.add("preview");
-      fillForms(true); render(); restoreTab(peekView()); previewAdmin(peekView()); msg("最新の記録を確認しています…");
+      fillForms(true); render();
+      const v = savedView(); showSavedTab(v); showSavedAdmin(v);
+      msg("最新の記録を確認しています…");
     }
     const names = bootNames();
     try { const [me, pre] = await boot(names); enter(me, pre); }
@@ -3799,71 +3781,6 @@ ${v.addr}`;
     }
     if (window.TC_ADMIN) adPrefetch();
     cacheSoon();
-  }
-  // a reload (pull to refresh, the browser's 更新, or iPhone reopening the app after switching away) comes back on
-  // the same screen, tab, month and scroll position. It is saved whenever the page is hidden — iPhone may close the
-  // page later without any notice — and kept for 30 minutes (peekView), so opening the app the next day still
-  // starts on the shift calendar
-  const VIEW_KEY = "tc_view";
-  // nothing is saved until the saved screen has been put back, or it would overwrite it.
-  // (var: render() calls saveView while the page is still starting, before this line has run)
-  var viewReady = false;
-  // saved on every change, not only as the page goes away: a write made while the page is being reloaded may not
-  // have landed yet when the new page reads it. The tab's own sessionStorage keeps a copy as well
-  function saveView() {
-    if (!viewReady || !CRED || !backend) return;
-    const ym = (d) => `${d.getFullYear()}-${pad(d.getMonth() + 1)}`;
-    const months = Object.fromEntries(Object.entries({ ...tabView, [tab]: view }).map(([k, d]) => [k, ym(d)]));
-    const s = JSON.stringify({ at: Date.now(), mode, tab, months, y: window.scrollY, adTab, adMonth, adPerson, adListY });
-    try { localStorage.setItem(VIEW_KEY, s); } catch (e) {}
-    try { sessionStorage.setItem(VIEW_KEY, s); } catch (e) {}
-  }
-  addEventListener("pagehide", saveView);
-  document.addEventListener("visibilitychange", () => { if (document.visibilityState === "hidden") saveView(); });
-  let scrollSave = null;
-  addEventListener("scroll", () => { clearTimeout(scrollSave); scrollSave = setTimeout(saveView, 300); }, { passive: true });
-  // the quick copy shown while the app opens already uses the saved tab, so the shift calendar doesn't flash first.
-  // (called before VIEW_KEY is set up, hence the key written out)
-  function peekView() {
-    const read = (st) => { try { return JSON.parse(st.getItem("tc_view") || "null"); } catch (e) { return null; } };
-    const a = read(sessionStorage), b = read(localStorage);
-    const v = a && (!b || a.at >= b.at) ? a : b;   // the newer of the two copies
-    return v && Date.now() - (v.at || 0) < 30 * 60 * 1000 ? v : null;
-  }
-  function restoreTab(v) {
-    if (!v) return;
-    for (const k of Object.keys(tabView)) if (/^\d{4}-\d{2}$/.test(v.months?.[k] || "")) { const [y, m] = v.months[k].split("-").map(Number); tabView[k] = new Date(y, m - 1, 1); }
-    view = tabView[tab];
-    setTab(v.tab === "inv" || (v.tab === "hope" && window.TC_WORK !== "常勤") ? v.tab : "card");
-  }
-  // reloaded on the admin screen: it shows (still loading) from the start instead of the normal screen flashing first,
-  // and its read starts alongside the sign-in check. restoreView then opens it properly
-  function previewAdmin(v) {
-    if (!v || v.mode !== "admin" || !window.TC_ADMIN) return;
-    adTab = v.adTab === "inv" && !window.TC_OWNER ? "today" : v.adTab || adTab;
-    Object.assign(adMonth, v.adMonth || {});
-    $("member-ui").hidden = true; $("admin").hidden = false; $("adminbtn").textContent = "通常画面";
-    for (const b of $("ad-tabs").querySelectorAll("button")) b.setAttribute("aria-selected", b.dataset.t === adTab);
-    adMsg("読み込んでいます…");
-    adPrefetch();
-  }
-  // put the screen back to what `mode` says (the admin preview above is only a look until then)
-  function showMode() {
-    const ad = mode === "admin";
-    $("admin").hidden = !ad; $("member-ui").hidden = ad; $("adminbtn").textContent = ad ? "通常画面" : "管理画面";
-  }
-  function restoreView() {
-    const v = peekView();
-    viewReady = true;
-    if (!v || viewPicked) return;
-    restoreTab(v);
-    if (v.mode === "admin" && window.TC_ADMIN) {
-      adTab = v.adTab === "inv" && !window.TC_OWNER ? "today" : v.adTab || adTab;
-      Object.assign(adMonth, v.adMonth || {});
-      adPerson = v.adPerson || null; adListY = v.adListY || 0;
-      switchMode();
-      adReady.then(() => window.scrollTo(0, v.y || 0));
-    } else requestAnimationFrame(() => window.scrollTo(0, v.y || 0));
   }
   // first the name, address and 勤務形態, then the contract; both block the app (admins too) until done
   function needsSetup() {
