@@ -499,8 +499,28 @@ legend { font-weight: 700; font-size: 14px; padding: 0 6px; }
 .member-ui { display: contents; }
 .brand { flex-wrap: wrap; row-gap: 10px; }
 .brand-side { display: flex; align-items: center; gap: 8px; min-width: 0; flex-wrap: wrap; justify-content: flex-end; margin-left: auto; }
-/* on a phone the name and buttons get their own line under the logo instead of squeezing it */
-@media (max-width: 560px) { .brand-side { width: 100%; } .brand-side .brand-who { margin-right: auto; } .brand-side { gap: 6px; } .brand-side .tool { font-size: 11px; padding: 4px 8px; } }
+/* "add to home screen" nudge under the header */
+.install { display: grid; grid-template-columns: auto 1fr; gap: 10px 12px; align-items: center; background: var(--card); border: 1.5px solid var(--accent);
+  border-radius: var(--r); padding: 12px 14px; }
+.install[hidden] { display: none; }
+.install-icon { width: 44px; height: 44px; border-radius: 10px; }
+.install-text { display: grid; gap: 2px; font-size: 13px; color: var(--ink-soft); }
+.install-text b { font-size: 14px; color: var(--ink); }
+.install-acts { grid-column: 1 / -1; display: flex; gap: 8px; justify-content: flex-end; align-items: center; }
+.install-steps { margin: 0; padding-left: 1.4em; display: grid; gap: 10px; font-size: 14px; line-height: 1.6; }
+.install-steps b { color: var(--accent); }
+.install-mark { display: inline-grid; place-items: center; width: 1.6em; height: 1.6em; border: 1px solid var(--rule); border-radius: 6px; vertical-align: -0.35em; background: var(--paper); }
+.install-mark svg { width: 1em; height: 1em; }
+.brand-btns { display: flex; gap: 8px; }
+.brand-btns:not(:has(.tool:not([hidden]))) { display: none; }
+/* on a phone: the logo, then the name on its own line, then the buttons side by side at equal width */
+@media (max-width: 560px) {
+  .brand-side { width: 100%; flex-direction: column; align-items: stretch; gap: 10px; margin-top: 4px; }
+  .brand-side .brand-who { text-align: left; font-size: 17px; }
+  .brand-side .brand-who:empty { display: none; }
+  .brand-btns { width: 100%; }
+  .brand-btns .tool { flex: 1 1 0; font-size: 12px; padding: 7px 4px; text-align: center; }
+}
 .brand-side .tool { font-size: 12px; padding: 4px 10px; white-space: nowrap; }
 
 /* Login: one centred card under the brand line */
@@ -580,6 +600,56 @@ legend { font-weight: 700; font-size: 14px; padding: 0 6px; }
 .ad-kv dd { margin: 0; display: flex; align-items: center; gap: 8px; flex-wrap: wrap; min-width: 0; }
 .ad-card .ad-acts { flex-wrap: wrap; align-items: center; }
 .btn.sm { padding: 6px 14px; font-size: 13px; }
+/* a person card that opens their calendar */
+button.ad-card.ad-link { font: inherit; color: inherit; text-align: left; cursor: pointer; width: 100%; }
+button.ad-card.ad-link:hover { border-color: var(--accent); }
+.ad-go { color: var(--accent); font-size: 22px; line-height: 1; }
+.ad-mini { display: flex; flex-wrap: wrap; gap: 4px 14px; font-size: 12px; color: var(--ink-soft); }
+.ad-mini b { color: var(--ink); font-size: 14px; }
+.ad-back { display: grid; gap: 8px; justify-items: start; }
+.ad-back .ad-h { display: flex; align-items: center; gap: 10px; }
+.ad-h3 { margin: 0 0 8px; font-size: 15px; display: flex; align-items: baseline; gap: 8px; }
+.ad-h3 small { color: var(--sun); font-size: 12px; font-weight: 500; }
+/* month calendar: seven even columns, each day shows its store and times (or marks) in small type */
+.pcal { display: grid; grid-template-columns: repeat(7, minmax(0, 1fr)); gap: 3px; }
+.pcal-w { text-align: center; font-size: 11px; font-weight: 700; color: var(--ink-soft); padding: 2px 0; }
+.pcal-w.wd-0, .pcal-c.wd-0 .pcal-d, .pcal-c.hol .pcal-d { color: var(--sun); }
+.pcal-w.wd-6, .pcal-c.wd-6 .pcal-d { color: var(--sat); }
+.pcal-c { font: inherit; color: var(--ink); background: var(--card); border: 1px solid var(--rule); border-radius: 8px; min-height: 62px; padding: 3px 3px 4px;
+  display: flex; flex-direction: column; align-items: stretch; gap: 1px; text-align: left; min-width: 0; overflow: hidden; }
+button.pcal-c { cursor: pointer; }
+.pcal-d { font-size: 12px; font-weight: 700; font-family: var(--f-num); line-height: 1.2; }
+.pcal-c.today .pcal-d { color: #fff; background: var(--stamp-red); border-radius: 999px; align-self: flex-start; padding: 0 5px; }
+.pcal-s { font-size: 9.5px; line-height: 1.25; color: var(--ink); display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; word-break: break-all; }
+.pcal-t { font-size: 10px; font-weight: 700; line-height: 1.2; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.pcal-n { font-size: 14px; font-weight: 700; line-height: 1.3; color: var(--accent); }
+.pcal-n.maybe { color: var(--break); }
+/* a person's month totals in one compact row */
+.ad-stats.row5 { grid-template-columns: repeat(5, minmax(0, 1fr)); gap: 6px; }
+.ad-stats.row5:has(> :nth-child(3):last-child) { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+.ad-stats.row5 .ad-stat span { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+#ad-msg:empty { display: none; }
+.ad-stats.row5 .ad-stat { padding: 8px 8px; }
+.ad-stats.row5 .ad-stat b { font-size: 16px; }
+.pcal-m { font-size: 18px; font-weight: 700; text-align: center; margin-top: 2px; }
+.pcal-c.k-work { background: color-mix(in srgb, var(--accent) 12%, var(--card)); }
+.pcal-c.k-work .pcal-t { color: var(--accent); }
+.pcal-c.k-early { background: color-mix(in srgb, var(--break) 14%, var(--card)); }
+.pcal-c.k-early .pcal-t { color: var(--break); }
+.pcal-c.k-abs { background: color-mix(in srgb, var(--stamp-red) 12%, var(--card)); }
+.pcal-c.k-abs .pcal-t { color: var(--stamp-red); }
+.pcal-c.k-plan { border-style: dashed; border-color: var(--ink-soft); }
+.pcal-c.k-plan .pcal-t { color: var(--ink-soft); }
+.pcal-c.v-ok { background: color-mix(in srgb, var(--accent) 12%, var(--card)); }
+.pcal-c.v-ok .pcal-m, .pcal-c.v-ok .pcal-t:not(.maybe) { color: var(--accent); }
+.pcal-c.v-maybe { background: color-mix(in srgb, var(--break) 14%, var(--card)); }
+.pcal-c.v-maybe .pcal-m { color: var(--break); }
+.pcal-c.sel { outline: 2.5px solid var(--accent); outline-offset: 0; }
+.pcal-detail { background: var(--card); border: 1px solid var(--rule); border-radius: var(--r); padding: 14px 16px; }
+.pcal-detail .ad-kv dd { font-size: 14px; }
+.hope-who { display: grid; gap: 2px; padding: 8px 0; border-top: 1px solid var(--rule); font-size: 14px; }
+.hope-who b { font-size: 12px; }
+.hope-who.v-ok b { color: var(--accent); } .hope-who.v-maybe b { color: var(--break); }
 /* the PDF viewer fills the screen on a phone */
 .pdf-bg { padding: 8px; }
 .pdf-modal { width: min(920px, 100%); height: 100%; max-height: 100%; grid-template-rows: auto auto 1fr; gap: 8px; padding: 12px; }
@@ -677,8 +747,15 @@ legend { font-weight: 700; font-size: 14px; padding: 0 6px; }
 <div class="wrap">
   <header class="brand">
     <div class="brand-mark"><img class="logo" alt="Themis" src="data:image/png;base64,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"><span class="brand-name">Themis Portal</span></div>
-    <div class="brand-side"><span class="brand-who" id="who"></span><button type="button" class="tool" id="adminbtn" hidden>管理画面</button><button type="button" class="tool" id="chpass" hidden>パスワード変更</button><button type="button" class="tool" id="logout" hidden>ログアウト</button></div>
+    <div class="brand-side"><span class="brand-who" id="who"></span><div class="brand-btns"><button type="button" class="tool" id="adminbtn" hidden>管理画面</button><button type="button" class="tool" id="chpass" hidden>パスワード変更</button><button type="button" class="tool" id="logout" hidden>ログアウト</button></div></div>
   </header>
+
+  <!-- shown on a phone browser (not the installed app): a nudge to put Themis Portal on the home screen -->
+  <div class="install" id="install" hidden role="region" aria-label="アプリとして使う">
+    <img class="install-icon" alt="" src="icons/apple-touch-icon.png" onerror="this.hidden=true">
+    <div class="install-text"><b>ホーム画面に追加して、アプリとして使えます</b><span id="install-sub">ワンタップで開けて、普通のアプリのように全画面で使えます。</span></div>
+    <div class="install-acts"><button type="button" class="btn primary sm" id="install-go">追加する</button><button type="button" class="tool" id="install-later">あとで</button></div>
+  </div>
 
   <section class="login" id="login" hidden aria-label="ログイン">
     <div class="login-card">
@@ -719,6 +796,14 @@ legend { font-weight: 700; font-size: 14px; padding: 0 6px; }
     <div class="msg" id="ad-msg" role="status" aria-live="polite"></div>
     <div class="ad-body" id="ad-body"></div>
   </section>
+  <!-- how to add the app to the home screen, written for the phone and browser in use -->
+  <div class="modal-bg" id="install-sheet" hidden>
+    <div class="modal" role="dialog" aria-modal="true" aria-labelledby="install-h">
+      <h3 id="install-h">ホーム画面に追加する</h3>
+      <div id="install-steps"></div>
+      <div class="modal-actions"><span></span><div><button type="button" class="btn" id="install-close">閉じる</button></div></div>
+    </div>
+  </div>
   <!-- admin: a contract or invoice PDF, drawn page by page -->
   <div class="modal-bg pdf-bg" id="pdf-view" hidden>
     <div class="modal pdf-modal" role="dialog" aria-modal="true" aria-labelledby="pdf-h">
@@ -2640,7 +2725,7 @@ ${v.addr}`;
     mode = "login";
     for (const m of document.querySelectorAll(".modal-bg")) m.hidden = true;
     $("member-ui").hidden = true; $("admin").hidden = true; $("logout").hidden = true; $("chpass").hidden = true; $("adminbtn").hidden = true;
-    $("login").hidden = false; $("who").textContent = "";
+    $("login").hidden = false; $("who").textContent = ""; $("install").hidden = true;
     loginStep("login");
     $("l-msg").textContent = note || "";
   }
@@ -2666,7 +2751,67 @@ ${v.addr}`;
     if (me.admin) { $("adminbtn").hidden = false; $("who").textContent = `${me.name}（管理者）`; }
     // invoices are the owner's alone
     $("ad-tabs").querySelector('[data-t="inv"]').hidden = !me.owner;
+    installHint(me.app);
   }
+
+  // ---- add to home screen ----
+  // the installed app runs full screen from the home screen; people using it in a phone's browser are shown how to add it
+  let installEvt = null;
+  window.addEventListener("beforeinstallprompt", (e) => { e.preventDefault(); installEvt = e; });
+  window.addEventListener("appinstalled", () => { $("install").hidden = true; $("install-sheet").hidden = true; });
+  const UA = navigator.userAgent;
+  const isIOS = /iPhone|iPad|iPod/.test(UA) || (/Macintosh/.test(UA) && navigator.maxTouchPoints > 1);
+  const isAndroid = /Android/.test(UA);
+  // LINE, Instagram and the like open links in their own browser, which cannot add to the home screen
+  const inAppBrowser = /Line\/|Instagram|FBAN|FBAV|Twitter|MicroMessenger/i.test(UA);
+  const standalone = () => matchMedia("(display-mode: standalone)").matches || navigator.standalone === true;
+  const LATER = "tc_install_later", LATER_DAYS = 7;
+  function installHint(appUrl) {
+    if (standalone() || !(isIOS || isAndroid)) return;
+    try { if (Date.now() - Number(localStorage.getItem(LATER) || 0) < LATER_DAYS * 864e5) return; } catch (e) {}
+    // the Apps Script page itself cannot be installed: it sends people to the app's own address instead
+    if (viaGas) {
+      if (!appUrl || /script\.google/.test(appUrl)) return;
+      $("install").dataset.url = appUrl;
+      $("install-sub").textContent = "アプリ版を開いて、そこからホーム画面に追加してください。";
+      $("install-go").textContent = "アプリ版を開く";
+    }
+    $("install").hidden = false;
+  }
+  const SHARE_ICON = `<span class="install-mark"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3v12M7 8l5-5 5 5"/><path d="M5 12v7a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2v-7"/></svg></span>`;
+  $("install-go").onclick = async () => {
+    const url = $("install").dataset.url;
+    if (url) { const a = document.createElement("a"); a.href = url; a.target = "_top"; a.rel = "noopener"; document.body.appendChild(a); a.click(); a.remove(); return; }
+    // Android Chrome can install in one tap
+    if (installEvt && !inAppBrowser) {
+      installEvt.prompt();
+      const r = await installEvt.userChoice.catch(() => null);
+      installEvt = null;
+      if (r?.outcome === "accepted") { $("install").hidden = true; return; }
+    }
+    $("install-steps").innerHTML = inAppBrowser
+      ? `<p>LINEなどのアプリの中で開いた画面からは、ホーム画面に追加できません。</p><ol class="install-steps">` +
+        `<li>画面の右上（または右下）の <b>「…」</b> や <b>共有</b> のメニューを押す</li>` +
+        `<li><b>「ブラウザで開く」</b>（iPhoneは<b>Safari</b>、Androidは<b>Chrome</b>）を選ぶ</li>` +
+        `<li>開いた画面で、もう一度「追加する」を押す</li></ol>`
+      : isIOS
+      ? `<ol class="install-steps">` +
+        `<li>共有ボタン ${SHARE_ICON} を押す（Safariは画面の下、Chromeはアドレス欄の右）</li>` +
+        `<li>メニューを下にずらして <b>「ホーム画面に追加」</b> を押す</li>` +
+        `<li>右上の <b>「追加」</b> を押す</li>` +
+        `<li>ホーム画面に出た <b>Themis</b> のアイコンから開き、もう一度ログインする（最初の1回だけです）</li></ol>`
+      : `<ol class="install-steps">` +
+        `<li>Chromeの右上の <b>「⋮」</b> を押す</li>` +
+        `<li><b>「アプリをインストール」</b> または <b>「ホーム画面に追加」</b> を押す</li>` +
+        `<li><b>「インストール」</b>（または「追加」）を押す</li>` +
+        `<li>ホーム画面に出た <b>Themis</b> のアイコンから開く</li></ol>`;
+    $("install-sheet").hidden = false;
+  };
+  $("install-close").onclick = () => { $("install-sheet").hidden = true; };
+  $("install-later").onclick = () => {
+    $("install").hidden = true;
+    try { localStorage.setItem(LATER, String(Date.now())); } catch (e) {}
+  };
   let adStarted = false;
   $("adminbtn").onclick = () => {
     const toAdmin = mode === "member";
@@ -2737,7 +2882,7 @@ ${v.addr}`;
   const link = (url, text) => (url ? `<a href="${esc(url)}" target="_blank" rel="noopener">${esc(text)}</a>` : "");
 
   function startAdmin() {
-    for (const b of $("ad-tabs").querySelectorAll("button")) b.onclick = () => { adTab = b.dataset.t; adLoad(); };
+    for (const b of $("ad-tabs").querySelectorAll("button")) b.onclick = () => { adTab = b.dataset.t; adPerson = null; adLoad(); };
     $("ad-prev").onclick = () => adShift(-1);
     $("ad-next").onclick = () => adShift(1);
     $("ad-reload").onclick = () => adLoad(true);
@@ -2761,7 +2906,7 @@ ${v.addr}`;
       catch (e) { adMsg(errText(e)); return; }
       if (key !== adKeyNow()) return;   // the month was changed again while this one loaded
     }
-    try { ({ today: adToday, work: adWork, hope: adHope, inv: adInv, members: adMembers })[adTab](); }
+    try { (adPerson && (adTab === "work" || adTab === "hope") ? adPersonView : { today: adToday, work: adWork, hope: adHope, inv: adInv, members: adMembers }[adTab])(); }
     catch (e) { adMsg(`画面を作れませんでした：${e.message}`); }
   }
   // one read brings everything for the months on screen; it is kept, so moving between tabs needs no new read,
@@ -2824,51 +2969,139 @@ ${v.addr}`;
       `</tbody></table></div>`;
   }
 
+  // 勤怠 and シフト list one card per person; tapping it opens that person's month as a calendar (adPersonView)
+  const workSum = (rows) => {
+    const worked = rows.filter((r) => r[DH.kind] === "打刻あり");
+    return { days: worked.length, total: worked.reduce((s, r) => s + minOf(r[DH.work]), 0), abs: rows.filter((r) => r[DH.kind] === "欠勤").length,
+      early: rows.filter((r) => r[DH.early]).length, km: Math.round(rows.reduce((s, r) => s + (Number(r[DH.km]) || 0), 0) * 10) / 10 };
+  };
+  const personCard = (m, i, body, dim) => `<button type="button" class="ad-card ad-link${dim ? " dim" : ""}" data-person="${esc(m.id)}">` +
+    `<div class="ad-card-h"><span>${numName(i, m.name)}</span><span class="ad-go" aria-hidden="true">›</span></div><div class="ad-mini">${body}</div></button>`;
+  const bindPeople = () => { for (const b of $("ad-body").querySelectorAll("[data-person]")) b.onclick = () => adOpenPerson(b.dataset.person); };
+
   function adWork() {
     const ym = adMonth.work, live = adData.members.filter((m) => m.active || adData.days.some((r) => r[DH.name] === m.name && r[DH.date].slice(0, 7) === ym));
     const rows = adRows((r) => r[DH.date].slice(0, 7) === ym);
-    $("ad-body").innerHTML = `<p class="hint">名前を押すと、その月の日ごとの記録が開きます。</p>` + byWork(live).map(([t, g]) =>
-      `<h3 class="ad-grp">${esc(groupName(t))}（${g.length}人）</h3>` + g.map((m, i) => {
-      const mine = rows.filter((r) => r[DH.name] === m.name).sort((a, b) => a[DH.date].localeCompare(b[DH.date]));
-      const worked = mine.filter((r) => r[DH.kind] === "打刻あり"), abs = mine.filter((r) => r[DH.kind] === "欠勤").length;
-      const total = worked.reduce((s, r) => s + minOf(r[DH.work]), 0), km = mine.reduce((s, r) => s + (Number(r[DH.km]) || 0), 0);
-      const early = mine.filter((r) => r[DH.early]).length;
-      return `<details class="ad-person"><summary><span class="nm">${numName(i, m.name)}</span>` +
-        `<span>出勤 <b class="num">${worked.length}</b>日</span><span>実働 <b class="num">${dur(total)}</b></span>` +
-        `<span>欠勤 <b class="num">${abs}</b></span><span>早退 <b class="num">${early}</b></span><span>距離 <b class="num">${Math.round(km * 10) / 10}</b>km</span></summary>` +
-        (mine.length ? `<div class="ad-scroll"><table class="ad-table"><thead><tr><th>日付</th><th>区分</th><th>店舗</th><th>予定</th><th>出勤</th><th>退勤</th><th>実働</th><th>交通</th><th>km</th><th>画像</th><th>メモ・理由</th></tr></thead><tbody>` +
-          mine.map((r) => {
-            const [y, mo, d] = r[DH.date].split("-").map(Number), wd = new Date(y, mo - 1, d).getDay();
-            return `<tr><td class="num wd-${wd}">${mo}/${d}（${WD[wd]}）</td><td>${esc(r[DH.kind])}${r[DH.early] ? "・早退" : ""}</td><td>${esc(r[DH.store])}</td>` +
-              `<td class="num">${r[DH.pIn] ? esc(`${r[DH.pIn]}–${r[DH.pOut]}`) : ""}</td><td class="num">${esc(r[DH.in])}</td><td class="num">${esc(r[DH.out])}</td><td class="num">${esc(r[DH.work])}</td>` +
-              `<td>${esc(r[DH.transport])}${r[DH.ride] ? `（${esc(r[DH.ride])}）` : ""}</td><td class="num">${esc(r[DH.km])}</td>` +
-              `<td>${r[DH.imgs] ? r[DH.imgs].split("\n").map((u, i) => link(u, `画像${i + 1}`)).join(" ") : ""}</td>` +
-              `<td>${esc([r[DH.absWhy], r[DH.earlyWhy], r[DH.result], r[DH.memo]].filter(Boolean).join(" / "))}</td></tr>`;
-          }).join("") + `</tbody></table></div>` : `<p class="hint pad">この月の記録はありません。</p>`) + `</details>`;
-    }).join("")).join("");
+    $("ad-body").innerHTML = `<p class="hint">名前を押すと、その人の${esc(ymLabel(ym))}のカレンダーが開きます。</p>` + byWork(live).map(([t, g]) =>
+      `<h3 class="ad-grp">${esc(groupName(t))}（${g.length}人）</h3><div class="ad-cards">` + g.map((m, i) => {
+        const s = workSum(rows.filter((r) => r[DH.name] === m.name));
+        return personCard(m, i, `<span>出勤 <b class="num">${s.days}</b>日</span><span>実働 <b class="num">${dur(s.total)}</b></span>` +
+          `<span>欠勤 <b class="num">${s.abs}</b></span><span>早退 <b class="num">${s.early}</b></span><span>距離 <b class="num">${s.km}</b>km</span>`, !s.days && !s.abs);
+      }).join("") + `</div>`).join("");
+    bindPeople();
   }
 
   function adHope() {
-    const ym = adMonth.hope, [y, mo] = ym.split("-").map(Number), n = new Date(y, mo, 0).getDate();
+    const ym = adMonth.hope;
     // 常勤 staff hand in no wishes, so only 週末 (and anyone who has not said yet) are counted here
     const live = adData.members.filter((m) => m.active && m.workType !== "常勤");
     const byName = Object.fromEntries(adData.hopes.map((r) => [r[0], r]));
-    const days = Array.from({ length: n }, (_, i) => new Date(y, mo - 1, i + 1));
     const sent = live.filter((m) => byName[m.name]).length;
-    const perDay = days.map((_, i) => live.filter((m) => /○/.test(byName[m.name]?.[6 + i] || "")).length);
+    // everyone's wishes for one day: who is ○, ○ with 遠方可, and △
+    const markOf = (m, key) => byName[m.name]?.[5 + Number(key.slice(8))] || "";
+    const who = (key, v) => live.filter((m) => markOf(m, key) === v);
+    const today = adData.today.startsWith(ym) ? adData.today : "";
+    const sel = hopeDay.startsWith(ym) ? hopeDay : today || `${ym}-01`;
+    const dayList = (key) => {
+      const [y, mo, d] = key.split("-").map(Number), wd = new Date(y, mo - 1, d).getDay();
+      const part = (t, list, cls) => `<div class="hope-who ${cls}"><b>${t}（${list.length}人）</b><span>${list.length ? list.map((m) => esc(m.name)).join("、") : "—"}</span></div>`;
+      return `<h3 class="ad-h3">${mo}月${d}日（${WD[wd]}）${holidayName(key) ? `<small>${esc(holidayName(key))}</small>` : ""}</h3>` +
+        part("○ 稼働できる", who(key, "○"), "v-ok") + part("○ 遠方も可", who(key, "○遠方可"), "v-ok") + part("△ 要相談", who(key, "△"), "v-maybe");
+    };
     $("ad-body").innerHTML =
       `<div class="ad-stats"><div class="ad-stat"><span>提出済み</span><b class="num">${sent} / ${live.length}</b></div>` +
       `<div class="ad-stat${live.length - sent ? " warn" : ""}"><span>未提出</span><b class="num">${live.length - sent}</b></div></div>` +
-      `<p class="hint">○ 稼働できる　<b class="far-tag">遠</b> 遠方も可　△ 要相談　空欄は稼働不可。いちばん下の行は、その日に○の人数です。常勤の人はシフト希望がないので、ここには出ません。</p>` +
-      `<div class="ad-scroll"><table class="ad-table ad-grid"><thead><tr><th class="nm">氏名</th><th>○</th><th>△</th>` +
-      days.map((d) => `<th class="wd-${d.getDay()}${holidayName(dayKey(d)) ? " hol" : ""}">${d.getDate()}<small>${WD[d.getDay()]}</small></th>`).join("") + `</tr></thead><tbody>` +
-      byWork(live).map(([t, g]) => grpRow(t, g.length, n + 3) + g.map((m, j) => {
+      `<h3 class="ad-grp">全員のシフト希望</h3><p class="hint">日付を押すと、その日に入れる人の名前が出ます。数字は ○ の人数（遠方可を含む）と △ の人数です。</p>` +
+      monthCal(ym, (key) => {
+        const ok = who(key, "○").length + who(key, "○遠方可").length, maybe = who(key, "△").length;
+        return ok || maybe ? { cls: ok ? "v-ok" : "v-maybe", html: (ok ? `<span class="pcal-n">○${ok}</span>` : "") + (maybe ? `<span class="pcal-n maybe">△${maybe}</span>` : "") } : {};
+      }, sel) +
+      `<div class="pcal-detail" id="hope-day">${dayList(sel)}</div>` +
+      `<p class="hint">名前を押すと、その人のシフト希望がカレンダーで開きます。常勤の人はシフト希望がないので、ここには出ません。</p>` +
+      byWork(live).map(([t, g]) => `<h3 class="ad-grp">${esc(groupName(t))}（${g.length}人）</h3><div class="ad-cards">` + g.map((m, i) => {
         const r = byName[m.name];
-        if (!r) return `<tr class="dim"><td class="nm">${numName(j, m.name)}</td><td colspan="${n + 2}">未提出</td></tr>`;
-        return `<tr><td class="nm" title="提出 ${esc(r[2])}">${numName(j, m.name)}</td><td class="num">${esc(r[3])}</td><td class="num">${esc(r[5])}</td>` +
-          days.map((d, i) => { const v = r[6 + i] || ""; return `<td class="mk ${v === "△" ? "v-maybe" : v ? "v-ok" : ""}">${v === "○遠方可" ? `○<b class="far-tag">遠</b>` : esc(v)}</td>`; }).join("") + `</tr>`;
-      }).join("")).join("") +
-      `<tr class="sum"><td class="nm">○の人数</td><td></td><td></td>${perDay.map((c) => `<td class="num">${c || ""}</td>`).join("")}</tr></tbody></table></div>`;
+        return personCard(m, i, r ? `<span>○ <b class="num">${esc(r[3])}</b>日</span><span>うち遠方可 <b class="num">${esc(r[4])}</b></span><span>△ <b class="num">${esc(r[5])}</b>日</span>`
+          : `<span class="st st-late">未提出</span>`, !r);
+      }).join("") + `</div>`).join("");
+    bindPeople();
+    for (const b of $("ad-body").querySelectorAll(".pcal-c[data-day]")) b.onclick = () => {
+      hopeDay = b.dataset.day;
+      for (const c of $("ad-body").querySelectorAll(".pcal-c.sel")) c.classList.remove("sel");
+      b.classList.add("sel");
+      $("hope-day").innerHTML = dayList(hopeDay);
+    };
+  }
+  let hopeDay = "";
+
+  // a month as a calendar: cell(key) gives each day's class and contents; days are buttons unless readOnly
+  function monthCal(ym, cell, sel, readOnly) {
+    const [y, mo] = ym.split("-").map(Number), n = new Date(y, mo, 0).getDate(), lead = new Date(y, mo - 1, 1).getDay();
+    let h = `<div class="pcal">` + WD.map((w, i) => `<div class="pcal-w wd-${i}">${w}</div>`).join("") + `<div></div>`.repeat(lead);
+    for (let d = 1; d <= n; d++) {
+      const key = `${ym}-${pad(d)}`, c = cell(key), tag = readOnly ? "div" : "button";
+      const cls = `pcal-c wd-${(lead + d - 1) % 7}${holidayName(key) ? " hol" : ""}${c.cls ? " " + c.cls : ""}${key === sel ? " sel" : ""}${key === adData.today ? " today" : ""}`;
+      h += `<${tag}${readOnly ? "" : ' type="button"'} class="${cls}" data-day="${key}"><span class="pcal-d">${d}</span>${c.html || ""}</${tag}>`;
+    }
+    return h + `</div>`;
+  }
+
+  // one person's month: 勤怠 shows each day's store and times (tap a day for every item); シフト shows their marks
+  let adPerson = null;   // { id, day }
+  function adOpenPerson(id) { adPerson = { id, day: "" }; window.scrollTo(0, 0); adLoad(); }
+  function adPersonView() {
+    const m = adData.members.find((x) => x.id === adPerson.id);
+    if (!m) { adPerson = null; adLoad(); return; }
+    const head = `<div class="ad-back"><button type="button" class="tool" id="ad-back">‹ 一覧に戻る</button>` +
+      `<h2 class="ad-h">${esc(m.name)}${m.workType ? `<span class="st st-none">${esc(m.workType)}</span>` : ""}</h2></div>`;
+    if (adTab === "hope") {
+      const ym = adMonth.hope, r = adData.hopes.find((x) => x[0] === m.name);
+      $("ad-body").innerHTML = head + (r
+        ? `<div class="ad-stats row5"><div class="ad-stat"><span>○</span><b class="num">${esc(r[3])}</b></div><div class="ad-stat"><span>うち遠方可</span><b class="num">${esc(r[4])}</b></div>` +
+          `<div class="ad-stat"><span>△</span><b class="num">${esc(r[5])}</b></div></div><p class="hint">提出 ${esc(r[2])}　○ 稼働できる　<b class="far-tag">遠</b> 遠方も可　△ 要相談　空欄は稼働不可</p>`
+        : `<p class="hint">${esc(ymLabel(ym))}のシフト希望はまだ提出されていません。</p>`) +
+        monthCal(ym, (key) => {
+          const v = r?.[5 + Number(key.slice(8))] || "";
+          return v ? { cls: v === "△" ? "v-maybe" : "v-ok", html: `<span class="pcal-m">${v === "○遠方可" ? `○<b class="far-tag">遠</b>` : esc(v)}</span>` } : {};
+        }, "", true);
+    } else {
+      const ym = adMonth.work, rows = Object.fromEntries(adRows((x) => x[DH.name] === m.name && x[DH.date].startsWith(ym)).map((x) => [x[DH.date], x]));
+      const keys = Object.keys(rows).sort(), s = workSum(keys.map((k) => rows[k]));
+      const sel = adPerson.day.startsWith(ym) ? adPerson.day : rows[adData.today] ? adData.today : keys[0] || "";
+      $("ad-body").innerHTML = head +
+        `<div class="ad-stats row5">` + [["出勤", `${s.days}日`], ["実働", dur(s.total)], ["欠勤", s.abs], ["早退", s.early], ["距離", `${s.km}km`]]
+          .map(([t, v]) => `<div class="ad-stat"><span>${t}</span><b class="num">${v}</b></div>`).join("") + `</div>` +
+        monthCal(ym, (key) => {
+          const r = rows[key];
+          if (!r) return {};
+          if (r[DH.kind] === "欠勤") return { cls: "k-abs", html: `<span class="pcal-s">${esc(r[DH.store])}</span><span class="pcal-t">欠勤</span>` };
+          // clock-in and clock-out on their own lines, so neither is cut off in a narrow day
+          const times = r[DH.in] ? [r[DH.in], r[DH.out] || "勤務中"] : r[DH.pIn] ? [`予${r[DH.pIn]}`] : [];
+          return { cls: r[DH.in] ? (r[DH.early] ? "k-early" : "k-work") : "k-plan",
+            html: `<span class="pcal-s">${esc(r[DH.store])}</span>` + times.map((t) => `<span class="pcal-t num">${esc(t)}</span>`).join("") };
+        }, sel) +
+        `<div class="pcal-detail" id="pcal-detail">${dayDetail(sel, rows[sel])}</div>`;
+      for (const b of $("ad-body").querySelectorAll(".pcal-c[data-day]")) b.onclick = () => {
+        adPerson.day = b.dataset.day;
+        for (const c of $("ad-body").querySelectorAll(".pcal-c.sel")) c.classList.remove("sel");
+        b.classList.add("sel");
+        $("pcal-detail").innerHTML = dayDetail(b.dataset.day, rows[b.dataset.day]);
+      };
+    }
+    $("ad-back").onclick = () => { adPerson = null; adLoad(); };
+  }
+  // every item recorded for one day, only the ones that have a value
+  function dayDetail(key, r) {
+    if (!key) return `<p class="hint">この月の記録はありません。</p>`;
+    const [y, mo, d] = key.split("-").map(Number), wd = new Date(y, mo - 1, d).getDay();
+    const title = `<h3 class="ad-h3">${mo}月${d}日（${WD[wd]}）${holidayName(key) ? `<small>${esc(holidayName(key))}</small>` : ""}</h3>`;
+    if (!r) return title + `<p class="hint">この日の記録はありません。</p>`;
+    const items = [["区分", `${r[DH.kind]}${r[DH.early] ? "・早退" : ""}`], ["稼働店舗", r[DH.store]], ["予定", r[DH.pIn] ? `${r[DH.pIn]}–${r[DH.pOut]}` : ""],
+      ["起床", r[DH.wake]], ["出発", r[DH.dep]], ["出勤", r[DH.in]], ["退勤", r[DH.out]], ["実働", r[DH.work]],
+      ["交通機関", r[DH.transport]], ["同乗者", r[DH.ride]], ["距離", r[DH.km] ? `${r[DH.km]} km` : ""],
+      ["欠勤理由", r[DH.absWhy]], ["早退理由", r[DH.earlyWhy]], ["稼働実績", r[DH.result]], ["メモ", r[DH.memo]]].filter(([, v]) => v);
+    const imgs = r[DH.imgs] ? r[DH.imgs].split("\n").map((u, i) => link(u, `画像${i + 1}`)).join(" ") : "";
+    return title + `<dl class="ad-kv">` + items.map(([t, v]) => `<dt>${t}</dt><dd>${esc(v)}</dd>`).join("") +
+      (imgs ? `<dt>証明画像</dt><dd>${imgs}</dd>` : "") + `</dl>`;
   }
 
   // the owner's list: each person's PDF, and 入金完了 once paid; the member then confirms the money arrived
