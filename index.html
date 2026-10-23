@@ -14,7 +14,7 @@
 <meta charset="utf-8">
 <title>Themis Portal</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
-<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Zen+Kaku+Gothic+New:wght@400;500;700&family=Zen+Old+Mincho:wght@500;700&family=Inter:wght@400;500;600;700&display=swap">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Zen+Kaku+Gothic+New:wght@400;500;700&family=Zen+Old+Mincho:wght@500;700&family=Inter:wght@400;500;600;700&display=block">
 <style>
 /* Layout: a punch-clock face on top, then one bar with tabs + month switcher, then either the month's ruled timecard or the invoice (form above, A4 sheet below) */
 :root {
@@ -1190,6 +1190,17 @@ button.pcal-c { cursor: pointer; }
   </div>
 </div>
 
+<!-- a second look before ログアウト / パスワード変更 / 管理画面 -->
+<div class="modal-bg" id="ask-sheet" hidden>
+  <div class="modal" role="dialog" aria-modal="true" aria-labelledby="ask-h">
+    <h3 id="ask-h"></h3>
+    <p class="hint" id="ask-body"></p>
+    <div class="modal-actions">
+      <button type="button" class="btn" id="ask-no">やめる</button>
+      <div><button type="button" class="btn primary" id="ask-yes"></button></div>
+    </div>
+  </div>
+</div>
 <div class="modal-bg" id="sheet" hidden>
   <form class="modal" id="edit-form" novalidate>
     <div class="modal-head"><h3 id="e-title">記録を修正</h3><button type="button" class="tool" id="e-back">‹ 戻る</button></div>
@@ -3120,7 +3131,13 @@ ${v.addr}`;
     try { localStorage.setItem(LATER, String(Date.now())); } catch (e) {}
   };
   let adStarted = false, adReady = Promise.resolve();   // adReady settles once the admin screen has drawn
-  $("adminbtn").onclick = () => {
+  // opening the admin screen asks first; going back to the normal screen (and a reload putting the admin screen back) does not
+  $("adminbtn").onclick = async () => {
+    if (mode === "member" && backend && !needsSetup() &&
+      !await ask("管理画面を開きますか？", "メンバー全員の勤怠・シフト・請求書を見る画面に移ります。", "開く")) return;
+    switchMode();
+  };
+  function switchMode() {
     const toAdmin = mode === "member";
     // the admin screen opens only once the person's own first steps (はじめに・契約) are done
     if (toAdmin && (!backend || needsSetup())) return;
@@ -3130,7 +3147,7 @@ ${v.addr}`;
     window.scrollTo(0, 0);
     if (toAdmin) { if (!adStarted) { adStarted = true; adReady = startAdmin(); } else adReady = adLoad(); }
     else render();
-  };
+  }
   // after a session ran out mid-use, a fresh page is the only safe way to switch person (no records left in memory)
   function signedIn(json) {
     const r = JSON.parse(json);
@@ -3169,9 +3186,25 @@ ${v.addr}`;
       } catch (err) { $("p-msg").textContent = errText(err); }
     });
   });
-  $("chpass").onclick = () => { showLogin(); loginStep("change"); $("logout").hidden = false; };
+  // resolves true for the OK button, false for やめる or a tap outside the box
+  function ask(title, body, okText, danger) {
+    $("ask-h").textContent = title; $("ask-body").textContent = body;
+    $("ask-yes").textContent = okText; $("ask-yes").className = `btn ${danger ? "danger armed" : "primary"}`;
+    $("ask-sheet").hidden = false;
+    return new Promise((res) => {
+      const done = (v) => { $("ask-sheet").hidden = true; res(v); };
+      $("ask-yes").onclick = () => done(true);
+      $("ask-no").onclick = () => done(false);
+      $("ask-sheet").onclick = (e) => { if (e.target === $("ask-sheet")) done(false); };
+    });
+  }
+  $("chpass").onclick = async () => {
+    if (!await ask("パスワードを変更しますか？", "パスワード変更の画面に移ります。変更すると、他の端末はログアウトされます。", "変更する")) return;
+    showLogin(); loginStep("change"); $("logout").hidden = false;
+  };
   $("p-cancel").onclick = () => location.reload();
   $("logout").onclick = async () => {
+    if (!await ask("ログアウトしますか？", "次に使うときは、ログインIDとパスワードをもう一度入れます。", "ログアウトする", true)) return;
     $("logout").disabled = true;
     try { await rawCall("api_logout"); } catch (e) {}
     setCred(null); location.reload();
@@ -3800,7 +3833,7 @@ ${v.addr}`;
       adTab = v.adTab === "inv" && !window.TC_OWNER ? "today" : v.adTab || adTab;
       Object.assign(adMonth, v.adMonth || {});
       adPerson = v.adPerson || null; adListY = v.adListY || 0;
-      $("adminbtn").click();
+      switchMode();
       adReady.then(() => window.scrollTo(0, v.y || 0));
     } else requestAnimationFrame(() => window.scrollTo(0, v.y || 0));
   }
