@@ -1536,7 +1536,7 @@ window.addEventListener("error", function (e) {
   let CRED = null, mode = "login";   // login | member | admin
   try { CRED = localStorage.getItem(CRED_KEY); } catch (e) {}
   // signing out also forgets the copy of the records kept for a quick start
-  const setCred = (c) => { CRED = c; try { if (c) localStorage.setItem(CRED_KEY, c); else { localStorage.removeItem(CRED_KEY); localStorage.removeItem("tc_cache"); localStorage.removeItem("tc_view"); } } catch (e) {} };
+  const setCred = (c) => { CRED = c; try { if (c) localStorage.setItem(CRED_KEY, c); else { localStorage.removeItem(CRED_KEY); localStorage.removeItem("tc_cache"); localStorage.removeItem("tc_view"); sessionStorage.removeItem("tc_view"); } } catch (e) {} };
   const viaGas = !!window.google?.script?.run;
   const rawCall = (fn, ...args) => viaGas
     ? new Promise((res, rej) => { google.script.run.withSuccessHandler(res).withFailureHandler(rej)[fn](CRED, ...args); })
@@ -1702,6 +1702,7 @@ window.addEventListener("error", function (e) {
     }
     $("member-ui").dataset.tab = t;
     render();
+    saveView();
   }
   // a tab picked by hand while the page is still loading wins over the one saved before the reload
   let viewPicked = false;
@@ -1733,9 +1734,9 @@ window.addEventListener("error", function (e) {
     if (tab === "hope" && view < firstHope()) view = firstHope();
   };
   function shiftMonth(n) { view = new Date(view.getFullYear(), view.getMonth() + n, 1); clampView(); watchView(); fillForms(true); render(); }
-  $("m-prev").onclick = () => shiftMonth(-1);
-  $("m-next").onclick = () => shiftMonth(1);
-  $("m-now").onclick = () => { const d = new Date(); view = new Date(d.getFullYear(), d.getMonth() + ({ inv: -1, hope: 1 }[tab] || 0), 1); watchView(); fillForms(true); render(); };
+  $("m-prev").onclick = () => { shiftMonth(-1); saveView(); };
+  $("m-next").onclick = () => { shiftMonth(1); saveView(); };
+  $("m-now").onclick = () => { const d = new Date(); view = new Date(d.getFullYear(), d.getMonth() + ({ inv: -1, hope: 1 }[tab] || 0), 1); watchView(); fillForms(true); render(); saveView(); };
 
   function monthRows(ym = viewYm()) {
     const [y, mo] = ym.split("-").map(Number);
@@ -3162,6 +3163,7 @@ ${v.addr}`;
     window.scrollTo(0, 0);
     if (toAdmin) { if (!adStarted) { adStarted = true; adReady = startAdmin(); } else adReady = adLoad(); }
     else render();
+    saveView();
   }
   // after a session ran out mid-use, a fresh page is the only safe way to switch person (no records left in memory)
   function signedIn(json) {
@@ -3268,6 +3270,7 @@ ${v.addr}`;
     try { (adPerson && (adTab === "work" || adTab === "hope") ? adPersonView : { today: adToday, work: adWork, hope: adHope, inv: adInv, members: adMembers }[adTab])(); }
     catch (e) { adMsg(`画面を作れませんでした：${e.message}`); }
     if (monthly) adPrefetchNear();
+    saveView();
   }
   // the months either side of the one on screen are read in the background, so ‹ › shows them at once
   function adPrefetchNear() {
@@ -3802,20 +3805,30 @@ ${v.addr}`;
   // page later without any notice — and kept for 30 minutes (peekView), so opening the app the next day still
   // starts on the shift calendar
   const VIEW_KEY = "tc_view";
-  let viewReady = false;   // nothing is saved until the saved screen has been put back, or it would overwrite it
+  // nothing is saved until the saved screen has been put back, or it would overwrite it.
+  // (var: render() calls saveView while the page is still starting, before this line has run)
+  var viewReady = false;
+  // saved on every change, not only as the page goes away: a write made while the page is being reloaded may not
+  // have landed yet when the new page reads it. The tab's own sessionStorage keeps a copy as well
   function saveView() {
-    if (!CRED || !backend || !viewReady) return;
+    if (!viewReady || !CRED || !backend) return;
     const ym = (d) => `${d.getFullYear()}-${pad(d.getMonth() + 1)}`;
     const months = Object.fromEntries(Object.entries({ ...tabView, [tab]: view }).map(([k, d]) => [k, ym(d)]));
-    try { localStorage.setItem(VIEW_KEY, JSON.stringify({ at: Date.now(), mode, tab, months, y: window.scrollY, adTab, adMonth, adPerson, adListY })); } catch (e) {}
+    const s = JSON.stringify({ at: Date.now(), mode, tab, months, y: window.scrollY, adTab, adMonth, adPerson, adListY });
+    try { localStorage.setItem(VIEW_KEY, s); } catch (e) {}
+    try { sessionStorage.setItem(VIEW_KEY, s); } catch (e) {}
   }
   addEventListener("pagehide", saveView);
   document.addEventListener("visibilitychange", () => { if (document.visibilityState === "hidden") saveView(); });
+  let scrollSave = null;
+  addEventListener("scroll", () => { clearTimeout(scrollSave); scrollSave = setTimeout(saveView, 300); }, { passive: true });
   // the quick copy shown while the app opens already uses the saved tab, so the shift calendar doesn't flash first.
   // (called before VIEW_KEY is set up, hence the key written out)
   function peekView() {
-    try { const v = JSON.parse(localStorage.getItem("tc_view") || "null"); return v && Date.now() - (v.at || 0) < 30 * 60 * 1000 ? v : null; }
-    catch (e) { return null; }
+    const read = (st) => { try { return JSON.parse(st.getItem("tc_view") || "null"); } catch (e) { return null; } };
+    const a = read(sessionStorage), b = read(localStorage);
+    const v = a && (!b || a.at >= b.at) ? a : b;   // the newer of the two copies
+    return v && Date.now() - (v.at || 0) < 30 * 60 * 1000 ? v : null;
   }
   function restoreTab(v) {
     if (!v) return;
