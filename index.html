@@ -657,11 +657,9 @@ fieldset:disabled .f input, fieldset:disabled .f textarea, fieldset:disabled .f 
   .brand-side .brand-who { grid-area: who; justify-self: end; text-align: right; font-size: 15px; padding-bottom: 1px; transform: translateY(3px);
     white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: 100%; }
   .brand-btns { grid-area: btns; width: 100%; }
-  .brand-btns .tool { flex: 1 1 0; font-size: 12px; padding: 7px 4px; text-align: center; }
 }
 /* while today's plan shows from the copy on this device, the punch keys wait for the server */
 .preview .clock .key { opacity: .5; }
-.brand-side .tool { font-size: 12px; padding: 4px 10px; white-space: nowrap; }
 
 /* Login: one centred card under the brand line */
 .login { display: grid; justify-items: center; padding: 12px 0 40px; }
@@ -875,6 +873,14 @@ button.pcal-c { cursor: pointer; }
 .btn:not(:disabled):active, .tool:not(:disabled):active, .month-nav button:not(:disabled):active, .key-sub:not(:disabled):active, .hope-brush button:not(:disabled):active {
   transform: translateY(3px); box-shadow: var(--sink);
 }
+/* the header's 管理画面 / パスワード変更 / ログアウト: one raised bar split into equal parts, like the tabs below it */
+.brand-btns { gap: 0; border: 1px solid var(--rule); border-radius: 10px; overflow: hidden; background: var(--card); background-image: var(--gloss);
+  box-shadow: var(--shine), 0 3px 0 var(--edge), 0 6px 12px -5px rgb(31 42 58 / .28); }
+.brand-btns .tool { border: 0; border-radius: 0; background: transparent; box-shadow: none; font-size: 12px; font-weight: 600; padding: 6px 14px; white-space: nowrap; color: var(--ink); }
+.brand-btns .tool:not([hidden]) ~ .tool { border-left: 1px solid var(--rule); }
+.brand-btns .tool:not(:disabled):active { transform: none; box-shadow: none; background: color-mix(in srgb, var(--ink) 8%, transparent); }
+.brand-btns #adminbtn { color: var(--accent); }
+@media (max-width: 560px) { .brand-btns .tool { flex: 1 1 0; padding: 10px 4px; text-align: center; } }
 .btn:disabled, .tool:disabled, .month-nav button:disabled, .key-sub:disabled, .hope-brush button:disabled { box-shadow: none; }
 .hope-submit .btn.primary { box-shadow: inset 0 1px 0 rgb(255 255 255 / .25), 0 6px 0 color-mix(in srgb, var(--accent) 55%, #000), 0 18px 30px -10px rgb(31 42 58 / .55); }
 /* the tab tray is sunk into the page and the chosen tab sits up in it */
@@ -1665,15 +1671,18 @@ window.addEventListener("error", function (e) {
     $("member-ui").dataset.tab = t;
     render();
   }
-  $("tab-card").onclick = () => setTab("card");
-  $("tab-hope").onclick = () => setTab("hope");
+  // a tab picked by hand while the page is still loading wins over the one saved before the reload
+  let viewPicked = false;
+  const pickTab = (t) => { viewPicked = true; setTab(t); };
+  $("tab-card").onclick = () => pickTab("card");
+  $("tab-hope").onclick = () => pickTab("hope");
   // 常勤 staff hand in no shift wishes, so they never see that tab
   function applyWork() {
     const full = window.TC_WORK === "常勤";
     $("tab-hope").hidden = full;
     if (full && tab === "hope") setTab("card");
   }
-  $("tab-inv").onclick = () => setTab("inv");
+  $("tab-inv").onclick = () => pickTab("inv");
 
   let view = new Date(); view = new Date(view.getFullYear(), view.getMonth(), 1);
   const tabView = { card: view, inv: new Date(view.getFullYear(), view.getMonth() - 1, 1), hope: new Date(view.getFullYear(), view.getMonth() + 1, 1) };
@@ -3203,6 +3212,17 @@ ${v.addr}`;
     }
     try { (adPerson && (adTab === "work" || adTab === "hope") ? adPersonView : { today: adToday, work: adWork, hope: adHope, inv: adInv, members: adMembers }[adTab])(); }
     catch (e) { adMsg(`画面を作れませんでした：${e.message}`); }
+    if (monthly) adPrefetchNear();
+  }
+  // the months either side of the one on screen are read in the background, so ‹ › shows them at once
+  function adPrefetchNear() {
+    const [y, m] = adMonth[adTab].split("-").map(Number);
+    for (const n of [-1, 1]) {
+      const ym = ymOf(dayKey(new Date(y, m - 1 + n, 1)));
+      if (adTab === "inv" && ym > adLastBillable()) continue;
+      const mo = { ...adMonth, [adTab]: ym }, key = `${mo.work}|${mo.hope}|${mo.inv}`;
+      if (!adCache[key]) adFetch(key).catch(() => {});
+    }
   }
   // one read brings everything for the months on screen; it is kept, so moving between tabs needs no new read,
   // and it starts in the background as soon as an admin signs in
@@ -3468,18 +3488,23 @@ ${v.addr}`;
     for (let i = 0; i < bin.length; i++) bytes[i] = bin.charCodeAt(i);
     return bytes;
   };
-  // saving a PDF: on a phone the share sheet (「ファイルに保存」 and the like), elsewhere an ordinary download
+  // saving a PDF: on a phone the share sheet (「ファイルに保存」 and the like), elsewhere an ordinary download.
+  // A phone never falls back to the download link: iPhone opens it as a page, which then stays in the
+  // history and slides back in on a sideways swipe
   async function savePdf(bytes, fname) {
     const file = new File([bytes], fname, { type: "application/pdf" });
     if ((isIOS || isAndroid) && navigator.canShare?.({ files: [file] })) {
       try { await navigator.share({ files: [file], title: fname }); return; }
-      catch (e) { if (e.name === "AbortError") return; }
+      catch (e) { if (e.name === "AbortError") return; throw new Error("保存できませんでした。もう一度「ダウンロード」を押してください。"); }
     }
     const url = URL.createObjectURL(file), a = document.createElement("a");
     a.href = url; a.download = fname; document.body.appendChild(a); a.click(); a.remove();
     setTimeout(() => URL.revokeObjectURL(url), 60000);
   }
   async function downloadPdf(id, what, ym, fname) {
+    // the share sheet only opens straight from a tap, and fetching the PDF first uses that tap up; on a phone
+    // the PDF opens in the viewer, whose ダウンロード button then shares it at once
+    if (isIOS || isAndroid) { showPdf(fname.replace(/\.pdf$/, ""), id, what, ym, fname); return; }
     adMsg("PDFを用意しています…");
     try { await savePdf(await pdfBytes(id, what, ym), fname); adMsg(""); }
     catch (e) { adMsg(errText(e)); }
@@ -3737,7 +3762,7 @@ ${v.addr}`;
   function restoreView() {
     const v = peekView();
     try { sessionStorage.removeItem(VIEW_KEY); } catch (e) {}
-    if (!v) return;
+    if (!v || viewPicked) return;
     restoreTab(v);
     if (v.mode === "admin" && window.TC_ADMIN) {
       adTab = v.adTab === "inv" && !window.TC_OWNER ? "today" : v.adTab || adTab;
