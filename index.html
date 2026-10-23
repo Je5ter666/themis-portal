@@ -736,7 +736,7 @@ fieldset:disabled .f input, fieldset:disabled .f textarea, fieldset:disabled .f 
 .tabs.ad-tabs button[hidden] { display: none; }
 @media (max-width: 560px) { .tabs.ad-tabs button { font-size: 12.5px; letter-spacing: 0; } }
 /* people as cards: name and badge on top, then label / value lines; no sideways scrolling */
-.ad-cards { display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 10px; }
+.ad-cards { display: grid; grid-template-columns: repeat(auto-fill, minmax(min(330px, 100%), 1fr)); gap: 10px; }
 .ad-card { background: var(--card); border: 1px solid var(--rule); border-radius: var(--r); padding: 12px 14px; display: grid; gap: 10px; align-content: start; }
 .ad-card.dim .ad-card-h { color: var(--ink-soft); }
 .ad-card-h { display: flex; align-items: center; justify-content: space-between; gap: 8px; font-weight: 700; font-size: 15px; }
@@ -745,8 +745,14 @@ fieldset:disabled .f input, fieldset:disabled .f textarea, fieldset:disabled .f 
 .ad-kv dd { margin: 0; display: flex; align-items: center; gap: 8px; flex-wrap: wrap; min-width: 0; }
 .ad-card .ad-acts { flex-wrap: wrap; align-items: center; }
 .btn.sm { padding: 6px 14px; font-size: 13px; }
-.ad-amount { display: flex; align-items: center; gap: 8px; font-size: 12px; color: var(--ink-soft); }
-.ad-amount input { flex: 1 1 0; min-width: 0; font: inherit; font-family: var(--f-num); font-size: 15px; padding: 6px 8px; border: 1px solid var(--rule); border-radius: 8px; background: var(--paper); color: var(--ink); }
+/* a card never grows past its column: the box, 円（税込） and 金額を設定 share the width and wrap when it runs out,
+   instead of spilling over the next card */
+.ad-card { min-width: 0; }
+.ad-card-h > :first-child { min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.ad-card-h > .st { flex: none; }
+.ad-amount { display: flex; flex-wrap: wrap; align-items: center; gap: 8px; font-size: 12px; color: var(--ink-soft); }
+.ad-amount > span, .ad-amount > button { flex: none; white-space: nowrap; }
+.ad-amount input { flex: 1 1 7em; min-width: 6em; font: inherit; font-family: var(--f-num); font-size: 15px; padding: 6px 8px; border: 1px solid var(--rule); border-radius: 8px; background: var(--paper); color: var(--ink); }
 /* a person card that opens their calendar */
 button.ad-card.ad-link { font: inherit; color: inherit; text-align: left; cursor: pointer; width: 100%; }
 button.ad-card.ad-link:hover { border-color: var(--accent); }
@@ -1504,7 +1510,7 @@ window.addEventListener("error", function (e) {
   let CRED = null, mode = "login";   // login | member | admin
   try { CRED = localStorage.getItem(CRED_KEY); } catch (e) {}
   // signing out also forgets the copy of the records kept for a quick start
-  const setCred = (c) => { CRED = c; try { if (c) localStorage.setItem(CRED_KEY, c); else { localStorage.removeItem(CRED_KEY); localStorage.removeItem("tc_cache"); } } catch (e) {} };
+  const setCred = (c) => { CRED = c; try { if (c) localStorage.setItem(CRED_KEY, c); else { localStorage.removeItem(CRED_KEY); localStorage.removeItem("tc_cache"); localStorage.removeItem("tc_view"); } } catch (e) {} };
   const viaGas = !!window.google?.script?.run;
   const rawCall = (fn, ...args) => viaGas
     ? new Promise((res, rej) => { google.script.run.withSuccessHandler(res).withFailureHandler(rej)[fn](CRED, ...args); })
@@ -3741,18 +3747,26 @@ ${v.addr}`;
     if (window.TC_ADMIN) adPrefetch();
     cacheSoon();
   }
-  // a reload (pull to refresh, the browser's 更新) comes back on the same screen, tab, month and scroll position.
-  // sessionStorage lasts only while this tab / app stays open, so a fresh start still opens on the shift calendar
+  // a reload (pull to refresh, the browser's 更新, or iPhone reopening the app after switching away) comes back on
+  // the same screen, tab, month and scroll position. It is saved whenever the page is hidden — iPhone may close the
+  // page later without any notice — and kept for 30 minutes (peekView), so opening the app the next day still
+  // starts on the shift calendar
   const VIEW_KEY = "tc_view";
-  addEventListener("pagehide", () => {
-    if (!CRED || !backend) return;
+  let viewReady = false;   // nothing is saved until the saved screen has been put back, or it would overwrite it
+  function saveView() {
+    if (!CRED || !backend || !viewReady) return;
     const ym = (d) => `${d.getFullYear()}-${pad(d.getMonth() + 1)}`;
     const months = Object.fromEntries(Object.entries({ ...tabView, [tab]: view }).map(([k, d]) => [k, ym(d)]));
-    try { sessionStorage.setItem(VIEW_KEY, JSON.stringify({ mode, tab, months, y: window.scrollY, adTab, adMonth, adPerson, adListY })); } catch (e) {}
-  });
+    try { localStorage.setItem(VIEW_KEY, JSON.stringify({ at: Date.now(), mode, tab, months, y: window.scrollY, adTab, adMonth, adPerson, adListY })); } catch (e) {}
+  }
+  addEventListener("pagehide", saveView);
+  document.addEventListener("visibilitychange", () => { if (document.visibilityState === "hidden") saveView(); });
   // the quick copy shown while the app opens already uses the saved tab, so the shift calendar doesn't flash first.
   // (called before VIEW_KEY is set up, hence the key written out)
-  function peekView() { try { return JSON.parse(sessionStorage.getItem("tc_view") || "null"); } catch (e) { return null; } }
+  function peekView() {
+    try { const v = JSON.parse(localStorage.getItem("tc_view") || "null"); return v && Date.now() - (v.at || 0) < 30 * 60 * 1000 ? v : null; }
+    catch (e) { return null; }
+  }
   function restoreTab(v) {
     if (!v) return;
     for (const k of Object.keys(tabView)) if (/^\d{4}-\d{2}$/.test(v.months?.[k] || "")) { const [y, m] = v.months[k].split("-").map(Number); tabView[k] = new Date(y, m - 1, 1); }
@@ -3761,7 +3775,7 @@ ${v.addr}`;
   }
   function restoreView() {
     const v = peekView();
-    try { sessionStorage.removeItem(VIEW_KEY); } catch (e) {}
+    viewReady = true;
     if (!v || viewPicked) return;
     restoreTab(v);
     if (v.mode === "admin" && window.TC_ADMIN) {
