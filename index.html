@@ -2060,6 +2060,15 @@ window.addEventListener("error", function (e) {
   for (const ev of ["gesturestart", "gesturechange"]) document.addEventListener(ev, (e) => { if (!zoomOK) e.preventDefault(); }, { passive: false });
   document.addEventListener("touchmove", (e) => { if (!zoomOK && e.touches.length > 1) e.preventDefault(); }, { passive: false });
   allowZoom(false);
+  // a tap on empty space (not a scroll, not a field or button) puts the phone's keyboard away
+  const TAPPABLE = "input, textarea, select, button, a, label, [contenteditable], [tabindex], canvas, .ad-card, .pcal-c";
+  let tapAt = null;
+  document.addEventListener("touchstart", (e) => { tapAt = e.touches.length === 1 ? [e.touches[0].clientX, e.touches[0].clientY] : null; }, { passive: true });
+  document.addEventListener("touchend", (e) => {
+    const a = document.activeElement, t = e.changedTouches[0];
+    if (!tapAt || !t || Math.hypot(t.clientX - tapAt[0], t.clientY - tapAt[1]) > 10) return;
+    if (a && a.matches("input, textarea, [contenteditable]") && !e.target.closest(TAPPABLE)) a.blur();
+  }, { passive: true });
   const closeViewer = () => { $("inv-view").hidden = true; allowZoom(false); };
   $("inv-thumb").onclick = () => {
     if (!$("inv-big").getAttribute("src")) return;
@@ -3649,7 +3658,7 @@ ${v.addr}`;
       mode = "member"; $("login").hidden = true; $("member-ui").hidden = false;
       showPerson(cached.me);
       document.body.classList.add("preview");
-      fillForms(true); render(); msg("最新の記録を確認しています…");
+      fillForms(true); render(); restoreTab(peekView()); msg("最新の記録を確認しています…");
     }
     const names = bootNames();
     try { const [me, pre] = await boot(names); enter(me, pre); }
@@ -3701,13 +3710,20 @@ ${v.addr}`;
     const months = Object.fromEntries(Object.entries({ ...tabView, [tab]: view }).map(([k, d]) => [k, ym(d)]));
     try { sessionStorage.setItem(VIEW_KEY, JSON.stringify({ mode, tab, months, y: window.scrollY, adTab, adMonth, adPerson, adListY })); } catch (e) {}
   });
-  function restoreView() {
-    let v = null;
-    try { v = JSON.parse(sessionStorage.getItem(VIEW_KEY) || "null"); sessionStorage.removeItem(VIEW_KEY); } catch (e) {}
+  // the quick copy shown while the app opens already uses the saved tab, so the shift calendar doesn't flash first.
+  // (called before VIEW_KEY is set up, hence the key written out)
+  function peekView() { try { return JSON.parse(sessionStorage.getItem("tc_view") || "null"); } catch (e) { return null; } }
+  function restoreTab(v) {
     if (!v) return;
     for (const k of Object.keys(tabView)) if (/^\d{4}-\d{2}$/.test(v.months?.[k] || "")) { const [y, m] = v.months[k].split("-").map(Number); tabView[k] = new Date(y, m - 1, 1); }
     view = tabView[tab];
     setTab(v.tab === "inv" || (v.tab === "hope" && window.TC_WORK !== "常勤") ? v.tab : "card");
+  }
+  function restoreView() {
+    const v = peekView();
+    try { sessionStorage.removeItem(VIEW_KEY); } catch (e) {}
+    if (!v) return;
+    restoreTab(v);
     if (v.mode === "admin" && window.TC_ADMIN) {
       adTab = v.adTab === "inv" && !window.TC_OWNER ? "today" : v.adTab || adTab;
       Object.assign(adMonth, v.adMonth || {});
