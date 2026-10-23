@@ -668,6 +668,31 @@ fieldset:disabled .f input, fieldset:disabled .f textarea, fieldset:disabled .f 
 .ad-add { background: var(--card); border: 1px solid var(--rule); border-radius: var(--r); padding: 14px 16px; display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 10px; align-items: end; }
 .ad-add > b, .ad-add > .hint { grid-column: 1 / -1; }
 .ad-acts { display: flex; gap: 6px; }
+/* 他社請求: the list cards and the editor */
+.bl-top { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; }
+.bl-top .btn { padding: 10px 16px; }
+.bl-warn { color: var(--stamp-red); font-weight: 700; font-size: 13px; }
+.bl-line { display: flex; justify-content: space-between; align-items: baseline; gap: 10px; font-size: 14px; }
+.bl-line span { min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.bl-line b { font-size: 18px; flex: none; }
+.bl-meta { font-size: 12px; color: var(--ink-soft); }
+.bl-modal { width: min(680px, 100%); }
+.bl-honor { width: auto !important; flex: none; }
+.bl-items-h { display: flex; flex-wrap: wrap; justify-content: space-between; align-items: center; gap: 8px; font-size: 14px; }
+.bl-items-h select { font: inherit; font-size: 13px; padding: 6px 8px; max-width: 100%; border: 1.5px solid color-mix(in srgb, var(--ink) 38%, transparent); border-radius: var(--r); background: var(--card); color: var(--ink); }
+.bl-items { display: grid; gap: 8px; }
+.bl-item { grid-template-columns: minmax(0, 1fr) 64px 56px 110px 34px; gap: 6px; align-items: center; }
+.bl-item .bl-qty, .bl-item .bl-price { font-family: var(--f-num); text-align: right; }
+.bl-x { padding: 6px 0; }
+.bl-add { justify-self: start; }
+.bl-sum { margin: 0; display: grid; grid-template-columns: 1fr auto; gap: 4px 14px; font-size: 14px; background: var(--paper); border-radius: var(--r); padding: 10px 12px; }
+.bl-sum dt { color: var(--ink-soft); } .bl-sum dd { margin: 0; text-align: right; }
+.bl-sum .tot { color: var(--ink); font-weight: 700; font-size: 16px; } .bl-sum dd.tot { color: var(--accent); }
+/* on a phone each line is two rows: the item across, then 数量・単位・単価 and the × */
+@media (max-width: 560px) {
+  .bl-item { grid-template-columns: minmax(0, 1fr) 56px minmax(0, 1.2fr) 34px; padding-bottom: 8px; border-bottom: 1px dashed var(--rule); }
+  .bl-item .bl-name { grid-column: 1 / -1; }
+}
 /* the new ID and 仮パスワード: one block each, value large and easy to read out, copy button full width */
 .creds { display: grid; gap: 10px; }
 .cred { display: grid; gap: 6px; background: var(--paper); border: 1px solid var(--rule); border-radius: 12px; padding: 12px 14px; }
@@ -904,6 +929,7 @@ button.pcal-c { cursor: pointer; }
         <button type="button" role="tab" data-t="work" aria-selected="false">勤怠</button>
         <button type="button" role="tab" data-t="hope" aria-selected="false" aria-label="シフト希望">シフト</button>
         <button type="button" role="tab" data-t="inv" aria-selected="false">請求書</button>
+        <button type="button" role="tab" data-t="bills" aria-selected="false" aria-label="他社への請求書">他社請求</button>
         <button type="button" role="tab" data-t="members" aria-selected="false">メンバー</button>
       </div>
       <div class="month-nav">
@@ -945,6 +971,51 @@ button.pcal-c { cursor: pointer; }
         <div><button type="button" class="btn primary" id="ad-dlg-ok"></button></div>
       </div>
     </div>
+  </div>
+  <!-- 運営: an invoice Themis sends to another company -->
+  <div class="modal-bg" id="bl-sheet" hidden>
+    <form class="modal bl-modal" id="bl-form" novalidate role="dialog" aria-modal="true" aria-labelledby="bl-h">
+      <h3 id="bl-h">他社への請求書</h3>
+      <div class="fields">
+        <label class="f wide">請求先（会社名）<span class="sfx-in"><input id="bl-to" type="text" maxlength="80" autocomplete="off" placeholder="例：株式会社〇〇">
+          <select id="bl-honor" class="bl-honor" aria-label="敬称"><option>御中</option><option>様</option></select></span></label>
+        <label class="f wide">件名<input id="bl-subject" type="text" maxlength="80" autocomplete="off" placeholder="例：2026年10月分 販売支援業務"></label>
+        <label class="f">請求日<input id="bl-date" type="date"></label>
+        <label class="f">お支払期限<input id="bl-due" type="date"></label>
+        <label class="f wide">請求番号<input id="bl-no" type="text" maxlength="30" autocomplete="off" placeholder="空欄なら自動で付きます（例：202610-001）"></label>
+      </div>
+      <div class="bl-items-h"><b>明細</b><select id="bl-tax" aria-label="単価の消費税">
+        <option value="ex">単価は税抜（消費税10%を加える）</option><option value="in">単価は税込</option><option value="none">消費税なし</option></select></div>
+      <div class="bl-items" id="bl-items"></div>
+      <button type="button" class="tool bl-add" id="bl-add">＋ 行を追加</button>
+      <dl class="bl-sum" id="bl-sum"></dl>
+      <label class="f">備考<textarea id="bl-note" rows="2" maxlength="500" placeholder="例：お振込手数料は貴社にてご負担ください。"></textarea></label>
+      <span class="hint perr" id="bl-err" role="alert"></span>
+      <div class="modal-actions">
+        <button type="button" class="btn" id="bl-cancel">やめる</button>
+        <div><button type="submit" class="btn primary" id="bl-save">保存する</button></div>
+      </div>
+    </form>
+  </div>
+  <!-- 運営: Themis's own details, printed on every invoice to another company -->
+  <div class="modal-bg" id="co-sheet" hidden>
+    <form class="modal" id="co-form" novalidate role="dialog" aria-modal="true" aria-labelledby="co-h">
+      <h3 id="co-h">自社情報（請求書に載る内容）</h3>
+      <div class="fields">
+        <label class="f wide">会社名<input id="co-name" type="text" maxlength="60" autocomplete="off" placeholder="株式会社Themis"></label>
+        <label class="f">郵便番号<input id="co-zip" type="text" inputmode="numeric" maxlength="8" autocomplete="off" placeholder="160-0023"></label>
+        <label class="f">電話番号<input id="co-tel" type="tel" maxlength="20" autocomplete="off" placeholder="03-1234-5678"></label>
+        <label class="f wide">住所<input id="co-address" type="text" maxlength="120" autocomplete="off" placeholder="東京都新宿区〇〇 1-2-3"></label>
+        <label class="f wide">メールアドレス（任意）<input id="co-mail" type="email" maxlength="80" autocomplete="off" placeholder="info@example.com"></label>
+        <label class="f wide">登録番号（インボイス）<input id="co-reg" type="text" maxlength="20" autocomplete="off" placeholder="T1234567890123"></label>
+        <label class="f wide">お振込先<textarea id="co-bank" rows="3" maxlength="200" placeholder="〇〇銀行 〇〇支店 普通 1234567&#10;カ）テミス"></textarea></label>
+      </div>
+      <span class="hint perr" id="co-err" role="alert"></span>
+      <div class="modal-actions">
+        <button type="button" class="btn" id="co-cancel">やめる</button>
+        <div><button type="submit" class="btn primary" id="co-save">保存する</button></div>
+      </div>
+    </form>
   </div>
 
   <div id="member-ui" class="member-ui" hidden data-tab="card">
@@ -1718,36 +1789,43 @@ window.addEventListener("error", function (e) {
     };
   }
 
+  // also draws Themis's invoices to other companies (billView): honor 御中/様, seal: false (no name seal),
+  // taxEx: unit prices without tax, the 10% added below them
   function invoiceHTML(v) {
     const ph = (val, text) => val ? esc(val) : `<span class="ph">${text}</span>`;
     // the mincho face draws digits small beside its kanji; set them in the number face so 2026年9月 reads evenly
     const dg = (s) => esc(s).replace(/\d+/g, (n) => `<span class="dg">${n}</span>`);
-    const sealChar = (v.from || "").replace(/\s/g, "").slice(0, 2);
+    const sealChar = v.seal === false ? "" : (v.from || "").replace(/\s/g, "").slice(0, 2);
+    const tl = v.taxRate ? (v.taxEx ? "（税抜）" : "（税込）") : "";
     return `
       <div class="ttl">請求書</div>
       <dl class="meta"><dt>請求番号</dt><dd class="no">${esc(v.no)}</dd><dt>請求日</dt><dd>${dg(jDate(v.issueDate))}</dd>${v.reg ? `<dt>登録番号</dt><dd>${esc(v.reg)}</dd>` : ""}</dl>
       <div class="parties">
         <div>
-          <div class="to-name">${ph(v.to, "（請求先を入力）")} 御中</div>
+          <div class="to-name">${ph(v.to, "（請求先を入力）")} ${v.honor || "御中"}</div>
         </div>
         <div class="from"><div class="from-text"><div class="name">${ph(v.from, "（氏名・屋号を入力）")}</div>${esc(v.addr)}</div>${sealChar ? `<div class="seal">${[...sealChar].map((c) => `<span>${esc(c)}</span>`).join("")}</div>` : ""}</div>
       </div>
       <div class="lead">件名：${dg(v.subject)}<br>下記のとおりご請求申し上げます。</div>
       <div class="amount"><span>ご請求金額</span><b>${yen(v.total)}</b><span>${v.taxRate ? "（税込）" : ""}</span></div>
       <table>
-        <thead><tr><th>品目</th><th class="c">数量</th><th class="c">単位</th><th class="r">単価${v.taxRate ? "（税込）" : ""}</th><th class="r">金額${v.taxRate ? "（税込）" : ""}</th></tr></thead>
-        <tbody>${v.lines.map((l) => `<tr><td>${dg(l.name)}</td><td class="c n">${esc(l.qty)}</td><td class="c">${l.unitLabel}</td><td class="r n">${yen(l.price)}</td><td class="r n">${yen(l.amount)}</td></tr>`).join("")}</tbody>
+        <thead><tr><th>品目</th><th class="c">数量</th><th class="c">単位</th><th class="r">単価${tl}</th><th class="r">金額${tl}</th></tr></thead>
+        <tbody>${v.lines.map((l) => `<tr><td>${dg(l.name)}</td><td class="c n">${esc(l.qty)}</td><td class="c">${esc(l.unitLabel)}</td><td class="r n">${yen(l.price)}</td><td class="r n">${yen(l.amount)}</td></tr>`).join("")}</tbody>
       </table>
       <div class="sum">
-        <div class="taxbox">${v.taxRate ? `<p>${v.taxRate}%対象（税込）　${yen(v.gross)}<br>内消費税　${yen(v.tax)}</p>` : `<p>消費税は含みません。</p>`}${v.whOn ? `<p>源泉徴収税額は（${v.taxRate ? "税込" : ""}合計 ${yen(v.gross)} − 120,000円）× 10.21%で算出しています。</p>` : ""}</div>
+        <div class="taxbox">${!v.taxRate ? `<p>消費税は含みません。</p>` : v.taxEx
+          ? `<p>${v.taxRate}%対象（税抜）　${yen(v.subtotal)}<br>消費税　${yen(v.tax)}</p>`
+          : `<p>${v.taxRate}%対象（税込）　${yen(v.gross)}<br>内消費税　${yen(v.tax)}</p>`}${v.whOn ? `<p>源泉徴収税額は（${v.taxRate ? "税込" : ""}合計 ${yen(v.gross)} − 120,000円）× 10.21%で算出しています。</p>` : ""}</div>
         <table>
-          <tr><td>合計${v.taxRate ? "（税込）" : ""}</td><td class="r n">${yen(v.gross)}</td></tr>
-          ${v.taxRate ? `<tr><td>うち消費税（${v.taxRate}%）</td><td class="r n">${yen(v.tax)}</td></tr>` : ""}
+          ${v.taxEx
+            ? `<tr><td>小計（税抜）</td><td class="r n">${yen(v.subtotal)}</td></tr><tr><td>消費税（${v.taxRate}%）</td><td class="r n">${yen(v.tax)}</td></tr>`
+            : `<tr><td>合計${v.taxRate ? "（税込）" : ""}</td><td class="r n">${yen(v.gross)}</td></tr>
+          ${v.taxRate ? `<tr><td>うち消費税（${v.taxRate}%）</td><td class="r n">${yen(v.tax)}</td></tr>` : ""}`}
           ${v.whOn ? `<tr><td>源泉徴収税</td><td class="r n">−${yen(v.wh)}</td></tr>` : ""}
           <tr class="total"><td>ご請求金額</td><td class="r n">${yen(v.total)}</td></tr>
         </table>
       </div>
-      <div class="block"><h4>お支払期限</h4><p>${dg(jDate(v.dueDate))}</p></div>
+      ${v.dueDate ? `<div class="block"><h4>お支払期限</h4><p>${dg(jDate(v.dueDate))}</p></div>` : ""}
       <div class="block"><h4>お振込先</h4><p>${ph(v.bank, "（振込先を入力）")}</p></div>
       ${v.note ? `<div class="block"><h4>備考</h4><p>${esc(v.note)}</p></div>` : ""}
       <div class="grow"></div>`;
@@ -2918,7 +2996,7 @@ ${v.addr}`;
   }
   // the admin screen's tab (請求書 only for 運営) and months
   function adoptAdminView(v) {
-    adTab = v.adTab === "inv" && !window.TC_OWNER ? "today" : v.adTab || adTab;
+    adTab = (v.adTab === "inv" || v.adTab === "bills") && !window.TC_OWNER ? "today" : v.adTab || adTab;
     Object.assign(adMonth, v.adMonth || {});
   }
   // while the quick copy shows: the admin screen, still loading, with its read starting alongside the sign-in check
@@ -3008,7 +3086,7 @@ ${v.addr}`;
     // admins use the normal site too; the header button switches to the admin screen and back
     $("adminbtn").hidden = !me.admin;
     paintWho();
-    $("ad-tabs").querySelector('[data-t="inv"]').hidden = !me.owner;
+    for (const t of ["inv", "bills"]) $("ad-tabs").querySelector(`[data-t="${t}"]`).hidden = !me.owner;
     applyWork();
   }
 
@@ -3213,7 +3291,7 @@ ${v.addr}`;
   const DH = { name: 0, date: 1, kind: 3, store: 4, pIn: 5, pOut: 6, in: 7, out: 8, work: 9, absWhy: 10, wake: 11, dep: 12,
     transport: 13, ride: 14, km: 15, imgs: 16, result: 17, memo: 18, early: 20, earlyWhy: 21 };
   let adTab = "today", adData = null, adKey = "";
-  const adMonth = (() => { const d = new Date(), m = (n) => ymOf(dayKey(new Date(d.getFullYear(), d.getMonth() + n, 1))); return { work: m(0), inv: m(-1), hope: m(1), today: m(0), members: m(0) }; })();
+  const adMonth = (() => { const d = new Date(), m = (n) => ymOf(dayKey(new Date(d.getFullYear(), d.getMonth() + n, 1))); return { work: m(0), inv: m(-1), hope: m(1), today: m(0), members: m(0), bills: m(0) }; })();
   const adMsg = (t) => { $("ad-msg").textContent = t || ""; };
   const minOf = (hm) => { const m = /^(\d+):(\d{2})$/.exec(hm || ""); return m ? Number(m[1]) * 60 + Number(m[2]) : 0; };
   const ymLabel = (ym) => { const [y, m] = ym.split("-").map(Number); return `${y}年${m}月`; };
@@ -3240,6 +3318,8 @@ ${v.addr}`;
     $("ad-month").hidden = !monthly;
     $("ad-label").textContent = ymLabel(adMonth[adTab]);
     $("ad-next").disabled = adTab === "inv" && adMonth.inv >= adLastBillable();
+    // 他社請求 has its own read (not the month's members and records)
+    if (adTab === "bills") { if (force) blData = null; await adBills(); saveView(); return; }
     const key = adKeyNow();
     if (force || key !== adKey || !adData) {
       if (!adCache[key] || force) $("ad-body").innerHTML = "";
@@ -3521,11 +3601,8 @@ ${v.addr}`;
   }
 
   // PDFs from the owner's Drive are drawn inside the app (pdf.js), so any admin's phone can show them
-  const pdfBytes = async (id, what, ym) => {
-    const bin = atob(await call("api_adminPdf", id, what, ym || "")), bytes = new Uint8Array(bin.length);
-    for (let i = 0; i < bin.length; i++) bytes[i] = bin.charCodeAt(i);
-    return bytes;
-  };
+  const b64Bytes = (b64) => { const bin = atob(b64), bytes = new Uint8Array(bin.length); for (let i = 0; i < bin.length; i++) bytes[i] = bin.charCodeAt(i); return bytes; };
+  const pdfBytes = async (id, what, ym) => b64Bytes(await call("api_adminPdf", id, what, ym || ""));
   // saving a PDF: on a phone the share sheet (「ファイルに保存」 and the like), elsewhere an ordinary download.
   // A phone never falls back to the download link: iPhone opens it as a page, which then stays in the
   // history and slides back in on a sideways swipe
@@ -3539,21 +3616,24 @@ ${v.addr}`;
     a.href = url; a.download = fname; document.body.appendChild(a); a.click(); a.remove();
     setTimeout(() => URL.revokeObjectURL(url), 60000);
   }
-  async function downloadPdf(id, what, ym, fname) {
+  const downloadPdf = (id, what, ym, fname) => downloadFrom(() => pdfBytes(id, what, ym), fname);
+  async function downloadFrom(load, fname) {
     // the share sheet only opens straight from a tap, and fetching the PDF first uses that tap up; on a phone
     // the PDF opens in the viewer, whose ダウンロード button then shares it at once
-    if (isIOS || isAndroid) { showPdf(fname.replace(/\.pdf$/, ""), id, what, ym, fname); return; }
+    if (isIOS || isAndroid) { viewPdf(fname.replace(/\.pdf$/, ""), load, fname); return; }
     adMsg("PDFを用意しています…");
-    try { await savePdf(await pdfBytes(id, what, ym), fname); adMsg(""); }
+    try { await savePdf(await load(), fname); adMsg(""); }
     catch (e) { adMsg(errText(e)); }
   }
   let pdfShown = null;   // { bytes, fname } of the PDF in the viewer, for its ダウンロード button
-  async function showPdf(title, id, what, ym, fname) {
+  const showPdf = (title, id, what, ym, fname) => viewPdf(title, () => pdfBytes(id, what, ym), fname);
+  // load: () => the PDF's bytes (from the owner's Drive, or made on this page)
+  async function viewPdf(title, load, fname) {
     $("pdf-h").textContent = title; $("pdf-pages").innerHTML = ""; $("pdf-msg").textContent = "読み込んでいます…";
     $("pdf-view").hidden = false; $("pdf-save").disabled = true; pdfShown = null; allowZoom(true);
     const turn = $("pdf-view").dataset.turn = String(Date.now());
     try {
-      const [bytes] = await Promise.all([pdfBytes(id, what, ym), pdfLib()]);
+      const [bytes] = await Promise.all([load(), pdfLib()]);
       if ($("pdf-view").dataset.turn !== turn) return;
       pdfShown = { bytes: bytes.slice(), fname: fname || "document.pdf" }; $("pdf-save").disabled = false;
       const pdf = await window.pdfjsLib.getDocument({ data: bytes }).promise;
@@ -3705,6 +3785,171 @@ ${v.addr}`;
         });
     };
   }
+  // ---- 他社請求 (運営 only): invoices Themis sends to other companies ----
+  // the list and Themis's own details (自社情報) come in one read, kept until something here changes them.
+  // The PDF is drawn here from the saved invoice with the same template as the members' invoices
+  let blData = null;
+  const blFetch = async () => blData || (blData = JSON.parse(await call("api_adminBills")));
+  const num = (s) => Number(String(s ?? "").replace(/[,，\s¥￥円]/g, "")) || 0;
+  // the same sums as the server (billTotals_): each line is quantity × unit price, rounded to the yen
+  const lineAmount = (i) => Math.round(num(i.qty) * num(i.price));
+  function billTotals(b) {
+    const sum = (b.items || []).reduce((s, i) => s + lineAmount(i), 0);
+    if (b.tax === "none") return { subtotal: sum, tax: 0, total: sum };
+    if (b.tax === "in") { const tax = Math.floor(sum * 10 / 110); return { subtotal: sum - tax, tax, total: sum }; }
+    const tax = Math.floor(sum / 10);
+    return { subtotal: sum, tax, total: sum + tax };
+  }
+  const coReady = (c) => !!(c.name && c.address && c.bank);
+  const billState = (b) => (b.paidOn ? "paid" : b.due && b.due < dayKey(new Date()) ? "late" : "open");
+  const BILL_STATE = { open: ["未入金", "plan"], late: ["期限切れ", "late"], paid: ["入金済み", "done"] };
+  const billFile = (b) => `請求書_${b.no}_${b.to}.pdf`.replace(/[\\/:*?"<>|]/g, "");
+  function billView(b, c) {
+    const t = billTotals(b);
+    return {
+      no: b.no, issueDate: b.date, dueDate: b.due, subject: b.subject, note: b.note, to: b.to, honor: b.honor,
+      from: c.name || "", reg: c.reg || "", bank: c.bank || "", seal: false,
+      addr: [c.zip ? "〒" + c.zip : "", c.address, c.tel ? "TEL " + c.tel : "", c.mail].filter(Boolean).join("\n"),
+      lines: b.items.map((i) => ({ name: i.name, qty: String(i.qty), unitLabel: i.unit || "式", price: num(i.price), amount: lineAmount(i) })),
+      taxRate: b.tax === "none" ? 0 : 10, taxEx: b.tax === "ex", gross: t.total, subtotal: t.subtotal, tax: t.tax, wh: 0, whOn: false, total: t.total,
+    };
+  }
+  const billPdf = async (b) => b64Bytes(await buildPdf(null, billView(b, blData.company)));
+
+  async function adBills() {
+    // only a first read clears the message line, so 「保存しました」 and the like stay after a redraw
+    if (!blData) {
+      $("ad-body").innerHTML = ""; adMsg("読み込んでいます…");
+      try { await blFetch(); adMsg(""); } catch (e) { adMsg(errText(e)); return; }
+    }
+    if (adTab !== "bills" || mode !== "admin") return;
+    const c = blData.company, bills = blData.bills.slice().sort((a, b) => b.date.localeCompare(a.date) || b.no.localeCompare(a.no));
+    const open = bills.filter((b) => !b.paidOn), cnt = (s) => bills.filter((b) => billState(b) === s).length;
+    $("ad-body").innerHTML =
+      `<div class="bl-top"><button type="button" class="btn primary" id="bl-new">＋ 新しい請求書</button><button type="button" class="tool" id="bl-co">自社情報</button></div>` +
+      (coReady(c) ? "" : `<p class="hint bl-warn">先に「自社情報」で会社名・住所・お振込先を登録してください。請求書に載ります。</p>`) +
+      `<div class="ad-stats">` + [["未入金", `${open.length}件`], ["未入金の合計", yen(open.reduce((s, b) => s + b.total, 0))], ["期限切れ", `${cnt("late")}件`], ["入金済み", `${cnt("paid")}件`]]
+        .map(([t, v], i) => `<div class="ad-stat${i === 2 && cnt("late") ? " warn" : ""}"><span>${t}</span><b class="num">${v}</b></div>`).join("") + `</div>` +
+      `<p class="hint">他社に出す請求書を作ってPDFで保存し、メールなどで送ってください。入金されたら「入金済みにする」を押します。一覧はスプレッドシートの「他社請求書一覧」にも出ます。</p>` +
+      (bills.length ? `<div class="ad-cards">` + bills.map((b) => {
+        const [label, cls] = BILL_STATE[billState(b)];
+        return `<div class="ad-card bl-card" data-id="${esc(b.id)}">` +
+          `<div class="ad-card-h"><span>${esc(b.to)} ${esc(b.honor)}</span><span class="st st-${cls}">${label}</span></div>` +
+          `<div class="bl-line"><span>${esc(b.subject || "（件名なし）")}</span><b class="num">${yen(b.total)}</b></div>` +
+          `<div class="bl-meta">No.${esc(b.no)}　請求日 ${jDate(b.date)}${b.due ? `　期限 ${jDate(b.due)}` : ""}${b.paidOn ? `　入金 ${jDate(b.paidOn)}` : ""}</div>` +
+          `<div class="ad-acts"><button type="button" class="tool" data-view>PDFを見る</button><button type="button" class="tool" data-dl>ダウンロード</button>` +
+          `<button type="button" class="tool" data-edit>編集</button><button type="button" class="tool" data-paid>${b.paidOn ? "未入金に戻す" : "入金済みにする"}</button>` +
+          `<button type="button" class="tool danger" data-del>削除</button></div></div>`;
+      }).join("") + `</div>` : `<p class="hint">まだ請求書はありません。「＋ 新しい請求書」から作れます。</p>`);
+    const bill = (el) => blData.bills.find((b) => b.id === el.closest(".bl-card").dataset.id);
+    const needCo = () => { if (coReady(blData.company)) return false; adMsg("先に「自社情報」を登録してください。"); openCompany(); return true; };
+    $("bl-new").onclick = () => { if (!needCo()) openBill(null); };
+    $("bl-co").onclick = openCompany;
+    for (const el of $("ad-body").querySelectorAll("[data-view]")) el.onclick = () => { if (!needCo()) { const b = bill(el); viewPdf(`${b.to} ${b.honor}　${b.no}`, () => billPdf(b), billFile(b)); } };
+    for (const el of $("ad-body").querySelectorAll("[data-dl]")) el.onclick = () => { if (!needCo()) { const b = bill(el); busyBtn(el, () => downloadFrom(() => billPdf(b), billFile(b))); } };
+    for (const el of $("ad-body").querySelectorAll("[data-edit]")) el.onclick = () => openBill(bill(el));
+    for (const el of $("ad-body").querySelectorAll("[data-paid]")) el.onclick = () => {
+      const b = bill(el);
+      if (b.paidOn) adDialog("未入金に戻す", `<p>${esc(b.to)}（${esc(b.no)}）の請求書を未入金に戻します。</p>`, "未入金に戻す", () => setBillPaid(b, ""));
+      else adDialog("入金済みにする", `<p>${esc(b.to)}（${esc(b.no)}）${yen(b.total)}の入金を記録します。</p><label class="f">入金日<input type="date" id="bl-paid-on" value="${dayKey(new Date())}"></label>`,
+        "入金済みにする", () => setBillPaid(b, $("bl-paid-on").value || dayKey(new Date())));
+    };
+    for (const el of $("ad-body").querySelectorAll("[data-del]")) el.onclick = () => {
+      const b = bill(el);
+      adDialog("請求書を削除", `<p>${esc(b.to)}（${esc(b.no)}）の請求書を削除します。元に戻せません。</p>`, "削除する", async () => {
+        await call("api_adminDeleteBill", b.id);
+        blData.bills = blData.bills.filter((x) => x.id !== b.id);
+        $("ad-dlg").hidden = true; adBills(); adMsg(`${b.no}を削除しました。`);
+      });
+    };
+  }
+  async function setBillPaid(b, on) {
+    const saved = JSON.parse(await call("api_adminBillPaid", b.id, on));
+    blData.bills = blData.bills.map((x) => (x.id === saved.id ? saved : x));
+    $("ad-dlg").hidden = true; adBills(); adMsg(on ? `${b.no}を入金済みにしました。` : `${b.no}を未入金に戻しました。`);
+  }
+
+  // the editor: one form for a new invoice or changes to one
+  let blEdit = null, dueTouched = false;
+  const nextMonthEnd = (iso) => { const [y, m] = iso.split("-").map(Number); return dayKey(new Date(y, m + 1, 0)); };
+  function openBill(b) {
+    const today = dayKey(new Date());
+    blEdit = b ? JSON.parse(JSON.stringify(b))
+      : { id: "", no: "", to: "", honor: "御中", subject: "", date: today, due: nextMonthEnd(today), tax: "ex", note: "", items: [{ name: "", qty: 1, unit: "式", price: "" }] };
+    dueTouched = !!b;
+    $("bl-h").textContent = b ? `請求書を編集（${b.no}）` : "新しい請求書";
+    for (const k of ["to", "honor", "subject", "date", "due", "no", "tax", "note"]) $("bl-" + k).value = blEdit[k] || "";
+    $("bl-err").textContent = "";
+    blItems(); blSum();
+    $("bl-sheet").hidden = false;
+    $("bl-sheet").querySelector(".modal").scrollTop = 0;
+  }
+  function blItems() {
+    const field = (cls, ph, mode, val) => { const el = document.createElement("input"); el.className = cls; el.placeholder = ph; el.type = "text"; if (mode) el.inputMode = mode; el.value = val ?? ""; return el; };
+    $("bl-items").replaceChildren(...blEdit.items.map((it, i) => {
+      const row = document.createElement("div");
+      row.className = "bl-item f";
+      const name = field("bl-name", "品目（例：販売支援業務）", "", it.name), qty = field("bl-qty", "数量", "decimal", it.qty),
+        unit = field("bl-unit", "単位", "", it.unit), price = field("bl-price", "単価（円）", "numeric", it.price);
+      const x = document.createElement("button"); x.type = "button"; x.className = "tool bl-x"; x.textContent = "×"; x.setAttribute("aria-label", "この行を消す");
+      noAutofill(name); noAutofill(unit);
+      name.oninput = () => { it.name = name.value; };
+      unit.oninput = () => { it.unit = unit.value; };
+      qty.oninput = () => { it.qty = qty.value; blSum(); };
+      price.oninput = () => { it.price = price.value; blSum(); };
+      x.onclick = () => { blEdit.items.splice(i, 1); if (!blEdit.items.length) blEdit.items.push({ name: "", qty: 1, unit: "式", price: "" }); blItems(); blSum(); };
+      row.append(name, qty, unit, price, x);
+      return row;
+    }));
+  }
+  function blSum() {
+    blEdit.tax = $("bl-tax").value;
+    const t = billTotals(blEdit), row = (k, v, cls = "") => `<dt class="${cls}">${k}</dt><dd class="num ${cls}">${yen(v)}</dd>`;
+    $("bl-sum").innerHTML = (blEdit.tax === "ex" ? row("小計（税抜）", t.subtotal) + row("消費税（10%）", t.tax)
+      : blEdit.tax === "in" ? row("合計（税込）", t.total) + row("うち消費税（10%）", t.tax) : "") + row("ご請求金額", t.total, "tot");
+  }
+  $("bl-add").onclick = () => { blEdit.items.push({ name: "", qty: 1, unit: "式", price: "" }); blItems(); $("bl-items").lastElementChild.querySelector(".bl-name").focus(); };
+  $("bl-tax").onchange = blSum;
+  $("bl-date").onchange = () => { if (!dueTouched && $("bl-date").value) $("bl-due").value = nextMonthEnd($("bl-date").value); };
+  $("bl-due").onchange = () => { dueTouched = true; };
+  $("bl-cancel").onclick = () => { $("bl-sheet").hidden = true; };
+  $("bl-form").onsubmit = (e) => {
+    e.preventDefault();
+    busyBtn($("bl-save"), async () => {
+      const b = { ...blEdit };
+      for (const k of ["to", "honor", "subject", "date", "due", "no", "tax", "note"]) b[k] = $("bl-" + k).value.trim();
+      b.items = blEdit.items.filter((i) => String(i.name).trim() || String(i.price).trim())
+        .map((i) => ({ name: String(i.name).trim(), qty: num(i.qty), unit: String(i.unit || "").trim(), price: num(i.price) }));
+      $("bl-err").textContent = "保存しています…";
+      try {
+        const saved = JSON.parse(await call("api_adminSaveBill", b));
+        blData.bills = blData.bills.filter((x) => x.id !== saved.id).concat([saved]);
+        $("bl-sheet").hidden = true; adBills(); adMsg(`${saved.to} ${saved.honor}への請求書（${saved.no}）を保存しました。「PDFを見る」で確かめてから送ってください。`);
+      } catch (err) { $("bl-err").textContent = errText(err); }
+    });
+  };
+
+  // 自社情報: printed as the sender on every invoice to another company
+  const CO = ["name", "zip", "tel", "address", "mail", "reg", "bank"];
+  function openCompany() {
+    const c = blData?.company || {};
+    for (const k of CO) $("co-" + k).value = c[k] || (k === "name" ? "株式会社Themis" : "");
+    $("co-err").textContent = "";
+    $("co-sheet").hidden = false;
+  }
+  $("co-cancel").onclick = () => { $("co-sheet").hidden = true; };
+  $("co-form").onsubmit = (e) => {
+    e.preventDefault();
+    busyBtn($("co-save"), async () => {
+      const info = Object.fromEntries(CO.map((k) => [k, $("co-" + k).value.trim()]));
+      $("co-err").textContent = "保存しています…";
+      try {
+        blData.company = JSON.parse(await call("api_adminSaveCompany", info));
+        $("co-sheet").hidden = true; adBills(); adMsg("自社情報を保存しました。");
+      } catch (err) { $("co-err").textContent = errText(err); }
+    });
+  };
+
   // ---- signed-in start ----
   // the last copy of the person's records is kept on this device: on opening, today's plan shows from it at once
   // (punching waits), while one call to the server checks the sign-in and brings the current records
