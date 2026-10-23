@@ -3209,6 +3209,8 @@ ${v.addr}`;
   let adStarted = false, adReady = Promise.resolve();   // adReady settles once the admin screen has drawn
   // opening the admin screen asks first; going back to the normal screen (and a reload putting the admin screen back) does not
   $("adminbtn").onclick = async () => {
+    // still showing last time's copy because the server could not be reached: say so instead of doing nothing
+    if (mode === "member" && !backend) { msg("サーバーから記録を読み込めていないため、管理画面を開けません。通信状況を確認して、画面を更新してください。"); window.scrollTo(0, 0); return; }
     if (mode === "member" && backend && !needsSetup() &&
       !await ask("管理画面を開きますか？", "メンバー全員の勤怠・シフト・請求書を見る画面に移ります。", "開く")) return;
     switchMode();
@@ -3319,7 +3321,11 @@ ${v.addr}`;
     $("ad-label").textContent = ymLabel(adMonth[adTab]);
     $("ad-next").disabled = adTab === "inv" && adMonth.inv >= adLastBillable();
     // 他社請求 has its own read (not the month's members and records)
-    if (adTab === "bills") { if (force) blData = null; await adBills(); saveView(); return; }
+    if (adTab === "bills") {
+      if (force) blData = null;
+      try { await adBills(); } catch (e) { adMsg(`画面を作れませんでした：${e.message}`); }
+      saveView(); return;
+    }
     const key = adKeyNow();
     if (force || key !== adKey || !adData) {
       if (!adCache[key] || force) $("ad-body").innerHTML = "";
@@ -3789,7 +3795,12 @@ ${v.addr}`;
   // the list and Themis's own details (自社情報) come in one read, kept until something here changes them.
   // The PDF is drawn here from the saved invoice with the same template as the members' invoices
   let blData = null;
-  const blFetch = async () => blData || (blData = JSON.parse(await call("api_adminBills")));
+  // a reply that never comes must not leave the screen waiting, as with the month's read (adFetch)
+  const blFetch = async () => {
+    if (blData) return blData;
+    const slow = new Promise((_, rej) => setTimeout(() => rej(new Error("読み込みに時間がかかりすぎています。画面を更新してください。")), 60000));
+    return (blData = JSON.parse(await Promise.race([call("api_adminBills"), slow])));
+  };
   const num = (s) => Number(String(s ?? "").replace(/[,，\s¥￥円]/g, "")) || 0;
   // the same sums as the server (billTotals_): each line is quantity × unit price, rounded to the yen
   const lineAmount = (i) => Math.round(num(i.qty) * num(i.price));
@@ -3820,7 +3831,12 @@ ${v.addr}`;
     // only a first read clears the message line, so 「保存しました」 and the like stay after a redraw
     if (!blData) {
       $("ad-body").innerHTML = ""; adMsg("読み込んでいます…");
-      try { await blFetch(); adMsg(""); } catch (e) { adMsg(errText(e)); return; }
+      try { await blFetch(); adMsg(""); }
+      catch (e) {
+        // a server still on the version before 他社請求 answers 「使えない操作です」
+        adMsg(/使えない操作/.test(String(e?.message || e)) ? "他社請求を使うには、Apps Script の Code.gs を新しくして「新しいバージョン」でデプロイし直してください。" : errText(e));
+        return;
+      }
     }
     if (adTab !== "bills" || mode !== "admin") return;
     const c = blData.company, bills = blData.bills.slice().sort((a, b) => b.date.localeCompare(a.date) || b.no.localeCompare(a.no));
