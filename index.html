@@ -565,6 +565,28 @@ legend { font-weight: 700; font-size: 14px; padding: 0 6px; }
 .ad-table tr.grp td { background: var(--paper); font-weight: 700; font-size: 12px; color: var(--ink); letter-spacing: .06em; }
 .ad-grp { margin: 6px 0 -6px; font-size: 14px; display: flex; align-items: center; gap: 8px; }
 .ad-grp::before { content: ""; width: 4px; height: 1em; border-radius: 2px; background: var(--accent); }
+/* admin tabs: one even row, every tab the same width, on a phone too */
+.tabs.ad-tabs { display: grid; grid-auto-flow: column; grid-auto-columns: 1fr; width: 100%; }
+.tabs.ad-tabs button { padding: 8px 2px; white-space: nowrap; text-align: center; }
+.tabs.ad-tabs button[hidden] { display: none; }
+@media (max-width: 560px) { .tabs.ad-tabs button { font-size: 12.5px; letter-spacing: 0; } }
+/* people as cards: name and badge on top, then label / value lines; no sideways scrolling */
+.ad-cards { display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 10px; }
+.ad-card { background: var(--card); border: 1px solid var(--rule); border-radius: var(--r); padding: 12px 14px; display: grid; gap: 10px; align-content: start; }
+.ad-card.dim .ad-card-h { color: var(--ink-soft); }
+.ad-card-h { display: flex; align-items: center; justify-content: space-between; gap: 8px; font-weight: 700; font-size: 15px; }
+.ad-kv { margin: 0; display: grid; grid-template-columns: 5.5em 1fr; gap: 8px 10px; align-items: center; font-size: 13px; }
+.ad-kv dt { color: var(--ink-soft); font-size: 12px; }
+.ad-kv dd { margin: 0; display: flex; align-items: center; gap: 8px; flex-wrap: wrap; min-width: 0; }
+.ad-card .ad-acts { flex-wrap: wrap; align-items: center; }
+.btn.sm { padding: 6px 14px; font-size: 13px; }
+/* the PDF viewer fills the screen on a phone */
+.pdf-bg { padding: 8px; }
+.pdf-modal { width: min(920px, 100%); height: 100%; max-height: 100%; grid-template-rows: auto auto 1fr; gap: 8px; padding: 12px; }
+.pdf-top { display: flex; align-items: center; justify-content: space-between; gap: 10px; }
+.pdf-top h3 { margin: 0; font-size: 15px; }
+.pdf-pages { overflow-y: auto; display: grid; gap: 10px; align-content: start; background: var(--paper); border-radius: 8px; padding: 6px; -webkit-overflow-scrolling: touch; }
+.pdf-pages canvas { display: block; background: #fff; box-shadow: 0 1px 4px rgb(0 0 0 / .2); }
 .no { font-family: var(--f-num); font-weight: 500; color: var(--ink-soft); font-size: .85em; margin-right: 8px; letter-spacing: .04em; }
 .ad-id { display: flex; align-items: center; gap: 6px; font-family: var(--f-num); font-weight: 700; font-size: 14px; letter-spacing: .06em; }
 .ad-sel { font: inherit; font-size: 13px; padding: 4px 6px; border: 1px solid var(--rule); border-radius: 6px; background: var(--paper); color: var(--ink); }
@@ -685,7 +707,7 @@ legend { font-weight: 700; font-size: 14px; padding: 0 6px; }
       <div class="tabs ad-tabs" role="tablist" id="ad-tabs">
         <button type="button" role="tab" data-t="today" aria-selected="true">今日</button>
         <button type="button" role="tab" data-t="work" aria-selected="false">勤怠</button>
-        <button type="button" role="tab" data-t="hope" aria-selected="false">シフト希望</button>
+        <button type="button" role="tab" data-t="hope" aria-selected="false" aria-label="シフト希望">シフト</button>
         <button type="button" role="tab" data-t="inv" aria-selected="false">請求書</button>
         <button type="button" role="tab" data-t="members" aria-selected="false">メンバー</button>
       </div>
@@ -697,6 +719,14 @@ legend { font-weight: 700; font-size: 14px; padding: 0 6px; }
     <div class="msg" id="ad-msg" role="status" aria-live="polite"></div>
     <div class="ad-body" id="ad-body"></div>
   </section>
+  <!-- admin: a contract or invoice PDF, drawn page by page -->
+  <div class="modal-bg pdf-bg" id="pdf-view" hidden>
+    <div class="modal pdf-modal" role="dialog" aria-modal="true" aria-labelledby="pdf-h">
+      <div class="pdf-top"><h3 id="pdf-h"></h3><button type="button" class="btn" id="pdf-close">閉じる</button></div>
+      <span class="hint" id="pdf-msg" role="status"></span>
+      <div class="pdf-pages" id="pdf-pages"></div>
+    </div>
+  </div>
   <!-- admin: asks before 仮パスワード / 削除, then shows the result (ID and password, each copyable) in the same box -->
   <div class="modal-bg" id="ad-dlg" hidden>
     <div class="modal" role="dialog" aria-modal="true" aria-labelledby="ad-dlg-h">
@@ -818,7 +848,7 @@ legend { font-weight: 700; font-size: 14px; padding: 0 6px; }
       </ol>
       <div class="actions">
         <button type="button" class="btn okay" id="a-submit">Themisに提出</button>
-        <button type="button" class="btn okay" id="a-paid" hidden>入金を確認した</button>
+        <button type="button" class="btn okay" id="a-paid" hidden>入金を確認しました</button>
         <button type="button" class="btn danger" id="a-undo" hidden>提出を取り消す</button>
       </div>
       <div class="msg" id="inv-msg" role="status" aria-live="polite"></div>
@@ -1700,11 +1730,12 @@ window.addEventListener("error", function (e) {
     $("inv-title").textContent = `${y}年${m}月分の請求書`;
     $("fs-month").textContent = `${y}年${m}月分`;
     const pill = $("inv-status"); pill.dataset.s = st;
-    pill.textContent = st === "paid" ? `入金済み` : st === "submitted" ? `提出済み（${jDate(inv.submittedOn)}）` : "";
+    pill.textContent = st === "paid" ? (inv.confirmedOn ? "入金確認済み" : `入金されました（${jDate(inv.paidOn)}）`) : st === "submitted" ? `提出済み（${jDate(inv.submittedOn)}）` : "";
     pill.hidden = st === "draft";   // a draft needs no label; only 提出済み / 入金済み are shown
     const locked = st !== "draft";
     $("fs-bill").disabled = locked; $("fs-set").disabled = locked;
-    $("a-submit").hidden = locked; $("a-paid").hidden = st !== "submitted"; $("a-undo").hidden = !locked;
+    // Themis marks the payment; the member then confirms the money arrived. A paid invoice can no longer be withdrawn
+    $("a-submit").hidden = locked; $("a-paid").hidden = !(st === "paid" && !inv.confirmedOn); $("a-undo").hidden = st !== "submitted";
     const b = doc("billing"), ready = !!(b.from && b.bank && v.lines[0].amount);
     $("i-hours").textContent = `${v.days}日`;
     $("b-wh").checked = v.whOn;
@@ -1863,9 +1894,10 @@ ${v.addr}`;
   };
   $("a-paid").onclick = async () => {
     const ym = viewYm(), inv = doc("inv-" + ym);
-    inv.status = "paid"; inv.paidOn = dayKey(new Date());
-    renderInvoice();
-    if (await persist("inv-" + ym)) invMsg(`入金済みにしました（${jDate(inv.paidOn)}）。`);
+    $("a-paid").disabled = true;
+    try { inv.confirmedOn = await call("api_confirmPaid", ym); renderInvoice(); invMsg("入金を確認しました。ありがとうございました。"); }
+    catch (e) { invMsg(errText(e)); }
+    finally { $("a-paid").disabled = false; }
   };
   let undoArmed = false;
   $("a-undo").onclick = async () => {
@@ -2630,7 +2662,10 @@ ${v.addr}`;
     // admins use the normal site too; the header button switches to the admin screen and back
     window.TC_WORK = me.workType || "";
     mode = "member"; $("member-ui").hidden = false; startMember();
+    window.TC_ADMIN = !!me.admin; window.TC_OWNER = !!me.owner;
     if (me.admin) { $("adminbtn").hidden = false; $("who").textContent = `${me.name}（管理者）`; }
+    // invoices are the owner's alone
+    $("ad-tabs").querySelector('[data-t="inv"]').hidden = !me.owner;
   }
   let adStarted = false;
   $("adminbtn").onclick = () => {
@@ -2697,7 +2732,6 @@ ${v.addr}`;
   let adTab = "today", adData = null, adKey = "";
   const adMonth = (() => { const d = new Date(), m = (n) => ymOf(dayKey(new Date(d.getFullYear(), d.getMonth() + n, 1))); return { work: m(0), inv: m(-1), hope: m(1), today: m(0), members: m(0) }; })();
   const adMsg = (t) => { $("ad-msg").textContent = t || ""; };
-  const adYen = (s) => (s === "" || s == null ? "" : "¥" + Number(s).toLocaleString("ja-JP"));
   const minOf = (hm) => { const m = /^(\d+):(\d{2})$/.exec(hm || ""); return m ? Number(m[1]) * 60 + Number(m[2]) : 0; };
   const ymLabel = (ym) => { const [y, m] = ym.split("-").map(Number); return `${y}年${m}月`; };
   const link = (url, text) => (url ? `<a href="${esc(url)}" target="_blank" rel="noopener">${esc(text)}</a>` : "");
@@ -2719,16 +2753,36 @@ ${v.addr}`;
     const monthly = adTab === "work" || adTab === "inv" || adTab === "hope";
     $("ad-month").hidden = !monthly;
     $("ad-label").textContent = ymLabel(adMonth[adTab]);
-    const ym = adTab === "inv" ? adMonth.inv : adMonth.work, key = `${adTab === "inv" ? adMonth.inv : adMonth.work}|${adMonth.hope}`;
+    const key = adKeyNow();
     if (force || key !== adKey || !adData) {
+      if (!adCache[key] || force) $("ad-body").innerHTML = "";
       adMsg("読み込んでいます…");
-      // a reply that never comes (or a page error) must not leave the screen on 読み込んでいます
-      const slow = new Promise((_, rej) => setTimeout(() => rej(new Error("読み込みに時間がかかりすぎています。「更新」を押してください。")), 60000));
-      try { adData = JSON.parse(await Promise.race([call("api_adminData", ym, adMonth.hope), slow])); adKey = key; adMsg(""); }
+      try { adData = await adFetch(key, force); adKey = key; adMsg(""); }
       catch (e) { adMsg(errText(e)); return; }
+      if (key !== adKeyNow()) return;   // the month was changed again while this one loaded
     }
     try { ({ today: adToday, work: adWork, hope: adHope, inv: adInv, members: adMembers })[adTab](); }
     catch (e) { adMsg(`画面を作れませんでした：${e.message}`); }
+  }
+  // one read brings everything for the months on screen; it is kept, so moving between tabs needs no new read,
+  // and it starts in the background as soon as an admin signs in
+  const adCache = {};
+  const adKeyNow = () => `${adMonth.work}|${adMonth.hope}|${adMonth.inv}`;
+  function adFetch(key, force) {
+    if (force || !adCache[key]) {
+      const [ym, hope, inv] = key.split("|");
+      // a reply that never comes (or a page error) must not leave the screen on 読み込んでいます
+      const slow = new Promise((_, rej) => setTimeout(() => rej(new Error("読み込みに時間がかかりすぎています。「更新」を押してください。")), 60000));
+      const p = adCache[key] = Promise.race([call("api_adminData", ym, hope, inv), slow]).then((s) => JSON.parse(s));
+      p.catch(() => { if (adCache[key] === p) delete adCache[key]; });
+    }
+    return adCache[key];
+  }
+  function adPrefetch() { adFetch(adKeyNow()).catch(() => {}); }
+  // after a change made here, the copy on screen is updated in place; reads kept for other months are dropped
+  function adChanged() {
+    for (const k of Object.keys(adCache)) if (k !== adKey) delete adCache[k];
+    adLoad();
   }
   const adRows = (pred) => adData.days.filter(pred);
   const statusOf = (r) => {
@@ -2817,27 +2871,75 @@ ${v.addr}`;
       `<tr class="sum"><td class="nm">○の人数</td><td></td><td></td>${perDay.map((c) => `<td class="num">${c || ""}</td>`).join("")}</tr></tbody></table></div>`;
   }
 
+  // the owner's list: each person's PDF, and 入金完了 once paid; the member then confirms the money arrived
+  // columns of 請求書一覧: 0 氏名 · 4 状態 · 6 入金日 · 7 PDF · 9 本人の入金確認
   function adInv() {
     const ym = adMonth.inv, byName = Object.fromEntries(adData.invs.map((r) => [r[0], r]));
     const live = adData.members.filter((m) => m.active || byName[m.name]);
-    const sentTotal = adData.invs.filter((r) => r[4] !== "下書き").reduce((s, r) => s + (Number(r[3]) || 0), 0);
-    const cnt = (s) => adData.invs.filter((r) => r[4] === s).length;
+    const stOf = (r) => (!r || r[4] === "下書き" ? "none" : r[4] === "提出済み" ? "sent" : r[9] ? "ok" : "paid");
+    const cnt = (k) => live.filter((m) => stOf(byName[m.name]) === k).length;
+    const label = { none: "未提出", sent: "提出済み", paid: "入金完了・本人の確認待ち", ok: "本人が入金を確認済み" };
     $("ad-body").innerHTML =
-      `<div class="ad-stats"><div class="ad-stat"><span>提出済み</span><b class="num">${cnt("提出済み")}</b></div><div class="ad-stat"><span>入金済み</span><b class="num">${cnt("入金済み")}</b></div>` +
-      `<div class="ad-stat"><span>未提出</span><b class="num">${live.length - cnt("提出済み") - cnt("入金済み")}</b></div><div class="ad-stat"><span>請求の合計</span><b class="num">${adYen(sentTotal)}</b></div></div>` +
-      `<div class="ad-scroll"><table class="ad-table"><thead><tr><th>氏名</th><th>状態</th><th>請求番号</th><th class="r">ご請求金額</th><th>提出日</th><th>入金日</th><th>PDF</th><th></th></tr></thead><tbody>` +
-      byWork(live).map(([t, g]) => grpRow(t, g.length, 8) + g.map((m, i) => {
-        const r = byName[m.name], st = r ? r[4] : "未作成", done = st === "提出済み" || st === "入金済み";
-        return `<tr class="${done ? "" : "dim"}"><td class="nm">${numName(i, m.name)}</td><td><span class="st st-${{ 提出済み: "work", 入金済み: "done" }[st] || "none"}">${esc(st === "下書き" ? "未提出" : st)}</span></td>` +
-          `<td class="num">${done ? esc(r[2]) : ""}</td><td class="num r">${done ? adYen(r[3]) : ""}</td><td class="num">${done ? esc(r[5]) : ""}</td><td class="num">${esc(r?.[6] || "")}</td>` +
-          `<td>${done ? link(r[7], "開く") : ""}</td><td>${st === "提出済み" ? `<button type="button" class="tool" data-paid="${esc(m.id)}">入金済みにする</button>` : st === "入金済み" ? `<button type="button" class="tool" data-unpaid="${esc(m.id)}">入金を取り消す</button>` : ""}</td></tr>`;
-      }).join("")).join("") + `</tbody></table></div>`;
-    for (const b of $("ad-body").querySelectorAll("[data-paid],[data-unpaid]")) b.onclick = () => busyBtn(b, async () => {
-      const paid = b.hasAttribute("data-paid");
-      try { await call("api_adminSetPaid", b.dataset.paid || b.dataset.unpaid, ym, paid); adMsg(paid ? "入金済みにしました。" : "入金を取り消しました。"); await adLoad(true); }
-      catch (e) { adMsg(errText(e)); }
-    });
+      `<div class="ad-stats">` + [["未提出", "none"], ["提出済み", "sent"], ["確認待ち", "paid"], ["確認済み", "ok"]]
+        .map(([t, k]) => `<div class="ad-stat${k === "sent" && cnt(k) ? " warn" : ""}"><span>${t}</span><b class="num">${cnt(k)}</b></div>`).join("") + `</div>` +
+      `<p class="hint">「入金完了」を押すと本人に知らせが届き、本人が金額を確かめて「入金を確認しました」を押します。</p>` +
+      byWork(live).map(([t, g]) => `<h3 class="ad-grp">${esc(groupName(t))}（${g.length}人）</h3><div class="ad-cards">` + g.map((m, i) => {
+        const r = byName[m.name], k = stOf(r);
+        return `<div class="ad-card${k === "none" ? " dim" : ""}" data-id="${esc(m.id)}" data-name="${esc(m.name)}">` +
+          `<div class="ad-card-h"><span>${numName(i, m.name)}</span><span class="st st-${{ none: "none", sent: "work", paid: "late", ok: "done" }[k]}">${label[k]}</span></div>` +
+          (k === "none" ? "" : `<div class="ad-acts">${r[7] ? `<button type="button" class="tool" data-pdf>請求書PDFを見る</button>` : ""}` +
+            (k === "sent" ? `<button type="button" class="btn primary sm" data-paid>入金完了</button>` : `<span class="hint">入金 ${esc(r[6])}${r[9] ? `・確認 ${esc(r[9].slice(0, 10))}` : ""}</span><button type="button" class="tool" data-unpaid>取り消す</button>`) + `</div>`) +
+          `</div>`;
+      }).join("") + `</div>`).join("");
+    const card = (b) => b.closest(".ad-card");
+    for (const b of $("ad-body").querySelectorAll("[data-pdf]")) b.onclick = () => showPdf(`${card(b).dataset.name}さんの請求書（${ymLabel(ym)}分）`, card(b).dataset.id, "inv", ym);
+    for (const b of $("ad-body").querySelectorAll("[data-paid],[data-unpaid]")) b.onclick = () => {
+      const c = card(b), paid = b.hasAttribute("data-paid"), name = c.dataset.name;
+      adDialog(paid ? "入金完了" : "入金完了の取り消し",
+        paid ? `<p>${esc(name)}さんの${esc(ymLabel(ym))}分の入金を完了にします。<br>${esc(name)}さんに、入金を確認するよう知らせが出ます。</p>`
+          : `<p>${esc(name)}さんの${esc(ymLabel(ym))}分の入金完了を取り消して、「提出済み」に戻します。</p>`,
+        paid ? "入金完了にする" : "取り消す", async () => {
+          await call("api_adminSetPaid", c.dataset.id, ym, paid);
+          const r = byName[name];
+          r[4] = paid ? "入金済み" : "提出済み"; r[6] = paid ? dayKey(new Date()) : ""; r[9] = "";
+          $("ad-dlg").hidden = true; adChanged(); adMsg(paid ? `${name}さんを入金完了にしました。` : `${name}さんの入金完了を取り消しました。`);
+        });
+    };
   }
+
+  // PDFs from the owner's Drive are drawn inside the app (pdf.js), so any admin's phone can show them
+  async function showPdf(title, id, what, ym) {
+    $("pdf-h").textContent = title; $("pdf-pages").innerHTML = ""; $("pdf-msg").textContent = "読み込んでいます…";
+    $("pdf-view").hidden = false;
+    const turn = $("pdf-view").dataset.turn = String(Date.now());
+    try {
+      const [b64] = await Promise.all([call("api_adminPdf", id, what, ym || ""), pdfLib()]);
+      if ($("pdf-view").dataset.turn !== turn) return;
+      const bin = atob(b64), bytes = new Uint8Array(bin.length);
+      for (let i = 0; i < bin.length; i++) bytes[i] = bin.charCodeAt(i);
+      const pdf = await window.pdfjsLib.getDocument({ data: bytes }).promise;
+      const width = Math.min($("pdf-pages").clientWidth || 600, 900), ratio = Math.min(window.devicePixelRatio || 1, 2);
+      for (let p = 1; p <= pdf.numPages; p++) {
+        const page = await pdf.getPage(p), base = page.getViewport({ scale: 1 }), vp = page.getViewport({ scale: (width / base.width) * ratio });
+        const cv = document.createElement("canvas");
+        cv.width = vp.width; cv.height = vp.height; cv.style.width = "100%";
+        $("pdf-pages").appendChild(cv);
+        await page.render({ canvasContext: cv.getContext("2d"), viewport: vp }).promise;
+        if ($("pdf-view").dataset.turn !== turn) return;
+      }
+      $("pdf-msg").textContent = "";
+    } catch (e) { $("pdf-msg").textContent = errText(e); }
+  }
+  let pdfReady = null;
+  function pdfLib() {
+    const base = "https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/";
+    return pdfReady || (pdfReady = loadScript(base + "pdf.min.js").then(async () => {
+      // the worker is fetched and started from this page's own copy, which works inside the Apps Script frame too
+      try { const src = await (await fetch(base + "pdf.worker.min.js")).text(); window.pdfjsLib.GlobalWorkerOptions.workerSrc = URL.createObjectURL(new Blob([src], { type: "text/javascript" })); }
+      catch (e) { window.pdfjsLib.GlobalWorkerOptions.workerSrc = base + "pdf.worker.min.js"; }
+    }).catch((e) => { pdfReady = null; throw e; }));
+  }
+  $("pdf-close").onclick = () => { $("pdf-view").hidden = true; $("pdf-view").dataset.turn = ""; $("pdf-pages").innerHTML = ""; };
 
   // the clipboard API is blocked inside the Apps Script frame, so fall back to selecting a hidden copy
   async function copyText(t) {
@@ -2882,34 +2984,41 @@ ${v.addr}`;
     $("ad-copy-all").onclick = () => done(text, "ログイン情報");
   }
 
+  // one card per person instead of a wide table; a change of 勤務形態 or 管理者 is saved the moment it is made.
+  // The owner sees every ログインID and can add, reset and remove people and give 管理者; other admins see their own ID only
   function adMembers() {
-    const list = adData.members, workSel = (v, attr) => `<select class="ad-sel" ${attr}>` +
+    const list = adData.members, owner = adData.owner, workSel = (v, attr) => `<select class="ad-sel" ${attr}>` +
       [["", "未回答"], ["常勤", "常勤"], ["週末", "週末"]].map(([k, t]) => `<option value="${k}"${k === (v || "") ? " selected" : ""}>${t}</option>`).join("") + `</select>`;
     $("ad-body").innerHTML =
-      `<form class="ad-add" id="ad-add" novalidate><b>メンバーを追加</b>` +
-      `<label class="f">氏名<input id="ad-name" autocomplete="off"></label>` +
-      `<label class="f">勤務形態${workSel("", 'id="ad-work"')}</label>` +
-      `<label class="check"><input type="checkbox" id="ad-admin">管理者</label><button type="submit" class="btn primary" id="ad-add-btn">追加</button>` +
-      `<p class="hint">ログインIDと仮パスワードは自動で作られます。追加したあとに出る画面からコピーして、本人に伝えてください。</p></form>` +
-      `<div class="ad-scroll"><table class="ad-table"><thead><tr><th class="nm">氏名</th><th>ログインID</th><th>勤務形態</th><th>役割</th><th>契約</th><th>状態</th><th></th></tr></thead><tbody>` +
-      byWork(list).map(([t, g]) => grpRow(t, g.length, 7) + g.map((m, i) =>
-        `<tr class="${m.active ? "" : "dim"}" data-id="${esc(m.id)}" data-name="${esc(m.name)}"><td class="nm">${numName(i, m.name)}</td>` +
-        `<td><span class="ad-id">${esc(m.loginId || "—")}${m.loginId ? `<button type="button" class="tool" data-copyid="${esc(m.loginId)}">コピー</button>` : ""}</span></td>` +
-        `<td>${workSel(m.workType, 'data-k="workType"')}</td>` +
-        `<td><label class="check"><input type="checkbox" data-k="admin"${m.admin ? " checked" : ""}>管理者</label></td>` +
-        `<td>${m.contractUrl ? link(m.contractUrl, m.contract.split("（")[0] || "契約書") : `<span class="st st-late">未締結</span>`}</td>` +
-        `<td><label class="check"><input type="checkbox" data-k="active"${m.active ? " checked" : ""}>有効</label></td>` +
-        `<td class="ad-acts"><button type="button" class="tool" data-save>保存</button><button type="button" class="tool" data-temp>仮パスワード</button>` +
-        `<button type="button" class="tool danger" data-del>削除</button></td></tr>`).join("")).join("") + `</tbody></table></div>`;
-    $("ad-add").addEventListener("submit", (e) => {
+      (owner ? `<form class="ad-add" id="ad-add" novalidate><b>メンバーを追加</b>` +
+        `<label class="f">氏名<input id="ad-name" autocomplete="off"></label>` +
+        `<label class="f">勤務形態${workSel("", 'id="ad-work"')}</label>` +
+        `<label class="check"><input type="checkbox" id="ad-admin">管理者にする</label><button type="submit" class="btn primary" id="ad-add-btn">追加</button>` +
+        `<p class="hint">ログインIDと仮パスワードは自動で作られます。追加したあとに出る画面からコピーして、本人に伝えてください。</p></form>` : "") +
+      byWork(list).map(([t, g]) => `<h3 class="ad-grp">${esc(groupName(t))}（${g.length}人）</h3><div class="ad-cards">` + g.map((m, i) => {
+        const self = m.id === adData.me, signed = m.contract.split("（")[0];
+        return `<div class="ad-card" data-id="${esc(m.id)}" data-name="${esc(m.name)}">` +
+          `<div class="ad-card-h"><span>${numName(i, m.name)}</span>${m.owner ? `<span class="st st-done">オーナー</span>` : m.admin ? `<span class="st st-work">管理者</span>` : ""}</div>` +
+          `<dl class="ad-kv">` +
+          (m.loginId ? `<dt>ログインID</dt><dd><span class="ad-id">${esc(m.loginId)}<button type="button" class="tool" data-copyid="${esc(m.loginId)}">コピー</button></span></dd>` : "") +
+          `<dt>勤務形態</dt><dd>${workSel(m.workType, 'data-k="workType"')}</dd>` +
+          `<dt>契約</dt><dd>${m.hasContract ? `<span class="num">${esc(signed)}</span><button type="button" class="tool" data-contract>契約書を見る</button>` : `<span class="st st-late">未締結</span>`}</dd>` +
+          (owner && !m.owner ? `<dt>管理者</dt><dd><label class="check"><input type="checkbox" data-k="admin"${m.admin ? " checked" : ""}>管理者にする</label></dd>` : "") +
+          `</dl>` +
+          (owner && !self ? `<div class="ad-acts"><button type="button" class="tool" data-temp>仮パスワードを発行</button><button type="button" class="tool danger" data-del>削除</button></div>` : "") +
+          `</div>`;
+      }).join("") + `</div>`).join("");
+    const card = (el) => el.closest(".ad-card"), person = (c) => adData.members.find((m) => m.id === c.dataset.id);
+    if (owner) $("ad-add").addEventListener("submit", (e) => {
       e.preventDefault();
-      const name = $("ad-name").value.trim();
+      const name = $("ad-name").value.trim(), workType = $("ad-work").value, admin = $("ad-admin").checked;
       if (!name) { adMsg("氏名を入れてください。"); $("ad-name").focus(); return; }
       busyBtn($("ad-add-btn"), async () => {
         adMsg("追加しています…");
         try {
-          const r = JSON.parse(await call("api_adminSaveMember", { name, workType: $("ad-work").value, admin: $("ad-admin").checked }));
-          await adLoad(true); adMsg(`${name}さんを追加しました。`); showCreds(name, r);
+          const r = JSON.parse(await call("api_adminSaveMember", { name, workType, admin }));
+          adData.members.push({ id: r.id, name, loginId: r.loginId, admin, owner: false, active: true, contract: "", hasContract: false, workType });
+          adChanged(); adMsg(`${name}さんを追加しました。`); showCreds(name, r);
         } catch (err) { adMsg(errText(err)); }
       });
     });
@@ -2917,25 +3026,28 @@ ${v.addr}`;
       const ok = await copyText(b.dataset.copyid);
       b.textContent = ok ? "コピー済み" : "失敗"; setTimeout(() => { b.textContent = "コピー"; }, 1500);
     };
-    for (const b of $("ad-body").querySelectorAll("[data-save]")) b.onclick = () => {
-      const tr = b.closest("tr"), v = (k) => tr.querySelector(`[data-k="${k}"]`);
-      busyBtn(b, async () => {
-        adMsg("保存しています…");
-        try {
-          await call("api_adminSaveMember", { id: tr.dataset.id, workType: v("workType").value, admin: v("admin").checked, active: v("active").checked });
-          await adLoad(true); adMsg(`${tr.dataset.name}さんを保存しました。`);
-        } catch (err) { adMsg(errText(err)); }
-      });
+    for (const el of $("ad-body").querySelectorAll(".ad-card [data-k]")) el.onchange = async () => {
+      const c = card(el), m = person(c), k = el.dataset.k, v = k === "admin" ? el.checked : el.value;
+      el.disabled = true; adMsg(`${m.name}さんを保存しています…`);
+      try {
+        await call("api_adminSaveMember", { id: m.id, [k]: v });
+        m[k] = v; adChanged(); adMsg(`${m.name}さんの${k === "admin" ? "管理者の設定" : "勤務形態"}を保存しました。`);
+      } catch (err) { adMsg(errText(err)); el.disabled = false; }
     };
+    for (const b of $("ad-body").querySelectorAll("[data-contract]")) b.onclick = () => showPdf(`${card(b).dataset.name}さんの業務委託契約書`, card(b).dataset.id, "contract");
     for (const b of $("ad-body").querySelectorAll("[data-temp]")) b.onclick = () => {
-      const tr = b.closest("tr"), name = tr.dataset.name;
+      const c = card(b), name = c.dataset.name;
       adDialog(`${name}さんの仮パスワード`, `<p>${esc(name)}さんに新しい仮パスワードを発行します。<br>いまのパスワードは使えなくなり、${esc(name)}さんはすべての端末でログアウトされます。</p>`,
-        "発行する", async () => showCreds(name, JSON.parse(await call("api_adminIssueTemp", tr.dataset.id))));
+        "発行する", async () => showCreds(name, JSON.parse(await call("api_adminIssueTemp", c.dataset.id))));
     };
     for (const b of $("ad-body").querySelectorAll("[data-del]")) b.onclick = () => {
-      const tr = b.closest("tr"), name = tr.dataset.name;
+      const c = card(b), name = c.dataset.name;
       adDialog(`${name}さんを削除`, `<p>${esc(name)}さんをメンバーから削除します。ログインできなくなります。<br>これまでの勤怠・請求書の記録はシートに残ります。</p>`,
-        "削除する", async () => { await call("api_adminDeleteMember", tr.dataset.id); $("ad-dlg").hidden = true; await adLoad(true); adMsg(`${name}さんを削除しました。`); });
+        "削除する", async () => {
+          await call("api_adminDeleteMember", c.dataset.id);
+          adData.members = adData.members.filter((m) => m.id !== c.dataset.id);
+          $("ad-dlg").hidden = true; adChanged(); adMsg(`${name}さんを削除しました。`);
+        });
     };
   }
   // ---- signed-in start ----
@@ -2959,7 +3071,11 @@ ${v.addr}`;
     $("where").textContent = `${window.TC_NAME || ""}さんの記録です。記録と画像はThemisの勤怠シートに保存され、Themisの担当者が確認できます。`;
     watchView(); applyWork();
     fillForms(true); render();
-    needsSetup();
+    if (!needsSetup()) {
+      const paid = [prev, cur].filter((ym) => doc("inv-" + ym).status === "paid" && !doc("inv-" + ym).confirmedOn);
+      if (paid.length) msg(`${paid.map((ym) => Number(ym.slice(5))).join("・")}月分の入金が完了しました。請求書タブで金額を確かめて「入金を確認しました」を押してください。`);
+    }
+    if (window.TC_ADMIN) adPrefetch();
   }
   // first the name, address and 勤務形態, then the contract; both block the app (admins too) until done
   function needsSetup() {
