@@ -305,6 +305,19 @@ button.hc:not(:disabled):hover { filter: brightness(.97); }
 .btn.danger.armed { background: var(--stamp-red); color: var(--card); }
 .forms { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 14px; }
 @media (max-width: 720px) { .forms { grid-template-columns: 1fr; } }
+/* on a wide screen: the invoice's contents on the left; on the right the shared settings (often folded to one line),
+   then the preview and the submit button, so neither column is left mostly empty */
+@media (min-width: 721px) {
+  #p-inv { grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); align-items: start; }
+  #p-inv > .forms { display: contents; }
+  #p-inv > .inv-head { grid-area: 1 / 1 / 2 / 3; }
+  #p-inv > .steps { grid-area: 2 / 1 / 3 / 3; }
+  #fs-bill { grid-area: 3 / 1 / 6 / 2; }
+  #fs-set { grid-area: 3 / 2 / 4 / 3; }
+  #p-inv > .sheet-scroll { grid-area: 4 / 2 / 5 / 3; }
+  #p-inv > .inv-actions { grid-area: 5 / 2 / 6 / 3; }
+  #p-inv > .hint { grid-area: 6 / 1 / 7 / 3; }
+}
 fieldset { margin: 0; border: 1px solid var(--rule); border-radius: 12px; background: var(--card); padding: 14px 16px 16px; display: grid; gap: 10px; min-width: 0; }
 fieldset:disabled { opacity: .7; }
 /* anything that can't be used right now reads as dimmed, wherever it sits */
@@ -329,7 +342,14 @@ legend { float: left; width: 100%; margin: 0; padding: 0 0 2px; font-weight: 700
 .f input, .f select, .f textarea { font: inherit; font-size: 15px; padding: 7px 9px; border-radius: 8px; border: 1px solid var(--rule); background: var(--paper); color: var(--ink); width: 100%; letter-spacing: 0; }
 .f textarea { resize: vertical; min-height: 64px; }
 .f input[type="number"], .f input[type="date"], #i-no { font-family: var(--f-num); }
-.check { display: flex; align-items: center; gap: 8px; font-size: 14px; }
+/* a tick box reacts on the box and its words only, not on the empty space beside them */
+.check { display: inline-flex; align-items: center; gap: 8px; font-size: 14px; width: fit-content; max-width: 100%; justify-self: start; cursor: pointer; }
+.who-tag { display: inline-block; vertical-align: .15em; margin-left: 6px; padding: 1px 8px; border-radius: 999px; font-size: 11px; font-weight: 700; letter-spacing: .04em; border: 1px solid currentColor; }
+.who-tag.full { color: var(--accent); }
+.who-tag.wkend { color: var(--break); }
+.who-tag.role { color: var(--ink-soft); }
+/* on a phone the 管理画面 button already says who is an admin; only 常勤 / 週末 stays beside the name */
+@media (max-width: 560px) { .who-tag.role { display: none; } }
 /* address and bank details are split into one field each, grouped under a heading */
 .grp { display: grid; gap: 8px; border-top: 1px dashed var(--rule); padding-top: 10px; }
 .grp-h { font-size: 13px; font-weight: 700; color: var(--ink); letter-spacing: .04em; }
@@ -348,7 +368,13 @@ legend { float: left; width: 100%; margin: 0; padding: 0 0 2px; font-weight: 700
 .f input:not(.locked):not([type="checkbox"]):not([type="radio"]), .f textarea, .f select, .extra input {
   background: var(--card); border: 1.5px solid color-mix(in srgb, var(--ink) 38%, transparent); }
 .f input:not(.locked):focus, .f textarea:focus, .f select:focus, .extra input:focus { border-color: var(--accent); }
-input::placeholder, textarea::placeholder { color: var(--ink); opacity: .28; font-style: normal; }
+/* the extra lines and 備考 look exactly like the boxes above them; only the example text is pale grey */
+.extra input, .f textarea { font-size: 15px; padding: 7px 9px; color: var(--ink); }
+.extra button { background: var(--card); border: 1.5px solid color-mix(in srgb, var(--ink) 38%, transparent); color: var(--ink-soft); }
+input::placeholder, textarea::placeholder { color: var(--ink-soft); opacity: .6; font-style: normal; -webkit-text-fill-color: color-mix(in srgb, var(--ink-soft) 60%, transparent); }
+.inv-actions { display: grid; gap: 8px; }
+.inv-actions .actions { display: flex; flex-wrap: wrap; gap: 8px; }
+.inv-actions .btn { flex: 1 1 auto; padding: 13px 16px; font-size: 15px; }
 fieldset:disabled .f input, fieldset:disabled .f textarea, fieldset:disabled .f select, fieldset:disabled .extra input { border-color: var(--rule); }
 /* a box only Themis fills: no box look at all, just the value in full ink on a tinted strip with a lock mark */
 .f input.locked { background: color-mix(in srgb, var(--accent) 9%, var(--card)); color: var(--ink); font-weight: 700; font-size: 18px;
@@ -1050,12 +1076,6 @@ button.pcal-c { cursor: pointer; }
         <li id="st-2">下の見本で金額と内容を確認する</li>
         <li id="st-4">「内容を確認して提出」を押し、金額に間違いがなければ提出する（請求書PDFがメールでThemisに届きます）</li>
       </ol>
-      <div class="actions">
-        <button type="button" class="btn okay" id="a-submit">内容を確認して提出</button>
-        <button type="button" class="btn okay" id="a-paid" hidden>入金を確認しました</button>
-        <button type="button" class="btn danger" id="a-undo" hidden>提出を取り消す</button>
-      </div>
-      <div class="msg" id="inv-msg" role="status" aria-live="polite"></div>
     </div>
 
     <div class="forms">
@@ -1122,6 +1142,15 @@ button.pcal-c { cursor: pointer; }
     <div class="sheet-scroll">
       <button type="button" class="thumb" id="inv-thumb" aria-label="請求書を大きく表示"><img id="inv-img" alt="請求書の見本"></button>
       <span class="thumb-cap" id="inv-cap">請求書を作成しています…</span>
+    </div>
+    <!-- sending (or confirming the payment) comes after the invoice has been looked over -->
+    <div class="inv-actions">
+      <div class="actions">
+        <button type="button" class="btn okay" id="a-submit">内容を確認して提出</button>
+        <button type="button" class="btn okay" id="a-paid" hidden>入金を確認しました</button>
+        <button type="button" class="btn danger" id="a-undo" hidden>提出を取り消す</button>
+      </div>
+      <div class="msg" id="inv-msg" role="status" aria-live="polite"></div>
     </div>
     <p class="hint">提出すると、請求書PDFがThemisの担当者にメールで届きます。メールアドレスを入れておくと、控えがあなたにも届きます。交通費の証明画像は、シフト表の日付から添付してください（請求書とは別にThemisに届きます）。</p>
   </section>
@@ -2221,7 +2250,7 @@ ${v.addr}`;
     $("m-label").textContent = `${view.getFullYear()}年${view.getMonth() + 1}月`;
     $("m-next").disabled = tab === "inv" && view >= lastBillable();
     $("m-prev").disabled = tab === "hope" && view <= firstHope();
-    $("who").textContent = doc("billing").from || window.TC_NAME || "";
+    paintWho();
 
     if (tab === "inv") { renderInvoice(); return; }
     if (tab === "hope") { renderHope(); return; }
@@ -2896,13 +2925,21 @@ ${v.addr}`;
   }
   // what depends on who is signed in: header buttons, the 管理画面 button, the hope tab (not for 常勤) and the
   // invoice tab of the admin screen (運営 only). Also used for the quick copy shown while the app opens
+  // the name in the header, with small tags for 常勤 / 週末 and, for admins, 運営 / 管理者
+  function paintWho() {
+    const name = doc("billing").from || window.TC_NAME || "";
+    const tag = (t, cls) => `<span class="who-tag ${cls}">${t}</span>`;
+    $("who").innerHTML = name ? esc(name) +
+      (window.TC_WORK ? tag(esc(window.TC_WORK), window.TC_WORK === "常勤" ? "full" : "wkend") : "") +
+      (window.TC_ADMIN ? tag(window.TC_OWNER ? "運営" : "管理者", "role") : "") : "";
+  }
   function showPerson(me) {
     window.TC_NAME = me.name; window.TC_WORK = me.workType || "";
     window.TC_ADMIN = !!me.admin; window.TC_OWNER = !!me.owner;
     $("logout").hidden = false; $("chpass").hidden = false;
     // admins use the normal site too; the header button switches to the admin screen and back
     $("adminbtn").hidden = !me.admin;
-    if (me.admin) $("who").textContent = `${me.name}（${me.owner ? "運営" : "管理者"}）`;
+    paintWho();
     $("ad-tabs").querySelector('[data-t="inv"]').hidden = !me.owner;
     applyWork();
   }
