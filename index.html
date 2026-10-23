@@ -512,16 +512,19 @@ input::placeholder, textarea::placeholder { color: var(--ink-soft); opacity: .4;
 .member-ui { display: contents; }
 .brand { flex-wrap: wrap; row-gap: 10px; }
 .brand-side { display: flex; align-items: center; gap: 8px; min-width: 0; flex-wrap: wrap; justify-content: flex-end; margin-left: auto; }
-/* pull-to-refresh pill: hidden above the top edge, follows the finger down */
-.ptr { position: fixed; top: env(safe-area-inset-top, 0px); left: 50%; z-index: 40; width: 170px; margin-left: -85px; display: flex; align-items: center; justify-content: center; gap: 6px;
-  padding: 7px 12px; background: var(--card); color: var(--ink-soft); border: 1px solid var(--rule); border-radius: 999px; font-size: 12px; font-weight: 700;
-  box-shadow: 0 6px 18px -8px rgb(0 0 0 / .35); transform: translateY(-56px); transition: transform .2s; pointer-events: none; }
+/* pull-to-refresh: a plain small circle, its ring drawn by the pull, spinning while it refreshes */
+.ptr { position: fixed; top: env(safe-area-inset-top, 0px); left: 50%; z-index: 40; width: 36px; height: 36px; margin-left: -18px; display: grid; place-items: center;
+  background: var(--card); border-radius: 50%; box-shadow: 0 2px 8px rgb(0 0 0 / .18); transform: translateY(-48px); transition: transform .2s; pointer-events: none; }
+.ptr svg { width: 22px; height: 22px; transform: rotate(-90deg); }
+.ptr circle { fill: none; stroke-width: 2.4; stroke-linecap: round; }
+.ptr-track { stroke: var(--rule); }
+.ptr-ring { stroke: var(--ink-soft); transition: stroke .15s; }
 .ptr.drag { transition: none; }
-.ptr-ic { transition: transform .2s; color: var(--accent); }
-.ptr.ready { color: var(--accent); } .ptr.ready .ptr-ic { transform: rotate(180deg); }
-.ptr.busy { transform: translateY(12px); }
-.ptr.busy .ptr-ic { animation: ptr-spin .8s linear infinite; }
-@keyframes ptr-spin { to { transform: rotate(360deg); } }
+.ptr.ready .ptr-ring { stroke: var(--accent); }
+.ptr.busy { transform: translateY(14px); }
+.ptr.busy svg { animation: ptr-spin .9s linear infinite; }
+.ptr.busy .ptr-ring { stroke: var(--accent); }
+@keyframes ptr-spin { from { transform: rotate(-90deg); } to { transform: rotate(270deg); } }
 /* today on the admin screen: plan line, then the four punches as equal boxes */
 .today-plan { display: flex; flex-wrap: wrap; align-items: baseline; gap: 4px 12px; font-size: 14px; }
 .today-plan span { font-size: 12px; color: var(--ink-soft); }
@@ -2839,15 +2842,22 @@ ${v.addr}`;
     signedInOnce = true; cacheMe = me;
     window.TC_NAME = me.name;
     if (me.mustChange) { showLogin(); loginStep("first"); $("logout").hidden = false; return; }
-    $("login").hidden = true; $("logout").hidden = false; $("chpass").hidden = false;
-    // admins use the normal site too; the header button switches to the admin screen and back
-    window.TC_WORK = me.workType || "";
+    $("login").hidden = true;
+    showPerson(me);
     mode = "member"; $("member-ui").hidden = false; startMember(pre);
-    window.TC_ADMIN = !!me.admin; window.TC_OWNER = !!me.owner;
-    if (me.admin) { $("adminbtn").hidden = false; $("who").textContent = `${me.name}（管理者）`; }
-    // invoices are the owner's alone
-    $("ad-tabs").querySelector('[data-t="inv"]').hidden = !me.owner;
     installHint(me.app);
+  }
+  // what depends on who is signed in: header buttons, the 管理画面 button, the hope tab (not for 常勤) and the
+  // invoice tab of the admin screen (運営 only). Also used for the quick copy shown while the app opens
+  function showPerson(me) {
+    window.TC_NAME = me.name; window.TC_WORK = me.workType || "";
+    window.TC_ADMIN = !!me.admin; window.TC_OWNER = !!me.owner;
+    $("logout").hidden = false; $("chpass").hidden = false;
+    // admins use the normal site too; the header button switches to the admin screen and back
+    $("adminbtn").hidden = !me.admin;
+    if (me.admin) $("who").textContent = `${me.name}（${me.owner ? "運営" : "管理者"}）`;
+    $("ad-tabs").querySelector('[data-t="inv"]').hidden = !me.owner;
+    applyWork();
   }
 
   // ---- add to home screen ----
@@ -2923,10 +2933,13 @@ ${v.addr}`;
   // ---- pull down to refresh: the installed app has no browser bar to reload from ----
   (() => {
     if (!standalone()) return;
-    const PULL = 80, bar = document.createElement("div");
-    bar.className = "ptr"; bar.innerHTML = `<span class="ptr-ic" aria-hidden="true">↓</span><span class="ptr-t"></span>`;
+    // a small circle whose ring is drawn as the finger pulls; a full ring means "let go to refresh", then it spins
+    const PULL = 80, R = 9, LEN = 2 * Math.PI * R, bar = document.createElement("div");
+    bar.className = "ptr"; bar.setAttribute("aria-hidden", "true");
+    bar.innerHTML = `<svg viewBox="0 0 24 24"><circle class="ptr-track" cx="12" cy="12" r="${R}"/><circle class="ptr-ring" cx="12" cy="12" r="${R}" stroke-dasharray="${LEN}" stroke-dashoffset="${LEN}"/></svg>`;
     document.body.prepend(bar);
-    const text = (t) => { bar.querySelector(".ptr-t").textContent = t; };
+    const ring = bar.querySelector(".ptr-ring");
+    const draw = (p) => ring.setAttribute("stroke-dashoffset", String(LEN * (1 - Math.min(1, p))));
     // not while a box is open, or while signing, drawing or typing
     const blocked = (t) => [...document.querySelectorAll(".modal-bg")].some((m) => !m.hidden) || t.closest("canvas, input, textarea, select");
     let y0 = null, dy = 0;
@@ -2939,20 +2952,20 @@ ${v.addr}`;
       if (window.scrollY > 0) { y0 = null; bar.classList.remove("drag", "ready"); bar.style.transform = ""; return; }
       dy = Math.max(0, e.touches[0].clientY - y0);
       bar.classList.add("drag"); bar.classList.toggle("ready", dy > PULL);
-      bar.style.transform = `translateY(${Math.min(dy, PULL * 1.5) * 0.6 - 56}px)`;
-      text(dy > PULL ? "離すと更新" : "下に引っぱって更新");
+      bar.style.transform = `translateY(${Math.min(dy, PULL * 1.5) * 0.6 - 48}px) rotate(${Math.min(dy, PULL) * 3}deg)`;
+      draw(dy / PULL);
     }, { passive: true });
     addEventListener("touchend", () => {
       if (y0 == null) return;
       const go = dy > PULL;
       y0 = null; dy = 0; bar.classList.remove("drag", "ready"); bar.style.transform = "";
-      if (go) refresh();
+      if (go) refresh(); else draw(0);
     });
     function refresh() {
       // an edit still waiting to be saved would be lost by a reload
       if (Object.keys(saveTimers).length || Object.values(inflight).some((n) => n > 0)) { msg("保存が終わってから、もう一度引っぱってください。"); return; }
-      bar.classList.add("busy"); text("更新しています…");
-      if (mode === "admin") adLoad(true).finally(() => bar.classList.remove("busy"));
+      bar.classList.add("busy"); draw(0.75);
+      if (mode === "admin") adLoad(true).finally(() => { bar.classList.remove("busy"); draw(0); });
       else location.reload();
     }
   })();
@@ -3524,19 +3537,30 @@ ${v.addr}`;
     const cached = readCache();
     if (cached?.me && !cached.me.mustChange) {
       Object.assign(docs, cached.docs || {});
-      window.TC_NAME = cached.me.name; window.TC_WORK = cached.me.workType || "";
       mode = "member"; $("login").hidden = true; $("member-ui").hidden = false;
+      showPerson(cached.me);
       document.body.classList.add("preview");
       fillForms(true); render(); msg("最新の記録を確認しています…");
     }
     const names = bootNames();
-    try { const r = JSON.parse(await rawCall("api_boot", names)); enter(r.me, r.docs && { docs: r.docs, names }); }
+    try { const [me, pre] = await boot(names); enter(me, pre); }
     catch (e) {
       if (isSignedOut(e)) { dropCache(); document.body.classList.remove("preview"); showLogin(errText(e)); }
-      else if (cached) msg("つながりませんでした。前回までの記録を表示しています。通信状況を確認して、画面を開き直してください。");
+      else if (cached) msg(`つながりませんでした。前回までの記録を表示しています。通信状況を確認して、画面を開き直してください。${errDetail(e)}`);
       else showLogin("つながりませんでした。通信状況を確認して、もう一度お試しください。");
     }
   })();
+  // one call when the server has api_boot; a server not yet updated (Code.gs not redeployed) is asked the older way
+  async function boot(names) {
+    try {
+      const r = JSON.parse(await rawCall("api_boot", names));
+      return [r.me, r.docs && { docs: r.docs, names }];
+    } catch (e) {
+      if (!/使えない操作/.test(String(e?.message || e))) throw e;
+      return [JSON.parse(await rawCall("api_me")), null];
+    }
+  }
+  const errDetail = (e) => { const t = String(e?.message || e || "").replace(/^(\w*(Error|Exception):\s*)+/, ""); return t ? `（詳細：${t.slice(0, 80)}）` : ""; };
 
   async function startMember(pre) {
     // load this month, last month (invoices) and the open-shift pointer before any punch is allowed
