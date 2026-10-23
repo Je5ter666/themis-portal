@@ -14,7 +14,22 @@
 <meta charset="utf-8">
 <title>Themis Portal</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
-<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Zen+Kaku+Gothic+New:wght@400;500;700&family=Zen+Old+Mincho:wght@500;700&family=Inter:wght@400;500;600;700&display=block">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Zen+Kaku+Gothic+New:wght@400;500;700&family=Zen+Old+Mincho:wght@500;700&family=Inter:wght@400;500;600;700&display=swap">
+<!-- the Japanese fonts come in many small pieces that each arrive at their own moment, so text would appear in bits;
+     the page stays hidden (still laid out, so the pieces load) until the fonts on screen are in, 1.5 s at most -->
+<style>html.fonts-wait body { visibility: hidden; }</style>
+<script>
+document.documentElement.classList.add("fonts-wait");
+(function () {
+  var show = function () { document.documentElement.classList.remove("fonts-wait"); };
+  setTimeout(show, 1500);
+  addEventListener("DOMContentLoaded", function () {
+    if (!document.fonts || !document.fonts.ready) return show();
+    requestAnimationFrame(function () { document.fonts.ready.then(show, show); });
+  });
+})();
+</script>
 <style>
 /* Layout: a punch-clock face on top, then one bar with tabs + month switcher, then either the month's ruled timecard or the invoice (form above, A4 sheet below) */
 :root {
