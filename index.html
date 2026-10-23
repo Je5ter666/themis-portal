@@ -2978,7 +2978,8 @@ ${v.addr}`;
     if (me.mustChange) { showLogin(); loginStep("first"); $("logout").hidden = false; return; }
     $("login").hidden = true;
     showPerson(me);
-    mode = "member"; $("member-ui").hidden = false; startMember(pre);
+    // while the admin screen's preview is up it stays up until loading is done (startMember → showMode)
+    mode = "member"; if ($("admin").hidden) $("member-ui").hidden = false; startMember(pre);
     installHint(me.app);
   }
   // what depends on who is signed in: header buttons, the 管理画面 button, the hope tab (not for 常勤) and the
@@ -3704,13 +3705,13 @@ ${v.addr}`;
       mode = "member"; $("login").hidden = true; $("member-ui").hidden = false;
       showPerson(cached.me);
       document.body.classList.add("preview");
-      fillForms(true); render(); restoreTab(peekView()); msg("最新の記録を確認しています…");
+      fillForms(true); render(); restoreTab(peekView()); previewAdmin(peekView()); msg("最新の記録を確認しています…");
     }
     const names = bootNames();
     try { const [me, pre] = await boot(names); enter(me, pre); }
     catch (e) {
       if (isSignedOut(e)) { dropCache(); document.body.classList.remove("preview"); showLogin(errText(e)); }
-      else if (cached) msg(`つながりませんでした。前回までの記録を表示しています。通信状況を確認して、画面を開き直してください。${errDetail(e)}`);
+      else if (cached) showMode(), msg(`つながりませんでした。前回までの記録を表示しています。通信状況を確認して、画面を開き直してください。${errDetail(e)}`);
       else showLogin("つながりませんでした。通信状況を確認して、もう一度お試しください。");
     }
   })();
@@ -3739,6 +3740,7 @@ ${v.addr}`;
     $("where").textContent = `${window.TC_NAME || ""}さんの記録です。記録と画像はThemisの勤怠シートに保存され、Themisの担当者が確認できます。`;
     watchView(); applyWork();
     fillForms(true); render();
+    showMode();   // restoreView below switches straight back to the admin screen in the same step, so nothing flashes
     if (!needsSetup()) {
       const paid = [prev, cur].filter((ym) => doc("inv-" + ym).status === "paid" && !doc("inv-" + ym).confirmedOn);
       if (paid.length) msg(`${paid.map((ym) => Number(ym.slice(5))).join("・")}月分の入金が完了しました。請求書タブで金額を確かめて「入金を確認しました」を押してください。`);
@@ -3772,6 +3774,22 @@ ${v.addr}`;
     for (const k of Object.keys(tabView)) if (/^\d{4}-\d{2}$/.test(v.months?.[k] || "")) { const [y, m] = v.months[k].split("-").map(Number); tabView[k] = new Date(y, m - 1, 1); }
     view = tabView[tab];
     setTab(v.tab === "inv" || (v.tab === "hope" && window.TC_WORK !== "常勤") ? v.tab : "card");
+  }
+  // reloaded on the admin screen: it shows (still loading) from the start instead of the normal screen flashing first,
+  // and its read starts alongside the sign-in check. restoreView then opens it properly
+  function previewAdmin(v) {
+    if (!v || v.mode !== "admin" || !window.TC_ADMIN) return;
+    adTab = v.adTab === "inv" && !window.TC_OWNER ? "today" : v.adTab || adTab;
+    Object.assign(adMonth, v.adMonth || {});
+    $("member-ui").hidden = true; $("admin").hidden = false; $("adminbtn").textContent = "通常画面";
+    for (const b of $("ad-tabs").querySelectorAll("button")) b.setAttribute("aria-selected", b.dataset.t === adTab);
+    adMsg("読み込んでいます…");
+    adPrefetch();
+  }
+  // put the screen back to what `mode` says (the admin preview above is only a look until then)
+  function showMode() {
+    const ad = mode === "admin";
+    $("admin").hidden = !ad; $("member-ui").hidden = ad; $("adminbtn").textContent = ad ? "通常画面" : "管理画面";
   }
   function restoreView() {
     const v = peekView();
