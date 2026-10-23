@@ -342,6 +342,19 @@ legend { font-weight: 700; font-size: 14px; padding: 0 6px; }
 .extra { display: grid; grid-template-columns: minmax(0, 1fr) 110px 32px; gap: 6px; }
 .extra input { font: inherit; font-size: 14px; padding: 6px 8px; border-radius: 8px; border: 1px solid var(--rule); background: var(--paper); color: var(--ink); width: 100%; min-width: 0; }
 .extra input[type="number"] { font-family: var(--f-num); }
+/* example text in empty boxes is faint, so it never reads as something already typed */
+input::placeholder, textarea::placeholder { color: var(--ink-soft); opacity: .4; }
+/* an amount set by Themis: shown, dimmed, and not editable */
+.f input.locked { background: color-mix(in srgb, var(--ink) 10%, var(--paper)); color: var(--ink-soft); border-style: dashed; cursor: not-allowed; }
+.same-last { font-weight: 700; }
+.inv-ok { align-items: flex-start; background: color-mix(in srgb, var(--accent) 8%, var(--card)); border: 1px solid color-mix(in srgb, var(--accent) 35%, var(--rule));
+  border-radius: 10px; padding: 10px 12px; font-size: 14px; line-height: 1.6; }
+.inv-ok input { margin-top: .3em; width: 18px; height: 18px; flex: none; }
+.inv-ok b { font-family: var(--f-num); color: var(--accent); }
+.inv-ok[hidden] { display: none; }
+.set-sum { margin: 0; font-size: 13px; color: var(--ink-soft); background: var(--paper); border-radius: 8px; padding: 8px 10px; }
+.set-sum[hidden], .set-body[hidden] { display: none; }
+.set-body { display: grid; gap: inherit; }
 .extra button { border: 1px solid var(--rule); background: transparent; border-radius: 8px; color: var(--ink-soft); }
 .hint { font-size: 12px; color: var(--ink-soft); margin: 0; }
 .hours { display: flex; justify-content: space-between; align-items: baseline; border-top: 1px dashed var(--rule); padding-top: 10px; font-size: 13px; color: var(--ink-soft); }
@@ -518,27 +531,63 @@ legend { font-weight: 700; font-size: 14px; padding: 0 6px; }
 .today-punch b { font-size: 15px; color: var(--ink-soft); }
 .today-punch .on b { color: var(--accent); }
 /* "add to home screen" nudge under the header */
-.install { display: grid; grid-template-columns: auto 1fr; gap: 10px 12px; align-items: center; background: var(--card); border: 1.5px solid var(--accent);
-  border-radius: var(--r); padding: 12px 14px; }
+.install { display: grid; gap: 12px; padding: 16px; border-radius: 18px; color: #fff; position: relative; overflow: hidden;
+  background: linear-gradient(135deg, color-mix(in srgb, var(--accent) 88%, #fff) 0%, var(--accent) 45%, color-mix(in srgb, var(--accent) 70%, #000) 100%);
+  box-shadow: 0 14px 30px -14px color-mix(in srgb, var(--accent) 80%, #000), inset 0 1px 0 rgb(255 255 255 / .25); }
+.install::after { content: ""; position: absolute; right: -40px; top: -40px; width: 150px; height: 150px; border-radius: 50%; background: rgb(255 255 255 / .1); pointer-events: none; }
 .install[hidden] { display: none; }
-.install-icon { width: 44px; height: 44px; border-radius: 10px; }
-.install-text { display: grid; gap: 2px; font-size: 13px; color: var(--ink-soft); }
-.install-text b { font-size: 14px; color: var(--ink); }
-.install-acts { grid-column: 1 / -1; display: flex; gap: 8px; justify-content: flex-end; align-items: center; }
-.install-steps { margin: 0; padding-left: 1.4em; display: grid; gap: 10px; font-size: 14px; line-height: 1.6; }
-.install-steps b { color: var(--accent); }
-.install-mark { display: inline-grid; place-items: center; width: 1.6em; height: 1.6em; border: 1px solid var(--rule); border-radius: 6px; vertical-align: -0.35em; background: var(--paper); }
-.install-mark svg { width: 1em; height: 1em; }
+.install-top { display: grid; grid-template-columns: auto 1fr auto; gap: 12px; align-items: center; }
+.install-icon { width: 52px; height: 52px; border-radius: 13px; background: #fff; box-shadow: 0 4px 12px rgb(0 0 0 / .25); }
+.install-text { display: grid; gap: 3px; font-size: 12.5px; line-height: 1.5; color: rgb(255 255 255 / .85); }
+.install-text b { font-size: 15px; color: #fff; letter-spacing: .02em; }
+.install-later { align-self: start; font: inherit; font-size: 12px; color: rgb(255 255 255 / .8); background: none; border: 0; padding: 2px 0; cursor: pointer; position: relative; z-index: 1; }
+.install-go { font: inherit; font-size: 15px; font-weight: 700; color: var(--accent); background: #fff; border: 0; border-radius: 12px; padding: 12px;
+  box-shadow: 0 3px 0 rgb(0 0 0 / .15); cursor: pointer; position: relative; z-index: 1; }
+.install-go:active { transform: translateY(1px); box-shadow: 0 2px 0 rgb(0 0 0 / .15); }
+/* the how-to box: app header, three perks, then numbered steps each with a picture of the button to find */
+.install-modal { gap: 16px; }
+.im-head { display: flex; align-items: center; gap: 14px; }
+.im-icon { width: 60px; height: 60px; border-radius: 15px; box-shadow: 0 6px 16px -6px rgb(0 0 0 / .4); background: var(--paper); }
+.im-head b { display: block; font-size: 18px; }
+.im-head span { font-size: 13px; color: var(--ink-soft); }
+.im-perks { list-style: none; margin: 0; padding: 0; display: grid; grid-template-columns: repeat(3, 1fr); gap: 6px; }
+.im-perks li { font-size: 11.5px; font-weight: 700; text-align: center; color: var(--accent); background: color-mix(in srgb, var(--accent) 10%, var(--card)); border-radius: 10px; padding: 8px 4px; }
+.im-steps { list-style: none; margin: 0; padding: 0; display: grid; gap: 0; }
+.im-step { display: grid; grid-template-columns: 28px 1fr; gap: 12px; padding: 12px 0; border-top: 1px solid var(--rule); }
+.im-step:first-child { border-top: 0; padding-top: 0; }
+.im-n { width: 28px; height: 28px; border-radius: 50%; display: grid; place-items: center; background: var(--accent); color: #fff; font-weight: 700; font-size: 14px; font-family: var(--f-num); }
+.im-body { display: grid; gap: 6px; min-width: 0; }
+.im-body b { font-size: 14.5px; line-height: 1.5; display: flex; align-items: center; gap: 4px; flex-wrap: wrap; }
+.im-body b svg { width: 18px; height: 18px; color: var(--sat); }
+.im-body p { margin: 0; font-size: 12.5px; line-height: 1.65; color: var(--ink-soft); }
+.im-pic { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; }
+.im-chip { display: inline-flex; align-items: center; gap: 6px; padding: 7px 12px; border-radius: 10px; background: var(--paper); border: 1px solid var(--rule); font-size: 13px; color: var(--ink); }
+.im-chip svg { width: 18px; height: 18px; color: var(--sat); }
+.im-chip.on { border-color: var(--sat); box-shadow: 0 0 0 3px color-mix(in srgb, var(--sat) 18%, transparent); }
+.im-bar { display: flex; align-items: center; justify-content: space-between; width: 100%; max-width: 280px; padding: 8px 14px; border-radius: 14px; background: color-mix(in srgb, var(--ink) 6%, var(--paper)); color: var(--sat); }
+.im-bar > svg { width: 18px; height: 18px; opacity: .5; }
+.im-bar .im-chip { padding: 4px 8px; }
+.im-or { font-size: 11px; color: var(--ink-soft); }
+.im-alt { display: flex; align-items: center; gap: 6px; flex-basis: 100%; }
+.im-arrow { color: var(--ink-soft); }
+.im-tile { display: inline-grid; justify-items: center; gap: 4px; font-size: 11px; color: var(--ink-soft); }
+.im-tile img { width: 48px; height: 48px; border-radius: 12px; box-shadow: 0 4px 10px -4px rgb(0 0 0 / .35); background: var(--paper); }
+.im-ok { width: 100%; padding: 12px; font-size: 15px; }
 .brand-btns { display: flex; gap: 8px; }
 .brand-btns:not(:has(.tool:not([hidden]))) { display: none; }
-/* on a phone: the logo, then the name on its own line, then the buttons side by side at equal width */
+/* on a phone: the logo and Themis Portal with the name beside them (sitting a little low, on the baseline),
+   then the buttons side by side at equal width */
 @media (max-width: 560px) {
-  .brand-side { width: 100%; flex-direction: column; align-items: stretch; gap: 10px; margin-top: 4px; }
-  .brand-side .brand-who { text-align: left; font-size: 17px; }
-  .brand-side .brand-who:empty { display: none; }
-  .brand-btns { width: 100%; }
+  .brand { display: grid; grid-template-columns: auto minmax(0, 1fr); grid-template-areas: "mark who" "btns btns"; align-items: end; row-gap: 12px; column-gap: 10px; }
+  .brand-mark { grid-area: mark; }
+  .brand-side { display: contents; }
+  .brand-side .brand-who { grid-area: who; justify-self: end; text-align: right; font-size: 15px; padding-bottom: 1px; transform: translateY(3px);
+    white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: 100%; }
+  .brand-btns { grid-area: btns; width: 100%; }
   .brand-btns .tool { flex: 1 1 0; font-size: 12px; padding: 7px 4px; text-align: center; }
 }
+/* while today's plan shows from the copy on this device, the punch keys wait for the server */
+.preview .clock .key { opacity: .5; }
 .brand-side .tool { font-size: 12px; padding: 4px 10px; white-space: nowrap; }
 
 /* Login: one centred card under the brand line */
@@ -598,6 +647,13 @@ legend { font-weight: 700; font-size: 14px; padding: 0 6px; }
 .ad-temp dd { margin: 0; font-size: 22px; font-weight: 700; letter-spacing: .08em; }
 .ad-temp dd { display: flex; align-items: center; gap: 10px; }
 .ad-temp dd .tool { font-size: 12px; letter-spacing: 0; font-weight: 500; }
+/* the new ID and 仮パスワード: one block each, value large and easy to read out, copy button full width */
+.creds { display: grid; gap: 10px; }
+.cred { display: grid; gap: 6px; background: var(--paper); border: 1px solid var(--rule); border-radius: 12px; padding: 12px 14px; }
+.cred-l { font-size: 12px; color: var(--ink-soft); font-weight: 700; }
+.cred-v { font-family: var(--f-num); font-size: 28px; letter-spacing: .14em; line-height: 1.2; word-break: break-all; user-select: all; -webkit-user-select: all; }
+.cred-copy { width: 100%; padding: 10px; font-size: 14px; }
+.cred-all { width: 100%; padding: 12px; font-size: 15px; }
 .ad-copied { color: var(--accent); font-size: 13px; font-weight: 700; min-height: 1.2em; }
 /* 常勤 and 週末 are listed apart: a heading row (in tables) or a heading line (in the 勤怠 list) above each group */
 .ad-table tr.grp td { background: var(--paper); font-weight: 700; font-size: 12px; color: var(--ink); letter-spacing: .06em; }
@@ -618,6 +674,8 @@ legend { font-weight: 700; font-size: 14px; padding: 0 6px; }
 .ad-kv dd { margin: 0; display: flex; align-items: center; gap: 8px; flex-wrap: wrap; min-width: 0; }
 .ad-card .ad-acts { flex-wrap: wrap; align-items: center; }
 .btn.sm { padding: 6px 14px; font-size: 13px; }
+.ad-amount { display: flex; align-items: center; gap: 8px; font-size: 12px; color: var(--ink-soft); }
+.ad-amount input { flex: 1 1 0; min-width: 0; font: inherit; font-family: var(--f-num); font-size: 15px; padding: 6px 8px; border: 1px solid var(--rule); border-radius: 8px; background: var(--paper); color: var(--ink); }
 /* a person card that opens their calendar */
 button.ad-card.ad-link { font: inherit; color: inherit; text-align: left; cursor: pointer; width: 100%; }
 button.ad-card.ad-link:hover { border-color: var(--accent); }
@@ -676,7 +734,9 @@ button.pcal-c { cursor: pointer; }
 .pdf-bg { padding: 8px; }
 .pdf-modal { width: min(920px, 100%); height: 100%; max-height: 100%; grid-template-rows: auto auto 1fr; gap: 8px; padding: 12px; }
 .pdf-top { display: flex; align-items: center; justify-content: space-between; gap: 10px; }
-.pdf-top h3 { margin: 0; font-size: 15px; }
+.pdf-top h3 { margin: 0; font-size: 15px; min-width: 0; }
+.pdf-btns { display: flex; gap: 6px; flex: none; }
+.pdf-btns .btn { padding: 8px 12px; font-size: 13px; }
 .pdf-pages { overflow-y: auto; display: grid; gap: 10px; align-content: start; background: var(--paper); border-radius: 8px; padding: 6px; -webkit-overflow-scrolling: touch; }
 .pdf-pages canvas { display: block; background: #fff; box-shadow: 0 1px 4px rgb(0 0 0 / .2); }
 .no { font-family: var(--f-num); font-weight: 500; color: var(--ink-soft); font-size: .85em; margin-right: 8px; letter-spacing: .04em; }
@@ -774,9 +834,12 @@ button.pcal-c { cursor: pointer; }
 
   <!-- shown on a phone browser (not the installed app): a nudge to put Themis Portal on the home screen -->
   <div class="install" id="install" hidden role="region" aria-label="アプリとして使う">
-    <img class="install-icon" alt="" src="icons/apple-touch-icon.png" onerror="this.hidden=true">
-    <div class="install-text"><b>ホーム画面に追加して、アプリとして使えます</b><span id="install-sub">ワンタップで開けて、普通のアプリのように全画面で使えます。</span></div>
-    <div class="install-acts"><button type="button" class="btn primary sm" id="install-go">追加する</button><button type="button" class="tool" id="install-later">あとで</button></div>
+    <div class="install-top">
+      <img class="install-icon" alt="" src="icons/apple-touch-icon.png" onerror="this.style.visibility='hidden'">
+      <div class="install-text"><b>Themis Portal をアプリで使う</b><span id="install-sub">ホーム画面に追加すると、ワンタップで開けて全画面で使えます。</span></div>
+      <button type="button" class="install-later" id="install-later">後で</button>
+    </div>
+    <button type="button" class="install-go" id="install-go">ホーム画面に追加する</button>
   </div>
 
   <section class="login" id="login" hidden aria-label="ログイン">
@@ -788,11 +851,11 @@ button.pcal-c { cursor: pointer; }
         <div class="msg" id="l-msg" role="status" aria-live="polite"></div>
         <button type="submit" class="btn primary" id="l-submit">ログイン</button>
       </form>
-      <button type="button" class="link-btn" id="l-forgot">はじめての方・パスワードを忘れた方</button>
+      <button type="button" class="link-btn" id="l-forgot">初めての方・パスワードを忘れた方</button>
       <p class="hint" id="l-forgot-note" hidden>ログインIDと仮パスワードは、Themisの担当者から届きます。パスワードを忘れたときも、担当者に仮パスワードの発行を依頼してください。仮パスワードでログインすると、自分のパスワードを決める画面になります。</p>
       <form id="p-form" class="login-form" novalidate hidden>
         <p class="hint" id="p-note">これから使うパスワードを決めてください。</p>
-        <label class="f" id="p-cur-box">いまのパスワード<input id="p-cur" type="password" autocomplete="current-password"></label>
+        <label class="f" id="p-cur-box">今のパスワード<input id="p-cur" type="password" autocomplete="current-password"></label>
         <label class="f">新しいパスワード（8文字以上）<input id="p-new" type="password" autocomplete="new-password"></label>
         <label class="f">新しいパスワード（確認のためもう一度）<input id="p-new2" type="password" autocomplete="new-password"></label>
         <div class="msg" id="p-msg" role="status" aria-live="polite"></div>
@@ -820,16 +883,20 @@ button.pcal-c { cursor: pointer; }
   </section>
   <!-- how to add the app to the home screen, written for the phone and browser in use -->
   <div class="modal-bg" id="install-sheet" hidden>
-    <div class="modal" role="dialog" aria-modal="true" aria-labelledby="install-h">
-      <h3 id="install-h">ホーム画面に追加する</h3>
+    <div class="modal install-modal" role="dialog" aria-modal="true" aria-labelledby="install-h">
+      <div class="im-head">
+        <img class="im-icon" alt="" src="icons/icon-192.png" onerror="this.style.visibility='hidden'">
+        <div><b>Themis Portal</b><span id="install-h">ホーム画面に追加する方法</span></div>
+      </div>
+      <ul class="im-perks"><li>ワンタップ起動</li><li>全画面表示</li><li>ログインは1回</li></ul>
       <div id="install-steps"></div>
-      <div class="modal-actions"><span></span><div><button type="button" class="btn" id="install-close">閉じる</button></div></div>
+      <button type="button" class="btn primary im-ok" id="install-close">分かりました</button>
     </div>
   </div>
   <!-- admin: a contract or invoice PDF, drawn page by page -->
   <div class="modal-bg pdf-bg" id="pdf-view" hidden>
     <div class="modal pdf-modal" role="dialog" aria-modal="true" aria-labelledby="pdf-h">
-      <div class="pdf-top"><h3 id="pdf-h"></h3><button type="button" class="btn" id="pdf-close">閉じる</button></div>
+      <div class="pdf-top"><h3 id="pdf-h"></h3><div class="pdf-btns"><button type="button" class="btn primary" id="pdf-save" disabled>ダウンロード</button><button type="button" class="btn" id="pdf-close">閉じる</button></div></div>
       <span class="hint" id="pdf-msg" role="status"></span>
       <div class="pdf-pages" id="pdf-pages"></div>
     </div>
@@ -948,11 +1015,12 @@ button.pcal-c { cursor: pointer; }
 
     <div class="steps">
       <ol id="inv-steps">
-        <li id="st-1">氏名・振込先を入力し、今月の請求金額を入れる</li>
-        <li id="st-p">シフト表で画像を添付する</li>
-        <li id="st-2">下の見本で金額と内容を確認する</li>
+        <li id="st-1">Themisが入力した請求金額を確かめる（交通費などがあれば明細に追加）</li>
+        <li id="st-2">下の見本で金額と内容を確認し、「間違いがないことを確認しました」にチェックする</li>
         <li id="st-4">「Themisに提出」を押す（請求書PDFがメールでThemisに届きます）</li>
       </ol>
+      <!-- the amount comes from Themis; the person confirms it before the invoice can be sent -->
+      <label class="check inv-ok" id="a-ok-box" hidden><input type="checkbox" id="a-ok"><span>請求金額 <b id="a-ok-amt"></b> に間違いがないことを確認しました</span></label>
       <div class="actions">
         <button type="button" class="btn okay" id="a-submit">Themisに提出</button>
         <button type="button" class="btn okay" id="a-paid" hidden>入金を確認しました</button>
@@ -969,18 +1037,23 @@ button.pcal-c { cursor: pointer; }
           <label class="f">請求日<input id="i-date" type="date"></label>
         </div>
         <label class="f">件名<input id="i-subject" type="text" maxlength="60"></label>
-        <label class="f">請求金額（円・税込）<input id="i-amount" type="number" min="0" step="1" inputmode="numeric" placeholder="200000"></label>
+        <label class="f">請求金額（円・税込・Themisが入力）<input id="i-amount" type="text" readonly tabindex="-1" class="locked" placeholder="まだ入力されていません">
+          <span class="hint" id="i-amount-note"></span></label>
         <div class="f">
           追加の明細（交通費など、税込金額）
           <div class="extras" id="extras"></div>
           <button type="button" class="tool" id="x-add" style="justify-self:start">＋ 明細を追加</button>
         </div>
-        <label class="f">備考<textarea id="i-note" maxlength="300" placeholder="例：振込手数料はご負担ください。"></textarea></label>
+        <label class="f">備考<textarea id="i-note" maxlength="300" placeholder="例：御社都合の交通費の為"></textarea></label>
         <div class="hours"><span>この月の稼働日数（シフト表から）</span><b id="i-hours">0日</b></div>
       </fieldset>
 
       <fieldset id="fs-set">
         <legend>毎月共通の設定</legend>
+        <!-- most months nothing here changes: ticked, it folds down to a one-line summary; unticked, it opens for changes -->
+        <label class="check same-last"><input type="checkbox" id="b-same"> 登録済みの内容で請求する（変更なし）</label>
+        <p class="set-sum" id="set-sum"></p>
+        <div class="set-body" id="set-body">
         <div class="f">請求先<span class="fixed-to">株式会社Themis 御中</span></div>
         <label class="f">あなたの氏名・屋号<input id="b-from" type="text" maxlength="60"></label>
         <label class="f">メールアドレス（控えの送り先・Themisからの返信先・任意）<input id="b-mail" type="email" maxlength="80" inputmode="email"></label>
@@ -1013,6 +1086,7 @@ button.pcal-c { cursor: pointer; }
           </div>
           <label class="f">口座名義（カタカナ）<input id="b-acctName" type="text" maxlength="40" placeholder="ヤマダ タロウ"></label>
         </div>
+        </div>
       </fieldset>
     </div>
 
@@ -1020,7 +1094,7 @@ button.pcal-c { cursor: pointer; }
       <button type="button" class="thumb" id="inv-thumb" aria-label="請求書を大きく表示"><img id="inv-img" alt="請求書の見本"></button>
       <span class="thumb-cap" id="inv-cap">請求書を作成しています…</span>
     </div>
-    <p class="hint">「Themisに提出」を押すと、請求書PDF（交通費の証明画像のページを含む）がThemisの担当者にメールで届きます。メールアドレスを入れておくと、控えがあなたにも届きます。</p>
+    <p class="hint">「Themisに提出」を押すと、請求書PDFがThemisの担当者にメールで届きます。メールアドレスを入れておくと、控えがあなたにも届きます。交通費の証明画像は、シフト表の日付から添付してください（請求書とは別にThemisに届きます）。</p>
   </section>
   </div>
 </div>
@@ -1103,8 +1177,8 @@ button.pcal-c { cursor: pointer; }
 </div>
 <div class="modal-bg" id="setup-sheet" hidden>
   <form class="modal" id="setup-form" novalidate>
-    <h3>はじめに</h3>
-    <p class="hint">請求書に載せる情報を入力してください。あとから請求書タブの「毎月共通の設定」で変更できます。</p>
+    <h3>初めに</h3>
+    <p class="hint">請求書に載せる情報を入力してください。後から請求書タブの「毎月共通の設定」で変更できます。</p>
     <label class="f">氏名・屋号<input id="s-from" type="text" maxlength="60" placeholder="例：山田 太郎"></label>
     <div class="zip-row">
       <label class="f">郵便番号<input id="s-zip" type="text" inputmode="numeric" autocomplete="off" maxlength="8" placeholder="160-0023"></label>
@@ -1249,7 +1323,7 @@ button.pcal-c { cursor: pointer; }
       <h4>第24条（存続条項）</h4>
       <p>本契約が終了した場合であっても、その性質上存続すべき条項については引き続き有効に存続するものとし、特に第8条（秘密保持）、第9条（個人情報保護）、第10条（顧客との直接取引の禁止）、第11条（人材及び取引先の引抜き禁止）、第12条（競業避止義務）、第14条（損害賠償）、第21条（合意管轄及び準拠法）、本条及び第25条の規定は、本契約終了後も有効に存続するものとする。</p>
       <h4>第25条（完全合意）</h4>
-      <p>1. 本契約は、本契約締結時における甲乙間の合意内容のすべてを規定するものであり、本契約締結以前に甲乙間でなされた口頭又は書面による協議、交渉、提案、確認その他一切の合意事項に優先するものとする。</p>
+      <p>1. 本契約は、本契約締結時における甲乙間の合意内容の全てを規定するものであり、本契約締結以前に甲乙間でなされた口頭又は書面による協議、交渉、提案、確認その他一切の合意事項に優先するものとする。</p>
       <p>2. 本契約の変更又は追加は、甲乙双方が書面又は電磁的方法により合意した場合に限り、その効力を生じるものとする。</p>
       <h4>（甲）</h4>
       <p>所在地：栃木県佐野市田沼町1220-2<br>商号：株式会社Themis<br>代表取締役：出井 張貴</p>
@@ -1332,7 +1406,8 @@ window.addEventListener("error", function (e) {
   const CRED_KEY = "tc_cred";
   let CRED = null, mode = "login";   // login | member | admin
   try { CRED = localStorage.getItem(CRED_KEY); } catch (e) {}
-  const setCred = (c) => { CRED = c; try { if (c) localStorage.setItem(CRED_KEY, c); else localStorage.removeItem(CRED_KEY); } catch (e) {} };
+  // signing out also forgets the copy of the records kept for a quick start
+  const setCred = (c) => { CRED = c; try { if (c) localStorage.setItem(CRED_KEY, c); else { localStorage.removeItem(CRED_KEY); localStorage.removeItem("tc_cache"); } } catch (e) {} };
   const viaGas = !!window.google?.script?.run;
   const rawCall = (fn, ...args) => viaGas
     ? new Promise((res, rej) => { google.script.run.withSuccessHandler(res).withFailureHandler(rej)[fn](CRED, ...args); })
@@ -1363,6 +1438,11 @@ window.addEventListener("error", function (e) {
           msg("記録を読み込めませんでした。通信状況を確認して、ページを再読み込みしてください。");
         }
       },
+      // records that came with the opening call (api_boot) count as loaded
+      seed(got, names) {
+        for (const n of names) { loaded.add(n); if (!busy(n)) docs[n] = got[n] || {}; }
+        changed();
+      },
       watch(name) { this.load([name]); },
       async get(name) { const data = await call("api_getProof", name.slice(2)); return data ? { data } : null; },
       put(name, body) { return call("api_putProof", name.slice(2), body.data); },
@@ -1379,7 +1459,7 @@ window.addEventListener("error", function (e) {
   const busy = (name) => !!saveTimers[name] || inflight[name] > 0;
   async function persist(...names) {
     names.forEach((n) => { inflight[n] = (inflight[n] || 0) + 1; });
-    try { await Promise.all(names.map((n) => backend.save(n))); return true; }
+    try { await Promise.all(names.map((n) => backend.save(n))); cacheSoon(); return true; }
     catch (e) {
       const t = e?.message?.includes("URL")
         ? e.message
@@ -1558,8 +1638,8 @@ window.addEventListener("error", function (e) {
     const inv = doc("inv-" + ym);
     if (inv.snapshot) return inv.snapshot;   // submitted invoices stay exactly as sent
     const b = doc("billing"), [y, m] = ym.split("-").map(Number);
-    // the month's amount is entered as-is (tax-inclusive); an empty month reuses the last amount entered
-    const amount = Number(inv.amount ?? b.lastAmount) || 0;
+    // the month's amount (tax-inclusive) is always the one Themis entered; until then it is 0
+    const amount = Number(inv.fixedAmount) || 0;
     const minutes = Math.round(monthWorkMin(ym, now));
     const days = monthRows(ym).filter((x) => x.r?.in).length;
     const lines = [{ name: `${y}年${m}月分 業務委託料（稼働 ${days}日）`, qty: "1", unitLabel: "式", price: amount, amount }];    for (const x of inv.extras || []) if (x.name || x.amount) lines.push({ name: x.name || "（品目）", qty: "1", unitLabel: "式", price: Number(x.amount) || 0, amount: Number(x.amount) || 0 });
@@ -1700,24 +1780,43 @@ window.addEventListener("error", function (e) {
     syncSfx();
     set($("i-no"), inv.no ?? v.no); set($("i-date"), inv.date ?? v.issueDate);
     set($("i-subject"), inv.subject ?? v.subject); set($("i-note"), inv.note ?? "");
-    set($("i-amount"), inv.amount ?? b.lastAmount ?? "");
+    // the amount box only shows what Themis entered; the extra lines stay the member's own
+    const fixed = inv.fixedAmount != null;
+    $("i-amount").value = fixed ? Number(inv.fixedAmount).toLocaleString("ja-JP") : "";
+    $("i-amount-note").textContent = fixed ? "Themisが入力した金額です。違う場合はThemisの担当者に連絡してください。"
+      : "請求金額はThemisが入力します。入力されると、ここに表示されて提出できるようになります。";
     const box = $("extras");
     if (force || !box.contains(document.activeElement)) {
-      box.replaceChildren(...(inv.extras || []).map((x, i) => {
+      // with no lines yet, one empty line is shown ready to fill; it is saved once something is typed into it
+      const lines = inv.extras?.length ? inv.extras : [{ name: "", amount: "" }];
+      box.replaceChildren(...lines.map((x, i) => {
         const row = document.createElement("div"); row.className = "extra";
-        row.innerHTML = `<input type="text" id="x-name-${i}" maxlength="40" placeholder="交通費" aria-label="品目"><input type="number" id="x-amt-${i}" min="0" step="10" inputmode="numeric" placeholder="0" aria-label="金額"><button type="button" aria-label="この明細を削除">×</button>`;
-        row.children[0].value = x.name || ""; row.children[1].value = x.amount ?? "";
+        row.innerHTML = `<input type="text" id="x-name-${i}" maxlength="40" placeholder="例：交通費" aria-label="品目"><input type="number" id="x-amt-${i}" min="0" step="10" inputmode="numeric" placeholder="例：1200" aria-label="金額"><button type="button" aria-label="この明細を削除">×</button>`;
+        row.children[0].value = x.name || ""; row.children[1].value = x.amount || "";
         noAutofill(row.children[0]);
         // look the invoice up on every edit: a reload replaces the stored object, and a reference
         // captured here would keep writing to the old copy that is no longer saved or shown
         const ex = () => { const d = doc(invName); if (!d.extras) d.extras = []; return d.extras; };
-        row.children[0].oninput = () => { const e = ex()[i]; if (!e) return; e.name = row.children[0].value; invChanged(); };
-        row.children[1].oninput = () => { const e = ex()[i]; if (!e) return; e.amount = Number(row.children[1].value) || 0; invChanged(); };
+        const line = () => ex()[i] || (ex()[i] = { name: "", amount: 0 });
+        row.children[0].oninput = () => { line().name = row.children[0].value; invChanged(); };
+        row.children[1].oninput = () => { line().amount = Number(row.children[1].value) || 0; invChanged(); };
         row.children[2].onclick = () => { ex().splice(i, 1); invChanged(); fillForms(true); };
         return row;
       }));
     }
+    setSummary();
   }
+  // 毎月共通の設定 folds to one line while 先月と同じ is ticked; it starts ticked once the settings are complete
+  let sameLast = null;
+  function setSummary() {
+    const b = doc("billing"), ready = !!(b.from && b.bank);
+    if (sameLast === null && backend) sameLast = ready;
+    const on = !!sameLast && ready;
+    $("b-same").checked = on; $("b-same").disabled = !ready;
+    $("set-body").hidden = on; $("set-sum").hidden = !on;
+    $("set-sum").textContent = on ? `${b.from}　/　振込先：${b.bank}` : "";
+  }
+  $("b-same").addEventListener("change", () => { sameLast = $("b-same").checked; setSummary(); });
   function invChanged() { saveSoon("inv-" + viewYm()); renderInvoice(); }
   const billEdited = (k) => { const b = doc("billing"); b[k] = $("b-" + k).value.trim(); composeBilling(b); saveSoon("billing"); renderInvoice(); };
   for (const k of BILL) {
@@ -1735,11 +1834,6 @@ window.addEventListener("error", function (e) {
   zipField($("b-zip"), $("b-address"), $("b-zipmsg"), () => billEdited("address"));
   $("b-wh").addEventListener("change", () => { doc("billing").wh = $("b-wh").checked; saveSoon("billing"); renderInvoice(); });
   for (const k of INV) $("i-" + k).addEventListener("input", () => { doc("inv-" + viewYm())[k] = $("i-" + k).value; invChanged(); });
-  $("i-amount").addEventListener("input", () => {
-    const val = $("i-amount").value;
-    doc("inv-" + viewYm()).amount = val; doc("billing").lastAmount = val;
-    saveSoon("billing"); invChanged();
-  });
   $("x-add").onclick = () => { const inv = doc("inv-" + viewYm()); inv.extras = [...(inv.extras || []), { name: "", amount: 0 }]; invChanged(); fillForms(true); const el = $("x-name-" + (inv.extras.length - 1)); if (el) focusIfMouse(el); };
 
   const invMsg = (t) => { $("inv-msg").textContent = t; };
@@ -1843,6 +1937,13 @@ window.addEventListener("error", function (e) {
     $("fs-bill").disabled = locked; $("fs-set").disabled = locked;
     // Themis marks the payment; the member then confirms the money arrived. A paid invoice can no longer be withdrawn
     $("a-submit").hidden = locked; $("a-paid").hidden = !(st === "paid" && !inv.confirmedOn); $("a-undo").hidden = st !== "submitted";
+    // a draft can go out only with Themis's amount in it, once the person has ticked that it is right
+    const fixed = inv.fixedAmount != null;
+    $("a-ok-box").hidden = locked || !fixed;
+    if (locked || !fixed) $("a-ok").checked = false;
+    // the amount billed (with any extra lines); after withholding, what is actually paid is shown beside it
+    $("a-ok-amt").textContent = fixed ? `${yen(v.gross)}${v.wh ? `（源泉徴収後のお支払額 ${yen(v.total)}）` : ""}` : "";
+    $("a-submit").disabled = !fixed || !$("a-ok").checked;
     const b = doc("billing"), ready = !!(b.from && b.bank && v.lines[0].amount);
     $("i-hours").textContent = `${v.days}日`;
     $("b-wh").checked = v.whOn;
@@ -1861,7 +1962,7 @@ window.addEventListener("error", function (e) {
         const url = await invoicePicture(v);
         if (turn !== picTurn) return;
         $("inv-img").src = url; $("inv-big").src = url;
-        $("inv-cap").textContent = "タップすると大きく表示します";
+        $("inv-cap").textContent = "タップで拡大できます";
       } catch {
         if (turn === picTurn) { lastInvKey = ""; $("inv-cap").textContent = "見本を表示できませんでした。通信状況を確認してください。"; }
       }
@@ -1899,23 +2000,15 @@ window.addEventListener("error", function (e) {
     }
   }).observe(document.body, { subtree: true, attributes: true, attributeFilter: ["hidden"] });
 
-  const missingDays = (ym) => monthRows(ym).filter((x) => missingProof(x.r)).map((x) => `${x.date.getMonth() + 1}/${x.date.getDate()}`);
-  function blockedByProofs(ym) {
-    if (doc("inv-" + ym).snapshot) return false;
-    const miss = missingDays(ym);
-    if (!miss.length) return false;
-    invMsg(`交通費の証明画像がない日があります（${miss.join("、")}）。シフト表で日付を押して、画像を添付してください。`);
-    return true;
-  }
+  // the transport proofs go to Themis with each day's record, not with the invoice
   function mailText(v) {
     const [y, m] = v.ym.split("-").map(Number);
-    const proofNote = monthRows(v.ym).some((x) => x.r?.in && !x.r.absent && x.r.proofs?.length) ? "\n交通費の証明画像は、PDFの2ページ目以降に添付しています。" : "";
     return `件名：【請求書送付】${y}年${m}月分 ${v.subject.replace(`${y}年${m}月分 `, "")}（${v.from}）
 
 ${v.to} 御中
 
 いつもお世話になっております。${v.from}です。
-${y}年${m}月分の請求書をお送りします。添付のPDFをご確認ください。${proofNote}
+${y}年${m}月分の請求書をお送りします。添付のPDFをご確認ください。
 
 請求番号：${v.no}
 ご請求金額：${yen(v.total)}${v.taxRate ? "（税込）" : ""}
@@ -1938,7 +2031,7 @@ ${v.addr}`;
       loadScript("https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"),
     ]).catch((e) => { pdfLibs = null; throw e; }));
   }
-  // builds the invoice page plus one page per proof image and returns the PDF as base64
+  // builds the one-page invoice and returns the PDF as base64
   async function buildPdf(ym, v) {
     {
       await libs(); await document.fonts.ready;
@@ -1950,29 +2043,6 @@ ${v.addr}`;
       let w = 210, h = canvas.height / canvas.width * 210;
       if (h > 297) { w = w * 297 / h; h = 297; }
       pdf.addImage(canvas.toDataURL("image/jpeg", 0.95), "JPEG", (210 - w) / 2, 0, w, h);
-      // appendix: one page per proof image, listing every day that used it
-      const [py, pm] = ym.split("-").map(Number), groups = new Map();
-      for (const { date, r } of monthRows(ym)) {
-        if (!r?.in || r.absent) continue;
-        for (const id of r.proofs || []) { if (!groups.has(id)) groups.set(id, []); groups.get(id).push({ date, r }); }
-      }
-      for (const [id, list] of groups) {
-        const data = await loadProof(id);
-        if (!data) continue;
-        const f = list[0].r, pg = document.createElement("div");
-        pg.className = "invoice proof-page"; pg.style.boxShadow = "none";
-        pg.innerHTML = `<div class="pp-h">交通費の証明　${py}年${pm}月分</div>
-          <dl class="pp-meta"><dt>対象日</dt><dd>${list.map((x) => `${x.date.getMonth() + 1}/${x.date.getDate()}`).join("、")}</dd>
-          <dt>稼働店舗</dt><dd>${esc(f.store)}</dd><dt>交通機関</dt><dd>${esc(f.transport)}${f.rideWith ? `（${esc(f.rideWith)}さんの車に同乗）` : ""}</dd>
-          <dt>距離</dt><dd>${f.km != null ? esc(f.km) + " km" : ""}</dd></dl>
-          <img src="${data}" alt="">`;
-        host.appendChild(pg);
-        const cv = await html2canvas(pg, { scale: 2, backgroundColor: "#ffffff" }).finally(() => pg.remove());
-        let pw = 210, ph = cv.height / cv.width * 210;
-        if (ph > 297) { pw = pw * 297 / ph; ph = 297; }
-        pdf.addPage();
-        pdf.addImage(cv.toDataURL("image/jpeg", 0.9), "JPEG", (210 - pw) / 2, 0, pw, ph);
-      }
       return pdf.output("datauristring").split(",")[1];
     }
   }
@@ -1985,8 +2055,9 @@ ${v.addr}`;
     const ym = viewYm(), inv = doc("inv-" + ym), b = doc("billing");
     const v = computeInvoice(ym, Date.now());
     if (ym >= ymOf(dayKey(new Date()))) { invMsg("今月以降の請求書は提出できません。月が明けてから提出してください。"); return; }
-    if (blockedByProofs(ym)) return;
-    if (!(b.from && b.bank && v.lines[0].amount)) { invMsg("氏名・振込先・請求金額を入力してから提出してください。"); return; }
+    if (inv.fixedAmount == null) { invMsg("請求金額がまだ入力されていません。Themisが金額を入力してから提出してください。"); return; }
+    if (!$("a-ok").checked) { invMsg("請求金額を確かめて、「間違いがないことを確認しました」にチェックしてください。"); return; }
+    if (!(b.from && b.bank)) { invMsg("氏名・振込先を入力してから提出してください。"); return; }
     $("a-submit").disabled = true; invMsg("請求書PDFを作って、Themisに送っています…");
     try {
       const b64 = await buildPdf(ym, v);
@@ -1997,8 +2068,9 @@ ${v.addr}`;
       if (await persist("inv-" + ym)) invMsg(`Themisに提出しました。${b.mail ? `控えのPDFが ${b.mail} にも届きます。` : ""}`);
     } catch (e) {
       invMsg(e?.message ? `提出できませんでした。${e.message}` : "提出できませんでした。通信状況を確認して、もう一度押してください。");
-    } finally { $("a-submit").disabled = false; }
+    } finally { renderInvoice(); }
   };
+  $("a-ok").addEventListener("change", () => { renderInvoice(); if ($("a-ok").checked) invMsg(""); });
   $("a-paid").onclick = async () => {
     const ym = viewYm(), inv = doc("inv-" + ym);
     $("a-paid").disabled = true;
@@ -2758,19 +2830,19 @@ ${v.addr}`;
     $("l-form").hidden = s !== "login"; $("l-forgot").hidden = s !== "login"; $("l-forgot-note").hidden = true;
     $("p-form").hidden = s === "login";
     $("p-cur-box").hidden = s !== "change"; $("p-cancel").hidden = s !== "change";
-    $("p-note").textContent = s === "first" ? "仮パスワードでログインしました。これから使うパスワードを決めてください。" : "新しいパスワードを決めてください。ほかの端末はログアウトされます。";
+    $("p-note").textContent = s === "first" ? "仮パスワードでログインしました。これから使うパスワードを決めてください。" : "新しいパスワードを決めてください。他の端末はログアウトされます。";
     $("l-title").textContent = s === "login" ? "ログイン" : s === "first" ? "パスワードの設定" : "パスワードの変更";
     $("p-form").dataset.step = s; $("p-msg").textContent = "";
     for (const id of ["p-cur", "p-new", "p-new2"]) $(id).value = "";
   }
-  function enter(me) {
-    signedInOnce = true;
+  function enter(me, pre) {
+    signedInOnce = true; cacheMe = me;
     window.TC_NAME = me.name;
     if (me.mustChange) { showLogin(); loginStep("first"); $("logout").hidden = false; return; }
     $("login").hidden = true; $("logout").hidden = false; $("chpass").hidden = false;
     // admins use the normal site too; the header button switches to the admin screen and back
     window.TC_WORK = me.workType || "";
-    mode = "member"; $("member-ui").hidden = false; startMember();
+    mode = "member"; $("member-ui").hidden = false; startMember(pre);
     window.TC_ADMIN = !!me.admin; window.TC_OWNER = !!me.owner;
     if (me.admin) { $("adminbtn").hidden = false; $("who").textContent = `${me.name}（管理者）`; }
     // invoices are the owner's alone
@@ -2802,7 +2874,18 @@ ${v.addr}`;
     }
     $("install").hidden = false;
   }
-  const SHARE_ICON = `<span class="install-mark"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3v12M7 8l5-5 5 5"/><path d="M5 12v7a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2v-7"/></svg></span>`;
+  // line icons drawn like the phone's own buttons
+  const svg = (d) => `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">${d}</svg>`;
+  const ICON = {
+    share: svg(`<path d="M12 3v12M7 8l5-5 5 5"/><path d="M5 12v7a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2v-7"/>`),
+    plus: svg(`<rect x="3.5" y="3.5" width="17" height="17" rx="4"/><path d="M12 8v8M8 12h8"/>`),
+    dots: svg(`<circle cx="6" cy="12" r="1.3" fill="currentColor"/><circle cx="12" cy="12" r="1.3" fill="currentColor"/><circle cx="18" cy="12" r="1.3" fill="currentColor"/>`),
+    dots3: svg(`<circle cx="12" cy="6" r="1.3" fill="currentColor"/><circle cx="12" cy="12" r="1.3" fill="currentColor"/><circle cx="12" cy="18" r="1.3" fill="currentColor"/>`),
+    back: svg(`<path d="M15 5l-7 7 7 7"/>`), fwd: svg(`<path d="M9 5l7 7-7 7"/>`),
+    book: svg(`<path d="M4 5h6a2 2 0 0 1 2 2v12a2 2 0 0 0-2-2H4zM20 5h-6a2 2 0 0 0-2 2v12a2 2 0 0 1 2-2h6z"/>`),
+    tabs: svg(`<rect x="4" y="7" width="13" height="13" rx="2"/><path d="M8 4h10a2 2 0 0 1 2 2v10"/>`),
+    globe: svg(`<circle cx="12" cy="12" r="9"/><path d="M3 12h18M12 3a14 14 0 0 1 0 18M12 3a14 14 0 0 0 0 18"/>`),
+  };
   $("install-go").onclick = async () => {
     const url = $("install").dataset.url;
     if (url) { const a = document.createElement("a"); a.href = url; a.target = "_top"; a.rel = "noopener"; document.body.appendChild(a); a.click(); a.remove(); return; }
@@ -2813,22 +2896,26 @@ ${v.addr}`;
       installEvt = null;
       if (r?.outcome === "accepted") { $("install").hidden = true; return; }
     }
-    $("install-steps").innerHTML = inAppBrowser
-      ? `<p>LINEなどのアプリの中で開いた画面からは、ホーム画面に追加できません。</p><ol class="install-steps">` +
-        `<li>画面の右上（または右下）の <b>「…」</b> や <b>共有</b> のメニューを押す</li>` +
-        `<li><b>「ブラウザで開く」</b>（iPhoneは<b>Safari</b>、Androidは<b>Chrome</b>）を選ぶ</li>` +
-        `<li>開いた画面で、もう一度「追加する」を押す</li></ol>`
+    // each step: a title, what to do when the button is not where expected, and a small picture of what to look for
+    const step = (n, title, text, pic) => `<li class="im-step"><span class="im-n">${n}</span><div class="im-body"><b>${title}</b>${text ? `<p>${text}</p>` : ""}${pic ? `<div class="im-pic">${pic}</div>` : ""}</div></li>`;
+    const chip = (icon, label, on) => `<span class="im-chip${on ? " on" : ""}">${icon}${label ? `<span>${label}</span>` : ""}</span>`;
+    const tile = `<span class="im-tile"><img alt="" src="icons/apple-touch-icon.png" onerror="this.style.visibility='hidden'"><span>Themis</span></span>`;
+    $("install-steps").innerHTML = `<ol class="im-steps">` + (inAppBrowser
+      ? step(1, "ブラウザで開き直す", "LINEなどのアプリの中の画面からは追加できません。画面の右上（または右下）の「…」や共有のメニューを押します。", chip(ICON.dots, "", true)) +
+        step(2, "「ブラウザで開く」を選ぶ", "iPhoneは「Safariで開く」、Androidは「Chromeで開く」と出ることもあります。", chip(ICON.globe, "ブラウザで開く", true)) +
+        step(3, "開いた画面で、もう一度「ホーム画面に追加する」を押す", "", "")
       : isIOS
-      ? `<ol class="install-steps">` +
-        `<li>共有ボタン ${SHARE_ICON} を押す（Safariは画面の下、Chromeはアドレス欄の右）</li>` +
-        `<li>メニューを下にずらして <b>「ホーム画面に追加」</b> を押す</li>` +
-        `<li>右上の <b>「追加」</b> を押す</li>` +
-        `<li>ホーム画面に出た <b>Themis</b> のアイコンから開き、もう一度ログインする（最初の1回だけです）</li></ol>`
-      : `<ol class="install-steps">` +
-        `<li>Chromeの右上の <b>「⋮」</b> を押す</li>` +
-        `<li><b>「アプリをインストール」</b> または <b>「ホーム画面に追加」</b> を押す</li>` +
-        `<li><b>「インストール」</b>（または「追加」）を押す</li>` +
-        `<li>ホーム画面に出た <b>Themis</b> のアイコンから開く</li></ol>`;
+      ? step(1, "画面の下のバーを出す", "バーが隠れている時は、画面を指で少し下になぞる（上に戻す）か、画面の一番下を軽くタップすると出てきます。",
+          `<span class="im-bar">${ICON.back}${ICON.fwd}${chip(ICON.share, "", true)}${ICON.book}${ICON.tabs}</span>`) +
+        step(2, `共有ボタン ${ICON.share} を押す`, "四角から上向きの矢印が出ているマークです。見つからない時は、右下（Chromeは右上）の「…」を押すと「共有」があります。",
+          chip(ICON.share, "共有", true) + `<span class="im-alt"><span class="im-or">見つからない時は</span>` + chip(ICON.dots, "") + `<span class="im-arrow">→</span>` + chip(ICON.share, "共有") + `</span>`) +
+        step(3, "「ホーム画面に追加」を押す", "出てきたメニューを上にずらすと、下の方にあります。", chip(ICON.plus, "ホーム画面に追加", true)) +
+        step(4, "右上の「追加」を押す", "", chip("", "追加", true)) +
+        step(5, "ホーム画面のアイコンから開く", "開いたら、もう一度ログインしてください（最初の1回だけです）。", tile)
+      : step(1, "Chromeの右上の「⋮」を押す", "アドレス欄の右にある、縦に点が3つ並んだボタンです。", chip(ICON.dots3, "", true)) +
+        step(2, "「アプリをインストール」または「ホーム画面に追加」を押す", "", chip(ICON.plus, "ホーム画面に追加", true)) +
+        step(3, "「インストール」を押す", "", chip("", "インストール", true)) +
+        step(4, "ホーム画面のアイコンから開く", "", tile)) + `</ol>`;
     $("install-sheet").hidden = false;
   };
   $("install-close").onclick = () => { $("install-sheet").hidden = true; };
@@ -2909,7 +2996,7 @@ ${v.addr}`;
     e.preventDefault();
     // spaces at either end (easy to pick up when copying a password) are never part of it
     const step = $("p-form").dataset.step, pass = $("p-new").value.trim(), cur = $("p-cur").value.trim();
-    if (step === "change" && !cur) { $("p-msg").textContent = "いまのパスワードを入れてください。"; return; }
+    if (step === "change" && !cur) { $("p-msg").textContent = "今のパスワードを入れてください。"; return; }
     if (pass.length < 8) { $("p-msg").textContent = "パスワードは8文字以上にしてください。"; return; }
     if (pass !== $("p-new2").value.trim()) { $("p-msg").textContent = "確認のために入れたパスワードが一致しません。"; return; }
     $("p-msg").textContent = "設定しています…";
@@ -2949,7 +3036,10 @@ ${v.addr}`;
     $("ad-reload").onclick = () => adLoad(true);
     adLoad();
   }
+  // invoices are for finished months: the 請求書 tab goes no later than last month, as on the member's screen
+  const adLastBillable = () => { const d = new Date(); return ymOf(dayKey(new Date(d.getFullYear(), d.getMonth() - 1, 1))); };
   function adShift(n) {
+    if (adTab === "inv" && n > 0 && adMonth.inv >= adLastBillable()) return;
     const [y, m] = adMonth[adTab].split("-").map(Number);
     adMonth[adTab] = ymOf(dayKey(new Date(y, m - 1 + n, 1)));
     adLoad();
@@ -2959,6 +3049,7 @@ ${v.addr}`;
     const monthly = adTab === "work" || adTab === "inv" || adTab === "hope";
     $("ad-month").hidden = !monthly;
     $("ad-label").textContent = ymLabel(adMonth[adTab]);
+    $("ad-next").disabled = adTab === "inv" && adMonth.inv >= adLastBillable();
     const key = adKeyNow();
     if (force || key !== adKey || !adData) {
       if (!adCache[key] || force) $("ad-body").innerHTML = "";
@@ -3174,23 +3265,34 @@ ${v.addr}`;
   function adInv() {
     const ym = adMonth.inv, byName = Object.fromEntries(adData.invs.map((r) => [r[0], r]));
     const live = adData.members.filter((m) => m.active || byName[m.name]);
-    const stOf = (r) => (!r || r[4] === "下書き" ? "none" : r[4] === "提出済み" ? "sent" : r[9] ? "ok" : "paid");
-    const cnt = (k) => live.filter((m) => stOf(byName[m.name]) === k).length;
-    const label = { none: "未提出", sent: "提出済み", paid: "入金完了・本人の確認待ち", ok: "本人が入金を確認済み" };
+    const worked = new Set(adData.worked || []);
+    // nobody expects an invoice from someone who did not work that month and was given no amount
+    const stOf = (m) => {
+      const r = byName[m.name];
+      if (!r || r[4] === "下書き") return worked.has(m.name) || (r && r[10]) ? "none" : "nobill";
+      return r[4] === "提出済み" ? "sent" : r[9] ? "ok" : "paid";
+    };
+    const cnt = (k) => live.filter((m) => stOf(m) === k).length;
+    const label = { nobill: "請求なし", none: "未提出", sent: "提出済み", paid: "入金完了・本人の確認待ち", ok: "本人が入金を確認済み" };
     $("ad-body").innerHTML =
       `<div class="ad-stats">` + [["未提出", "none"], ["提出済み", "sent"], ["確認待ち", "paid"], ["確認済み", "ok"]]
         .map(([t, k]) => `<div class="ad-stat${k === "sent" && cnt(k) ? " warn" : ""}"><span>${t}</span><b class="num">${cnt(k)}</b></div>`).join("") + `</div>` +
-      `<p class="hint">「入金完了」を押すと本人に知らせが届き、本人が金額を確かめて「入金を確認しました」を押します。</p>` +
+      `<p class="hint">請求金額は全員分ここで入れます。「金額を設定」を押すと本人の請求書にその金額が入り（本人は変えられません）、本人が金額に間違いがないことを確かめて提出します。「入金完了」を押すと本人に知らせが届き、本人が金額を確かめて「入金を確認しました」を押します。その月に稼働がなく金額も設定していない人は「請求なし」です。</p>` +
       byWork(live).map(([t, g]) => `<h3 class="ad-grp">${esc(groupName(t))}（${g.length}人）</h3><div class="ad-cards">` + g.map((m, i) => {
-        const r = byName[m.name], k = stOf(r);
-        return `<div class="ad-card${k === "none" ? " dim" : ""}" data-id="${esc(m.id)}" data-name="${esc(m.name)}">` +
-          `<div class="ad-card-h"><span>${numName(i, m.name)}</span><span class="st st-${{ none: "none", sent: "work", paid: "late", ok: "done" }[k]}">${label[k]}</span></div>` +
-          (k === "none" ? "" : `<div class="ad-acts">${r[7] ? `<button type="button" class="tool" data-pdf>請求書PDFを見る</button>` : ""}` +
+        const r = byName[m.name], k = stOf(m);
+        return `<div class="ad-card${k === "nobill" ? " dim" : ""}" data-id="${esc(m.id)}" data-name="${esc(m.name)}">` +
+          `<div class="ad-card-h"><span>${numName(i, m.name)}</span><span class="st st-${{ nobill: "none", none: "late", sent: "work", paid: "late", ok: "done" }[k]}">${label[k]}</span></div>` +
+          (k === "none" || k === "nobill"
+            ? `<div class="ad-amount"><input type="number" min="0" step="1" inputmode="numeric" placeholder="例：200000" value="${esc(r?.[10] || "")}" aria-label="${esc(m.name)}さんの請求金額（税込）">` +
+              `<span>円（税込）</span><button type="button" class="tool" data-amount>金額を設定</button></div>`
+            : `<div class="ad-acts">${r[7] ? `<button type="button" class="tool" data-pdf>請求書PDFを見る</button><button type="button" class="tool" data-dl>ダウンロード</button>` : ""}` +
             (k === "sent" ? `<button type="button" class="btn primary sm" data-paid>入金完了</button>` : `<span class="hint">入金 ${esc(r[6])}${r[9] ? `・確認 ${esc(r[9].slice(0, 10))}` : ""}</span><button type="button" class="tool" data-unpaid>取り消す</button>`) + `</div>`) +
           `</div>`;
       }).join("") + `</div>`).join("");
     const card = (b) => b.closest(".ad-card");
-    for (const b of $("ad-body").querySelectorAll("[data-pdf]")) b.onclick = () => showPdf(`${card(b).dataset.name}さんの請求書（${ymLabel(ym)}分）`, card(b).dataset.id, "inv", ym);
+    const invFile = (name) => `請求書_${ym.replace("-", "")}_${name}.pdf`;
+    for (const b of $("ad-body").querySelectorAll("[data-pdf]")) b.onclick = () => showPdf(`${card(b).dataset.name}さんの請求書（${ymLabel(ym)}分）`, card(b).dataset.id, "inv", ym, invFile(card(b).dataset.name));
+    for (const b of $("ad-body").querySelectorAll("[data-dl]")) b.onclick = () => busyBtn(b, () => downloadPdf(card(b).dataset.id, "inv", ym, invFile(card(b).dataset.name)));
     for (const b of $("ad-body").querySelectorAll("[data-paid],[data-unpaid]")) b.onclick = () => {
       const c = card(b), paid = b.hasAttribute("data-paid"), name = c.dataset.name;
       adDialog(paid ? "入金完了" : "入金完了の取り消し",
@@ -3203,18 +3305,50 @@ ${v.addr}`;
           $("ad-dlg").hidden = true; adChanged(); adMsg(paid ? `${name}さんを入金完了にしました。` : `${name}さんの入金完了を取り消しました。`);
         });
     };
+    for (const b of $("ad-body").querySelectorAll("[data-amount]")) b.onclick = () => busyBtn(b, async () => {
+      const c = card(b), name = c.dataset.name, v = c.querySelector(".ad-amount input").value.trim();
+      adMsg(`${name}さんの金額を設定しています…`);
+      try {
+        await call("api_adminSetAmount", c.dataset.id, ym, v);
+        // keep the copy on screen in step: a row now exists for this person as a 下書き with the amount
+        const r = byName[name] || (adData.invs[adData.invs.push([name, ym, "", "", "下書き", "", "", "", "", "", ""]) - 1]);
+        r[10] = v;
+        adChanged(); adMsg(v ? `${name}さんの${ymLabel(ym)}分の請求金額を ${Number(v).toLocaleString("ja-JP")}円 にしました。` : `${name}さんの設定金額を消しました（本人が入力できます）。`);
+      } catch (e) { adMsg(errText(e)); }
+    });
   }
 
   // PDFs from the owner's Drive are drawn inside the app (pdf.js), so any admin's phone can show them
-  async function showPdf(title, id, what, ym) {
+  const pdfBytes = async (id, what, ym) => {
+    const bin = atob(await call("api_adminPdf", id, what, ym || "")), bytes = new Uint8Array(bin.length);
+    for (let i = 0; i < bin.length; i++) bytes[i] = bin.charCodeAt(i);
+    return bytes;
+  };
+  // saving a PDF: on a phone the share sheet (「ファイルに保存」 and the like), elsewhere an ordinary download
+  async function savePdf(bytes, fname) {
+    const file = new File([bytes], fname, { type: "application/pdf" });
+    if ((isIOS || isAndroid) && navigator.canShare?.({ files: [file] })) {
+      try { await navigator.share({ files: [file], title: fname }); return; }
+      catch (e) { if (e.name === "AbortError") return; }
+    }
+    const url = URL.createObjectURL(file), a = document.createElement("a");
+    a.href = url; a.download = fname; document.body.appendChild(a); a.click(); a.remove();
+    setTimeout(() => URL.revokeObjectURL(url), 60000);
+  }
+  async function downloadPdf(id, what, ym, fname) {
+    adMsg("PDFを用意しています…");
+    try { await savePdf(await pdfBytes(id, what, ym), fname); adMsg(""); }
+    catch (e) { adMsg(errText(e)); }
+  }
+  let pdfShown = null;   // { bytes, fname } of the PDF in the viewer, for its ダウンロード button
+  async function showPdf(title, id, what, ym, fname) {
     $("pdf-h").textContent = title; $("pdf-pages").innerHTML = ""; $("pdf-msg").textContent = "読み込んでいます…";
-    $("pdf-view").hidden = false;
+    $("pdf-view").hidden = false; $("pdf-save").disabled = true; pdfShown = null;
     const turn = $("pdf-view").dataset.turn = String(Date.now());
     try {
-      const [b64] = await Promise.all([call("api_adminPdf", id, what, ym || ""), pdfLib()]);
+      const [bytes] = await Promise.all([pdfBytes(id, what, ym), pdfLib()]);
       if ($("pdf-view").dataset.turn !== turn) return;
-      const bin = atob(b64), bytes = new Uint8Array(bin.length);
-      for (let i = 0; i < bin.length; i++) bytes[i] = bin.charCodeAt(i);
+      pdfShown = { bytes: bytes.slice(), fname: fname || "document.pdf" }; $("pdf-save").disabled = false;
       const pdf = await window.pdfjsLib.getDocument({ data: bytes }).promise;
       const width = Math.min($("pdf-pages").clientWidth || 600, 900), ratio = Math.min(window.devicePixelRatio || 1, 2);
       for (let p = 1; p <= pdf.numPages; p++) {
@@ -3237,7 +3371,8 @@ ${v.addr}`;
       catch (e) { window.pdfjsLib.GlobalWorkerOptions.workerSrc = base + "pdf.worker.min.js"; }
     }).catch((e) => { pdfReady = null; throw e; }));
   }
-  $("pdf-close").onclick = () => { $("pdf-view").hidden = true; $("pdf-view").dataset.turn = ""; $("pdf-pages").innerHTML = ""; };
+  $("pdf-close").onclick = () => { $("pdf-view").hidden = true; $("pdf-view").dataset.turn = ""; $("pdf-pages").innerHTML = ""; pdfShown = null; };
+  $("pdf-save").onclick = () => { if (pdfShown) busyBtn($("pdf-save"), () => savePdf(pdfShown.bytes, pdfShown.fname).catch((e) => { $("pdf-msg").textContent = errText(e); })); };
 
   // the clipboard API is blocked inside the Apps Script frame, so fall back to selecting a hidden copy
   async function copyText(t) {
@@ -3267,19 +3402,20 @@ ${v.addr}`;
   // the new ID and 仮パスワード, each with its own copy button; shown only this once
   function showCreds(name, r) {
     const appUrl = adData.appUrl || "";
-    $("ad-dlg-h").textContent = `${name}さんのログイン情報`;
-    $("ad-dlg-body").innerHTML = `<div class="ad-temp"><dl>` +
-      `<dt>ログインID</dt><dd class="num">${esc(r.loginId)}<button type="button" class="tool" data-copy="${esc(r.loginId)}">コピー</button></dd>` +
-      `<dt>仮パスワード</dt><dd class="num">${esc(r.temp)}<button type="button" class="tool" data-copy="${esc(r.temp)}">コピー</button></dd></dl>` +
-      `<div class="ad-acts"><button type="button" class="tool" id="ad-copy-all">まとめてコピー（本人に送る文）</button></div>` +
+    $("ad-dlg-h").textContent = `${name}さんのID・仮パスワード`;
+    // stacked for a phone: each value large on its own line, with a full-width copy button under it
+    const item = (label, value) => `<div class="cred"><span class="cred-l">${label}</span><b class="cred-v">${esc(value)}</b>` +
+      `<button type="button" class="btn cred-copy" data-copy="${esc(value)}" data-what="${label}">${label}をコピー</button></div>`;
+    $("ad-dlg-body").innerHTML = `<div class="creds">` + item("ログインID", r.loginId) + item("仮パスワード", r.temp) +
+      `<button type="button" class="btn primary cred-all" id="ad-copy-all">本人に送る文をまとめてコピー</button>` +
       `<span class="ad-copied" id="ad-copied" role="status"></span>` +
       `<p class="hint">仮パスワードは7日間有効です。最初のログインで、本人が自分のパスワードを決めます。この画面を閉じると、仮パスワードはもう表示できません。</p></div>`;
     $("ad-dlg-err").textContent = ""; $("ad-dlg-ok").hidden = true; $("ad-dlg-close").textContent = "閉じる";
     $("ad-dlg").hidden = false;
     const text = `${name}さんのThemis Portalのログイン情報\n${appUrl ? `アプリ：${appUrl}\n` : ""}ログインID：${r.loginId}\n仮パスワード：${r.temp}\n（7日間有効。最初のログインで、新しいパスワードを決めてください）`;
     const done = async (t, what) => { $("ad-copied").textContent = (await copyText(t)) ? `${what}をコピーしました` : "コピーできませんでした。文字を長押しして選んでください。"; };
-    for (const b of $("ad-dlg-body").querySelectorAll("[data-copy]")) b.onclick = () => done(b.dataset.copy, b.closest("dd").previousElementSibling.textContent);
-    $("ad-copy-all").onclick = () => done(text, "ログイン情報");
+    for (const b of $("ad-dlg-body").querySelectorAll("[data-copy]")) b.onclick = () => done(b.dataset.copy, b.dataset.what);
+    $("ad-copy-all").onclick = () => done(text, "本人に送る文");
   }
 
   // one card per person instead of a wide table; a change of 勤務形態 or 管理者 is saved the moment it is made.
@@ -3289,36 +3425,41 @@ ${v.addr}`;
     const list = adData.members, owner = adData.owner, workSel = (v, attr) => `<select class="ad-sel" ${attr}>` +
       (v ? "" : `<option value="" selected disabled hidden>選んでください</option>`) +
       ["常勤", "週末"].map((k) => `<option value="${k}"${k === v ? " selected" : ""}>${k}</option>`).join("") + `</select>`;
+    // 運営 · 管理者 · メンバー (stored as 運営 / 管理者 / blank)
+    const roleSel = (v, attr) => `<select class="ad-sel" ${attr}>` +
+      [["運営", "運営"], ["管理者", "管理者"], ["", "メンバー"]].map(([k, t]) => `<option value="${k}"${k === (v || "") ? " selected" : ""}>${t}</option>`).join("") + `</select>`;
+    const badge = (m) => m.role === "運営" ? `<span class="st st-done">運営</span>` : m.role === "管理者" ? `<span class="st st-work">管理者</span>` : "";
     $("ad-body").innerHTML =
       (owner ? `<form class="ad-add" id="ad-add" novalidate><b>メンバーを追加</b>` +
         `<label class="f">氏名<input id="ad-name" autocomplete="off"></label>` +
         `<label class="f">勤務形態${workSel("", 'id="ad-work"')}</label>` +
-        `<label class="check"><input type="checkbox" id="ad-admin">管理者にする</label><button type="submit" class="btn primary" id="ad-add-btn">追加</button>` +
+        `<label class="f">役割${roleSel("", 'id="ad-role"')}</label><button type="submit" class="btn primary" id="ad-add-btn">追加</button>` +
         `<p class="hint">ログインIDと仮パスワードは自動で作られます。追加したあとに出る画面からコピーして、本人に伝えてください。</p></form>` : "") +
       byWork(list).map(([t, g]) => `<h3 class="ad-grp">${esc(groupName(t))}（${g.length}人）</h3><div class="ad-cards">` + g.map((m, i) => {
         const self = m.id === adData.me, signed = m.contract.split("（")[0];
         return `<div class="ad-card" data-id="${esc(m.id)}" data-name="${esc(m.name)}">` +
-          `<div class="ad-card-h"><span>${numName(i, m.name)}</span>${m.owner ? `<span class="st st-done">オーナー</span>` : m.admin ? `<span class="st st-work">管理者</span>` : ""}</div>` +
+          `<div class="ad-card-h"><span>${numName(i, m.name)}</span>${badge(m)}</div>` +
           `<dl class="ad-kv">` +
           (m.loginId ? `<dt>ログインID</dt><dd><span class="ad-id">${esc(m.loginId)}<button type="button" class="tool" data-copyid="${esc(m.loginId)}">コピー</button></span></dd>` : "") +
           `<dt>勤務形態</dt><dd>${workSel(m.workType, 'data-k="workType"')}</dd>` +
-          `<dt>契約</dt><dd>${m.hasContract ? `<span class="num">${esc(signed)}</span><button type="button" class="tool" data-contract>契約書を見る</button>` : `<span class="st st-late">未締結</span>`}</dd>` +
-          (owner && !m.owner ? `<dt>管理者</dt><dd><label class="check"><input type="checkbox" data-k="admin"${m.admin ? " checked" : ""}>管理者にする</label></dd>` : "") +
+          `<dt>契約</dt><dd>${m.hasContract ? `<span class="num">${esc(signed)}</span><button type="button" class="tool" data-contract>契約書を見る</button><button type="button" class="tool" data-cdl>ダウンロード</button>` : `<span class="st st-late">未締結</span>`}</dd>` +
+          // 運営 gives roles; 出井張貴 and 江田翔 always stay 運営, and nobody changes their own
+          (owner && !m.fixed && !self ? `<dt>役割</dt><dd>${roleSel(m.role, 'data-k="role"')}</dd>` : "") +
           `</dl>` +
-          (owner && !self ? `<div class="ad-acts"><button type="button" class="tool" data-temp>仮パスワードを発行</button><button type="button" class="tool danger" data-del>削除</button></div>` : "") +
+          (owner && !self && !m.fixed ? `<div class="ad-acts"><button type="button" class="tool" data-temp>ID・仮パスワードを発行</button><button type="button" class="tool danger" data-del>削除</button></div>` : "") +
           `</div>`;
       }).join("") + `</div>`).join("");
     const card = (el) => el.closest(".ad-card"), person = (c) => adData.members.find((m) => m.id === c.dataset.id);
     if (owner) $("ad-add").addEventListener("submit", (e) => {
       e.preventDefault();
-      const name = $("ad-name").value.trim(), workType = $("ad-work").value, admin = $("ad-admin").checked;
+      const name = $("ad-name").value.trim(), workType = $("ad-work").value, role = $("ad-role").value;
       if (!name) { adMsg("氏名を入れてください。"); $("ad-name").focus(); return; }
       if (!workType) { adMsg("勤務形態（常勤か週末か）を選んでください。"); $("ad-work").focus(); return; }
       busyBtn($("ad-add-btn"), async () => {
         adMsg("追加しています…");
         try {
-          const r = JSON.parse(await call("api_adminSaveMember", { name, workType, admin }));
-          adData.members.push({ id: r.id, name, loginId: r.loginId, admin, owner: false, active: true, contract: "", hasContract: false, workType });
+          const r = JSON.parse(await call("api_adminSaveMember", { name, workType, role }));
+          adData.members.push({ id: r.id, name, loginId: r.loginId, role, admin: !!role, owner: role === "運営", fixed: false, active: true, contract: "", hasContract: false, workType });
           adChanged(); adMsg(`${name}さんを追加しました。`); showCreds(name, r);
         } catch (err) { adMsg(errText(err)); }
       });
@@ -3328,17 +3469,21 @@ ${v.addr}`;
       b.textContent = ok ? "コピー済み" : "失敗"; setTimeout(() => { b.textContent = "コピー"; }, 1500);
     };
     for (const el of $("ad-body").querySelectorAll(".ad-card [data-k]")) el.onchange = async () => {
-      const c = card(el), m = person(c), k = el.dataset.k, v = k === "admin" ? el.checked : el.value;
+      const c = card(el), m = person(c), k = el.dataset.k, v = el.value;
       el.disabled = true; adMsg(`${m.name}さんを保存しています…`);
       try {
         await call("api_adminSaveMember", { id: m.id, [k]: v });
-        m[k] = v; adChanged(); adMsg(`${m.name}さんの${k === "admin" ? "管理者の設定" : "勤務形態"}を保存しました。`);
+        m[k] = v;
+        if (k === "role") { m.admin = !!v; m.owner = v === "運営"; }
+        adChanged(); adMsg(`${m.name}さんの${k === "role" ? `役割を「${v || "メンバー"}」に` : "勤務形態を"}しました。`);
       } catch (err) { adMsg(errText(err)); el.disabled = false; }
     };
-    for (const b of $("ad-body").querySelectorAll("[data-contract]")) b.onclick = () => showPdf(`${card(b).dataset.name}さんの業務委託契約書`, card(b).dataset.id, "contract");
+    const conFile = (name) => `業務委託契約書_${name}.pdf`;
+    for (const b of $("ad-body").querySelectorAll("[data-contract]")) b.onclick = () => showPdf(`${card(b).dataset.name}さんの業務委託契約書`, card(b).dataset.id, "contract", "", conFile(card(b).dataset.name));
+    for (const b of $("ad-body").querySelectorAll("[data-cdl]")) b.onclick = () => busyBtn(b, () => downloadPdf(card(b).dataset.id, "contract", "", conFile(card(b).dataset.name)));
     for (const b of $("ad-body").querySelectorAll("[data-temp]")) b.onclick = () => {
       const c = card(b), name = c.dataset.name;
-      adDialog(`${name}さんの仮パスワード`, `<p>${esc(name)}さんに新しい仮パスワードを発行します。<br>いまのパスワードは使えなくなり、${esc(name)}さんはすべての端末でログアウトされます。</p>`,
+      adDialog(`${name}さんのID・仮パスワードを発行`, `<p>${esc(name)}さんのログインIDと、新しい仮パスワードを発行します。<br>今のパスワードは使えなくなり、${esc(name)}さんは全ての端末でログアウトされます。</p>`,
         "発行する", async () => showCreds(name, JSON.parse(await call("api_adminIssueTemp", c.dataset.id))));
     };
     for (const b of $("ad-body").querySelectorAll("[data-del]")) b.onclick = () => {
@@ -3352,23 +3497,57 @@ ${v.addr}`;
     };
   }
   // ---- signed-in start ----
+  // the last copy of the person's records is kept on this device: on opening, today's plan shows from it at once
+  // (punching waits), while one call to the server checks the sign-in and brings the current records
+  const CACHE_KEY = "tc_cache", CACHED = /^(state|billing|contract|m-\d{4}-\d{2}|inv-\d{4}-\d{2}|hope-\d{4}-\d{2})$/;
+  const readCache = () => { try { const c = JSON.parse(localStorage.getItem(CACHE_KEY) || "null"); return c && CRED && c.tok === CRED.split(".")[0] ? c : null; } catch (e) { return null; } };
+  let cacheTimer = null;
+  function cacheSoon() {
+    if (!backend || !CRED) return;
+    clearTimeout(cacheTimer);
+    cacheTimer = setTimeout(() => {
+      const keep = Object.fromEntries(Object.entries(docs).filter(([k]) => CACHED.test(k)));
+      try { localStorage.setItem(CACHE_KEY, JSON.stringify({ tok: CRED.split(".")[0], me: cacheMe, docs: keep })); } catch (e) {}
+    }, 1500);
+  }
+  let cacheMe = null;
+  const dropCache = () => { try { localStorage.removeItem(CACHE_KEY); } catch (e) {} };
+  // this month, last month (invoices), and next month when tomorrow is already in it
+  function bootNames() {
+    const d = new Date(), cur = ymOf(dayKey(d)), prev = ymOf(dayKey(new Date(d.getFullYear(), d.getMonth() - 1, 1)));
+    const next = ymOf(dayKey(new Date(d.getFullYear(), d.getMonth(), d.getDate() + 1)));
+    return ["state", "billing", "contract", "m-" + cur, "m-" + prev, "inv-" + cur, "inv-" + prev].concat(next !== cur ? ["m-" + next] : []);
+  }
   (async () => {
     if (!viaGas && !window.TC_API) { showLogin("アプリの設定（接続先）が入っていません。Themisの担当者にお問い合わせください。"); return; }
     if (!CRED) { showLogin(); return; }
-    try { enter(JSON.parse(await rawCall("api_me"))); }
-    catch (e) { showLogin(isSignedOut(e) ? errText(e) : "つながりませんでした。通信状況を確認して、もう一度お試しください。"); }
+    const cached = readCache();
+    if (cached?.me && !cached.me.mustChange) {
+      Object.assign(docs, cached.docs || {});
+      window.TC_NAME = cached.me.name; window.TC_WORK = cached.me.workType || "";
+      mode = "member"; $("login").hidden = true; $("member-ui").hidden = false;
+      document.body.classList.add("preview");
+      fillForms(true); render(); msg("最新の記録を確認しています…");
+    }
+    const names = bootNames();
+    try { const r = JSON.parse(await rawCall("api_boot", names)); enter(r.me, r.docs && { docs: r.docs, names }); }
+    catch (e) {
+      if (isSignedOut(e)) { dropCache(); document.body.classList.remove("preview"); showLogin(errText(e)); }
+      else if (cached) msg("つながりませんでした。前回までの記録を表示しています。通信状況を確認して、画面を開き直してください。");
+      else showLogin("つながりませんでした。通信状況を確認して、もう一度お試しください。");
+    }
   })();
 
-  async function startMember() {
+  async function startMember(pre) {
     // load this month, last month (invoices) and the open-shift pointer before any punch is allowed
     const b = gasBackend(), d = new Date();
     const cur = ymOf(dayKey(d)), prev = ymOf(dayKey(new Date(d.getFullYear(), d.getMonth() - 1, 1)));
-    await b.load(["state", "billing", "contract", "m-" + cur, "m-" + prev, "inv-" + cur, "inv-" + prev]);
+    if (pre) b.seed(pre.docs, pre.names);
+    await b.load(bootNames());
     if (state().openDate) await b.load(["m-" + ymOf(state().openDate)]);
-    // on the last day of a month, tomorrow's plan lives in next month's record
-    const next = ymOf(dayKey(new Date(d.getFullYear(), d.getMonth(), d.getDate() + 1)));
-    if (next !== cur) await b.load(["m-" + next]);
     backend = b;
+    document.body.classList.remove("preview");
+    if (/確認しています/.test($("msg").textContent)) msg("");
     $("where").textContent = `${window.TC_NAME || ""}さんの記録です。記録と画像はThemisの勤怠シートに保存され、Themisの担当者が確認できます。`;
     watchView(); applyWork();
     fillForms(true); render();
@@ -3377,6 +3556,7 @@ ${v.addr}`;
       if (paid.length) msg(`${paid.map((ym) => Number(ym.slice(5))).join("・")}月分の入金が完了しました。請求書タブで金額を確かめて「入金を確認しました」を押してください。`);
     }
     if (window.TC_ADMIN) adPrefetch();
+    cacheSoon();
   }
   // first the name, address and 勤務形態, then the contract; both block the app (admins too) until done
   function needsSetup() {
