@@ -1,0 +1,2474 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<link rel="manifest" href="manifest.webmanifest">
+<link rel="icon" type="image/png" href="icons/favicon-32.png">
+<link rel="apple-touch-icon" href="icons/apple-touch-icon.png">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-title" content="Themis Portal">
+<meta name="apple-mobile-web-app-status-bar-style" content="default">
+<meta name="theme-color" content="#f6f1e8" media="(prefers-color-scheme: light)">
+<meta name="theme-color" content="#151a21" media="(prefers-color-scheme: dark)">
+<meta charset="utf-8">
+<title>Themis Portal</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Zen+Kaku+Gothic+New:wght@400;500;700&family=Zen+Old+Mincho:wght@500;700&family=Inter:wght@400;500;600;700&display=swap">
+<style>
+/* Layout: a punch-clock face on top, then one bar with tabs + month switcher, then either the month's ruled timecard or the invoice (form above, A4 sheet below) */
+:root {
+  /* warm paper and navy ink, with three muted accents (teal, mustard, coral) used sparingly */
+  --paper: #f6f1e8;
+  --card: #fffdf9;
+  --ink: #1f2a3a;
+  --ink-soft: #66707e;
+  --rule: #e4dccf;
+  --stamp: #2b7a72;        /* time-recorder ink: clock-in (teal) */
+  --stamp-red: #cf5a42;    /* clock-out (coral) */
+  --break: #b8862a;        /* mustard */
+  --dep: #5b62a8;          /* departure (indigo) */
+  --accent: #2b7a72;
+  --ok: #3f8a5a;
+  --sat: #3d6fb8;
+  --sun: #cf5a42;
+  --today: #eaf3f0;
+  --hol-bg: #fbefe9;
+  --r: 10px;
+  /* the invoice sheet is printed paper: same look in both themes, by choice */
+  --doc-bg: #ffffff;
+  --doc-ink: #1a1a1a;
+  --doc-soft: #666b73;
+  --doc-rule: #c9ced6;
+  --doc-band: #eef1f6;
+  --doc-seal: #b83a3a;
+  /* one face for the whole app: Inter draws every digit and latin letter, Zen Kaku Gothic the kana and kanji,
+     so 2026年10月, 9:00 and ¥200,000 look the same wherever they appear */
+  --f-body: "Inter", "Zen Kaku Gothic New", "Hiragino Sans", "Yu Gothic UI", "Meiryo", sans-serif;
+  --f-doc: "Zen Old Mincho", "Hiragino Mincho ProN", "Yu Mincho", serif;
+  /* numbers: Inter with even-width digits and a plain (unslashed) zero; it sits well beside the Japanese sans */
+  --f-num: "Inter", "Helvetica Neue", Arial, var(--f-body);
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --paper: #151a21; --card: #1d232c; --ink: #ece7de; --ink-soft: #9ba3ae; --rule: #313945;
+    --stamp: #6cc4b8; --stamp-red: #f08e76; --break: #e2b55a; --dep: #9da4e8; --accent: #6cc4b8; --ok: #7ccb98; --sat: #8fb0ee; --sun: #f08e76; --today: #1f3330; --hol-bg: #33241f;
+    color-scheme: dark;
+  }
+  :root:not([data-theme="light"]) .logo { filter: invert(1); }
+}
+:root[data-theme="dark"] {
+  --paper: #151a21; --card: #1d232c; --ink: #ece7de; --ink-soft: #9ba3ae; --rule: #313945;
+  --stamp: #6cc4b8; --stamp-red: #f08e76; --break: #e2b55a; --dep: #9da4e8; --accent: #6cc4b8; --ok: #7ccb98; --sat: #8fb0ee; --sun: #f08e76; --today: #1f3330; --hol-bg: #33241f;
+  color-scheme: dark;
+}
+:root[data-theme="dark"] .logo { filter: invert(1); }
+* { box-sizing: border-box; }
+/* phones must not enlarge text on their own; it breaks fixed layouts like the invoice */
+html { -webkit-text-size-adjust: 100%; text-size-adjust: 100%; }
+[hidden] { display: none !important; }
+body {
+  background: var(--paper); color: var(--ink); font-family: var(--f-body); font-size: 15px; line-height: 1.6;
+  padding-left: max(16px, env(safe-area-inset-left, 0px)); padding-right: max(16px, env(safe-area-inset-right, 0px));
+  padding-block: 24px 48px;
+}
+.wrap { max-width: 900px; margin: 0 auto; display: grid; gap: 24px; }
+.num { font-family: var(--f-num); font-variant-numeric: tabular-nums; }
+/* every place that uses the number face gets even-width digits, so times and amounts line up */
+.time, .today dd, .totals b, .day .dn, .day .tm, .day .plan, .work-now, .hours b, .f select.tsel, .f input[type="number"], .f input[type="date"], .extra input[type="number"] { font-variant-numeric: tabular-nums; }
+.time { letter-spacing: -.03em; font-weight: 600; }
+button { font: inherit; color: inherit; cursor: pointer; }
+button:focus-visible, input:focus-visible, select:focus-visible, textarea:focus-visible, tr:focus-visible { outline: 2px solid var(--stamp); outline-offset: 2px; }
+
+/* Clock face */
+.clock { background: var(--card); border: 1px solid var(--rule); border-radius: 14px; padding: 24px; display: grid; gap: 20px; }
+.clock-top { display: flex; flex-wrap: wrap; justify-content: space-between; align-items: flex-end; gap: 12px; }
+.date { color: var(--ink-soft); font-size: 15px; letter-spacing: .04em; }
+.time { font-family: var(--f-num); font-size: clamp(48px, 13vw, 84px); font-weight: 500; line-height: 1; letter-spacing: -.02em; font-variant-numeric: tabular-nums; }
+/* the seconds share the class name with the sheet's section headings; keep their rule off the clock */
+.time .sec { font-size: .42em; color: var(--ink-soft); margin: 0 0 0 .05em; border-top: 0; padding-top: 0; letter-spacing: 0; }
+.pill { display: inline-flex; align-items: center; gap: 8px; padding: 6px 14px; border-radius: 999px; border: 1.5px solid currentColor; font-weight: 700; font-size: 14px; letter-spacing: .08em; }
+.pill::before { content: ""; width: 8px; height: 8px; border-radius: 50%; background: currentColor; }
+.pill[data-s="off"], .pill[data-s="draft"] { color: var(--ink-soft); }
+.pill[data-s="work"], .pill[data-s="submitted"] { color: var(--stamp); }
+.pill[data-s="break"], .pill[data-s="awake"], .pill[data-s="moving"] { color: var(--break); }
+.pill[data-s="moving"]::before { animation: pulse 1.6s ease-in-out infinite; }
+.pill[data-s="paid"] { color: var(--ok); }
+.pill[data-s="work"]::before, .pill[data-s="break"]::before { animation: pulse 1.6s ease-in-out infinite; }
+@keyframes pulse { 50% { opacity: .25; } }
+@media (prefers-reduced-motion: reduce) { .pill::before { animation: none !important; } }
+
+/* today's store, large, with the planned clock-in / clock-out under it; display only */
+.shift-today { display: grid; gap: 2px; text-align: left; width: 100%; border: 1px solid var(--rule); border-left: 4px solid var(--accent); border-radius: var(--r); background: var(--paper); padding: 12px 16px; color: var(--ink); }
+.shift-today .st-label { font-size: 12px; color: var(--ink-soft); letter-spacing: .1em; }
+.shift-today .st-store { font-size: clamp(20px, 5.6vw, 28px); font-weight: 700; line-height: 1.3; overflow-wrap: anywhere; }
+.shift-today .st-time { font-family: var(--f-num); font-size: 15px; font-weight: 500; color: var(--ink-soft); font-variant-numeric: tabular-nums; }
+.shift-today .st-time b { color: var(--ink); font-weight: 600; font-size: 17px; }
+.shift-today.empty .st-store { font-size: 16px; font-weight: 500; color: var(--ink-soft); }
+.shift-today.absent { border-left-color: var(--stamp-red); }
+/* the plans stand apart from the punch clock: today as a large card, tomorrow as one quiet line under it */
+.shifts { display: grid; gap: 8px; }
+.shifts .shift-today { background: var(--card); box-shadow: 0 1px 0 var(--rule); }
+.shift-today.big { padding: 16px 20px; gap: 4px; border-left-width: 5px; }
+.shift-today.big .st-label { font-size: 13px; font-weight: 700; color: var(--accent); }
+.shift-today.big .st-store { font-size: clamp(26px, 7.4vw, 36px); line-height: 1.25; }
+.shift-today.big .st-time { font-size: 16px; }
+.shift-today.big .st-time b { font-size: 22px; }
+.shift-today.big.empty .st-store { font-size: 18px; }
+.shift-today.small { display: flex; flex-wrap: wrap; align-items: baseline; column-gap: 14px; row-gap: 0; padding: 10px 16px; }
+.shift-today.small .st-label { font-size: 12px; }
+.shift-today .st-label .num { margin-left: 8px; }
+.shift-today.small .st-store { font-size: 16px; font-weight: 700; line-height: 1.4; }
+.shift-today.small .st-time, .shift-today.small .st-time b { font-size: 14px; }
+.shift-today.small.empty .st-store { font-size: 14px; }
+#shift-next { border-left-color: var(--break); }
+#shift-today.absent, #shift-next.absent { border-left-color: var(--stamp-red); }
+/* once today's work is clocked out: a red sign-off on today's card */
+.shift-today .st-done { color: var(--stamp-red); font-weight: 700; font-size: 14px; flex-basis: 100%; }
+.shift-today { position: relative; }
+/* the times and the 修正 button share the bottom row; the button keeps to the right, wrapping under the times if needed */
+.st-foot { display: flex; flex-wrap: wrap; align-items: flex-end; justify-content: space-between; gap: 6px 12px; flex: 1 1 100%; }
+.shift-today .st-fix { margin-left: auto; padding: 4px 12px; font-size: 12px; font-weight: 700; }
+.shift-today.small .st-fix { padding: 2px 10px; }
+.shift-today .seg { white-space: nowrap; margin-right: 14px; }
+.shift-today .seg:last-child { margin-right: 0; }
+
+.keys { display: grid; grid-template-columns: repeat(4, 1fr); gap: 10px; }
+@media (max-width: 560px) { .keys { grid-template-columns: repeat(2, 1fr); } }
+.key.dep:not(:disabled) { border-color: var(--ink); color: var(--ink); }
+.sub-keys { display: flex; justify-content: flex-end; margin-top: -8px; }
+.key-sub { border: 1px solid var(--stamp-red); color: var(--stamp-red); background: transparent; border-radius: 8px; padding: 6px 14px; font-size: 13px; font-weight: 500; }
+.key-sub.armed { background: var(--stamp-red); color: var(--card); }
+.key-sub:disabled { opacity: .38; cursor: not-allowed; }
+.pill[data-s="absent"] { color: var(--stamp-red); }
+.key { border: 1.5px solid var(--rule); background: var(--paper); border-radius: 10px; padding: 14px 8px; display: grid; gap: 2px; justify-items: center; font-weight: 700; font-size: 17px; letter-spacing: .1em; transition: transform .08s, background .15s; }
+.key small { font-size: 11px; font-weight: 500; letter-spacing: .12em; color: var(--ink-soft); font-family: var(--f-num); }
+.key:not(:disabled):active { transform: translateY(1px); }
+.key:disabled { opacity: .38; cursor: not-allowed; }
+.key.in:not(:disabled) { border-color: var(--stamp); color: var(--stamp); }
+.key.out:not(:disabled) { border-color: var(--stamp-red); color: var(--stamp-red); }
+.key.brk:not(:disabled) { border-color: var(--break); color: var(--break); }
+.key:not(:disabled):hover { background: var(--today); }
+
+.today { display: grid; grid-template-columns: repeat(5, minmax(0, 1fr)); border-top: 1px dashed var(--rule); padding-top: 16px; gap: 12px; margin: 0; }
+@media (max-width: 560px) { .today { grid-template-columns: repeat(3, minmax(0, 1fr)); } }
+.today dt { font-size: 12px; color: var(--ink-soft); letter-spacing: .1em; }
+.today dd { margin: 0; font-family: var(--f-num); font-size: 22px; font-weight: 500; font-variant-numeric: tabular-nums; }
+.today dd.in { color: var(--stamp); } .today dd.out { color: var(--stamp-red); }
+.msg { min-height: 1.4em; font-size: 13px; color: var(--ink-soft); }
+
+/* Bar: tabs + month */
+.bar { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 12px; }
+.tabs { display: inline-flex; background: var(--card); border: 1px solid var(--rule); border-radius: 10px; padding: 3px; }
+.tabs button { border: 0; background: transparent; padding: 7px 16px; border-radius: 7px; font-size: 14px; font-weight: 500; color: var(--ink-soft); }
+.tabs button[aria-selected="true"] { background: var(--ink); color: var(--card); }
+.month-nav { display: flex; align-items: center; gap: 6px; }
+.month-nav b { font-size: 15px; min-width: 7.5em; text-align: center; font-variant-numeric: tabular-nums; }
+.month-nav button, .tool { border: 1px solid var(--rule); background: var(--card); border-radius: 8px; padding: 6px 12px; font-size: 13px; }
+.month-nav button:not(:disabled):hover, .tool:not(:disabled):hover { border-color: var(--ink-soft); }
+.month-nav button:disabled { opacity: .35; }
+.tool:disabled { opacity: .45; cursor: not-allowed; }
+.panel { display: grid; gap: 14px; }
+
+/* Ledger */
+.totals { display: flex; flex-wrap: wrap; gap: 8px 28px; font-size: 13px; color: var(--ink-soft); }
+.totals b { font-family: var(--f-num); font-size: 18px; color: var(--ink); font-weight: 600; margin-left: 6px; font-variant-numeric: tabular-nums; }
+.table-box { overflow-x: auto; background: var(--card); border: 1px solid var(--rule); border-radius: 12px; }
+.ledger { width: 100%; border-collapse: collapse; min-width: 880px; }
+.ledger td.txt { white-space: normal; min-width: 8em; }
+.ledger th, .ledger td { padding: 7px 12px; text-align: left; border-bottom: 1px solid var(--rule); white-space: nowrap; }
+.ledger th { font-size: 11px; letter-spacing: .12em; color: var(--ink-soft); font-weight: 500; }
+.ledger td.n { font-family: var(--f-num); font-variant-numeric: tabular-nums; }
+.ledger td.in { color: var(--stamp); } .ledger td.out { color: var(--stamp-red); }
+.ledger td.dim { color: var(--rule); }
+.ledger td.memo { white-space: normal; color: var(--ink-soft); font-size: 13px; min-width: 120px; }
+.ledger tr:last-child td { border-bottom: 0; }
+.ledger tbody tr { cursor: pointer; }
+.ledger tbody tr:hover td { background: var(--paper); }
+.ledger tr.is-today td { background: var(--today); }
+.wd-6 .d { color: var(--sat); } .wd-0 .d { color: var(--sun); }
+.d { font-family: var(--f-num); }
+.live { font-size: 10px; letter-spacing: .1em; color: var(--stamp); border: 1px solid currentColor; border-radius: 4px; padding: 0 4px; margin-left: 6px; font-family: var(--f-body); }
+/* Shift calendar */
+.cal { background: var(--card); border: 1px solid var(--rule); border-radius: 12px; overflow: hidden; }
+.cal-wd, .cal-grid { display: grid; grid-template-columns: repeat(7, minmax(0, 1fr)); }
+.cal-wd div { padding: 6px 0; text-align: center; font-size: 11px; letter-spacing: .1em; color: var(--ink-soft); border-bottom: 1px solid var(--rule); }
+.cal-wd div:first-child { color: var(--sun); } .cal-wd div:last-child { color: var(--sat); }
+.cal-grid { gap: 1px; background: var(--rule); }
+.day { background: var(--card); border: 0; border-radius: 0; min-height: 108px; padding: 6px 7px; text-align: left; display: flex; flex-direction: column; gap: 2px; min-width: 0; font: inherit; color: var(--ink); }
+.day.blank { background: var(--paper); }
+button.day:hover { background: var(--paper); }
+.day.wd-0, .day.wd-6, .day.hol { background: var(--hol-bg); }
+button.day.wd-0:hover, button.day.wd-6:hover, button.day.hol:hover { background: var(--hol-bg); filter: brightness(.97); }
+.day.hol .dn, .day.wd-0 .dn { color: var(--sun); font-weight: 700; }
+.day .fp { font-family: var(--f-body); font-size: 9px; color: var(--ink-soft); margin-left: 4px; letter-spacing: .04em; }
+.day .pl { font-family: var(--f-num); font-size: 10px; color: var(--ink-soft); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.day .plan { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: 100%; font-variant-numeric: tabular-nums; }
+.day .np { font-size: 10px; font-weight: 700; color: var(--stamp-red); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.day .pf { font-size: 10px; color: var(--ink-soft); }
+.day .ab { font-size: 10px; font-weight: 700; letter-spacing: .1em; color: var(--card); background: var(--stamp-red); border-radius: 4px; padding: 0 5px; align-self: flex-start; }
+.day .hn { font-size: 10px; font-weight: 700; color: var(--sun); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.day .dn { font-family: var(--f-num); font-size: 13px; font-weight: 600; align-self: flex-start; padding: 0 5px; margin-left: -5px; border-radius: 999px; }
+.day.wd-0 .dn { color: var(--sun); } .day.wd-6 .dn { color: var(--sat); }
+.day.is-today .dn { background: var(--ink); color: var(--card); }
+.day .store { font-size: 12px; font-weight: 700; line-height: 1.35; overflow: hidden; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow-wrap: anywhere; }
+.day.planned .store { color: var(--ink-soft); }
+.day .tm { font-family: var(--f-num); font-size: 11px; color: var(--stamp); font-variant-numeric: tabular-nums; }
+.day .plan { font-size: 10px; letter-spacing: .1em; color: var(--ink-soft); border: 1px dashed var(--ink-soft); border-radius: 4px; padding: 0 4px; align-self: flex-start; }
+.day .tr { font-size: 11px; color: var(--ink-soft); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.day .wk { font-family: var(--f-num); font-size: 10px; color: var(--ink-soft); font-variant-numeric: tabular-nums; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.day.worked { background: var(--today); }
+.day.worked:hover { background: var(--today); filter: brightness(.97); }
+.day .live { margin-left: 4px; }
+.day .el { font-size: 10px; font-weight: 700; letter-spacing: .08em; color: var(--stamp-red); border: 1px solid currentColor; border-radius: 4px; padding: 0 4px; align-self: flex-start; }
+.day .plan .pw { margin-right: 3px; }
+/* phone: a cell is ~48px wide, so keep only the essentials, small and stacked, nothing running off the edge */
+@media (max-width: 560px) {
+  /* the calendar runs almost to the screen edges (4px) so each day gets as much width as possible */
+  .cal { margin-inline: calc(4px - max(16px, env(safe-area-inset-left, 0px))); border-radius: 8px; }
+  .cal-wd div { padding: 4px 0; font-size: 10px; letter-spacing: 0; }
+  .day { min-height: 66px; padding: 3px 3px 4px; gap: 1px; overflow: hidden; }
+  .day .dn { font-size: 12px; padding: 0 4px; margin-left: -2px; }
+  .day .store { font-size: 9px; font-weight: 500; line-height: 1.25; letter-spacing: -.02em; }
+  .day .tm, .day .plan { font-size: 9px; letter-spacing: 0; line-height: 1.2; }
+  .day .tt { display: flex; flex-direction: column; }
+  .day .tt .sep, .day .pw { display: none; }
+  .day .plan { border: 0; border-left: 2px dashed var(--ink-soft); border-radius: 0; padding: 0 0 0 3px; }
+  .day .tr, .day .wk, .day .pf, .day .pl, .day .fp, .day .hn, .day .live { display: none; }
+  .day .ab, .day .el { font-size: 8.5px; letter-spacing: 0; padding: 0 3px; }
+  .day .np { font-size: 8.5px; }
+}
+/* shift wishes: one row per day with four round choices, a deadline pill and a sticky submit button */
+.hope-head { background: var(--card); border: 1px solid var(--rule); border-radius: var(--r); padding: 14px 16px; display: grid; gap: 10px; }
+.hope-stat { display: flex; flex-wrap: wrap; align-items: center; gap: 6px 14px; font-size: 14px; color: var(--ink-soft); }
+.hope-stat b { color: var(--ink); font-size: 16px; }
+.hope-due { background: var(--hol-bg); color: var(--stamp-red); font-weight: 700; border-radius: 999px; padding: 3px 12px; font-family: var(--f-num); }
+.hope-due.closed { background: var(--paper); color: var(--ink-soft); }
+.hope-sent { color: var(--ok); font-weight: 600; }
+.hope-sent.dirty { color: var(--break); }
+.hope-how { margin: 0; font-size: 13px; color: var(--ink-soft); line-height: 1.7; }
+.hope-how b { color: var(--ink); }
+/* the mark to paint: pick ○ or △, then tap days */
+.hope-brush { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
+.hope-brush button { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; border: 1.5px solid var(--rule); background: var(--card); border-radius: var(--r); padding: 10px 12px; font-size: 14px; font-weight: 700; color: var(--ink); text-align: left; }
+.hope-brush button small { flex-basis: 100%; font-size: 11px; font-weight: 500; color: var(--ink-soft); margin-left: 30px; margin-top: -4px; }
+.hope-brush .hb { font-size: 20px; line-height: 1; width: 22px; text-align: center; }
+.hope-brush button[aria-checked="true"][data-b="○"] { border-color: var(--accent); background: color-mix(in srgb, var(--accent) 12%, var(--card)); }
+.hope-brush button[aria-checked="true"][data-b="△"] { border-color: var(--break); background: color-mix(in srgb, var(--break) 14%, var(--card)); }
+.hope-brush button:disabled { opacity: .5; cursor: default; }
+.hope-far { display: flex; flex-wrap: wrap; align-items: center; gap: 4px 10px; font-size: 14px; font-weight: 700; padding: 2px 2px; }
+.hope-far input { width: 20px; height: 20px; accent-color: var(--accent); margin: 0; }
+.hope-far small { font-size: 11px; font-weight: 500; color: var(--ink-soft); }
+.hope-far.off { opacity: .45; }
+/* the month as a calendar; each day shows its mark large */
+.hope-cal { background: var(--card); border: 1px solid var(--rule); border-radius: 12px; overflow: hidden; }
+.hope-grid { display: grid; grid-template-columns: repeat(7, minmax(0, 1fr)); gap: 1px; background: var(--rule); }
+.hc { background: var(--card); border: 0; border-radius: 0; min-height: 76px; padding: 5px 6px; display: flex; flex-direction: column; align-items: stretch; gap: 1px; min-width: 0; font: inherit; color: var(--ink); text-align: left; }
+.hc.blank { background: var(--paper); }
+.hc.wd-0, .hc.wd-6, .hc.hol { background: var(--hol-bg); }
+.hc .dn { font-family: var(--f-num); font-size: 13px; font-weight: 600; }
+.hc.wd-6 .dn { color: var(--sat); } .hc.wd-0 .dn, .hc.hol .dn { color: var(--sun); font-weight: 700; }
+.hc .hn { font-size: 9px; font-weight: 700; color: var(--sun); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.hc .mk { font-size: 24px; font-weight: 700; line-height: 1; text-align: center; margin-top: auto; }
+.hc .far { align-self: center; font-size: 10px; font-weight: 700; color: #fff; background: var(--accent); border-radius: 4px; padding: 0 5px; line-height: 1.6; white-space: nowrap; }
+.hc.v-ok { background: color-mix(in srgb, var(--accent) 14%, var(--card)); }
+.hc.v-ok .mk { color: var(--accent); }
+.hc.v-maybe { background: color-mix(in srgb, var(--break) 16%, var(--card)); }
+.hc.v-maybe .mk { color: var(--break); }
+.hc:disabled { cursor: default; }
+button.hc:not(:disabled):hover { filter: brightness(.97); }
+@media (max-width: 400px) { .hc { min-height: 64px; padding: 4px; } .hc .mk { font-size: 20px; } .hc .far { font-size: 9px; padding: 0 3px; } }
+.hope-submit { position: sticky; bottom: 12px; display: grid; gap: 6px; z-index: 2; }
+.hope-submit .msg:empty { display: none; }
+.hope-submit .msg { background: var(--card); border: 1px solid var(--rule); border-radius: 8px; padding: 8px 12px; }
+.hope-submit .btn { padding: 14px; font-size: 16px; border-radius: 12px; box-shadow: 0 6px 18px -8px rgb(31 42 58 / .45); }
+.legend { display: flex; flex-wrap: wrap; gap: 6px 16px; font-size: 12px; color: var(--ink-soft); align-items: center; }
+.lg::before { content: ""; display: inline-block; width: 12px; height: 12px; border-radius: 3px; vertical-align: -2px; margin-right: 6px; border: 1px solid var(--rule); }
+.lg.worked::before { background: var(--today); }
+.lg.absent::before { background: var(--stamp-red); border-color: var(--stamp-red); }
+.lg.hol::before { background: var(--hol-bg); border-color: var(--sun); }
+.lg.planned::before { background: var(--card); border-style: dashed; border-color: var(--ink-soft); }
+.foot { display: flex; flex-wrap: wrap; gap: 8px 16px; justify-content: space-between; align-items: center; font-size: 12px; color: var(--ink-soft); }
+.foot .tools { display: flex; gap: 8px; }
+
+/* Invoice workspace */
+.inv-head { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 12px; }
+.inv-head h2 { margin: 0; font-size: 20px; text-wrap: balance; }
+.steps { background: var(--card); border: 1px solid var(--rule); border-radius: 12px; padding: 16px 18px; display: grid; gap: 12px; }
+.steps ol { margin: 0; padding-left: 1.4em; display: grid; gap: 4px; font-size: 14px; }
+.actions { display: flex; flex-wrap: wrap; gap: 8px; }
+.btn { border-radius: 8px; padding: 8px 16px; border: 1px solid var(--rule); background: var(--paper); font-size: 14px; }
+.btn:disabled { opacity: .45; cursor: not-allowed; }
+.btn.primary { background: var(--stamp); border-color: var(--stamp); color: var(--card); font-weight: 700; }
+.btn.okay { background: var(--ok); border-color: var(--ok); color: var(--card); font-weight: 700; }
+.btn.danger { color: var(--stamp-red); border-color: var(--stamp-red); background: transparent; }
+.btn.danger.armed { background: var(--stamp-red); color: var(--card); }
+.forms { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 14px; }
+@media (max-width: 720px) { .forms { grid-template-columns: 1fr; } }
+fieldset { margin: 0; border: 1px solid var(--rule); border-radius: 12px; background: var(--card); padding: 14px 16px 16px; display: grid; gap: 10px; min-width: 0; }
+fieldset:disabled { opacity: .7; }
+/* anything that can't be used right now reads as dimmed, wherever it sits */
+input:disabled, select:disabled, textarea:disabled { color: var(--ink-soft); opacity: .55; cursor: not-allowed; }
+button:disabled { cursor: not-allowed; }
+.chip:disabled, .extra button:disabled { opacity: .45; }
+fieldset:disabled .f, fieldset:disabled .check, fieldset:disabled .hint, fieldset:disabled .hours, fieldset:disabled .fixed-to { color: var(--ink-soft); }
+.check:has(input:disabled) { opacity: .5; cursor: not-allowed; }
+/* inside a locked block the block itself is already dimmed; don't dim the fields twice */
+.fields .locked :is(input, select, textarea):disabled { opacity: 1; }
+legend { font-weight: 700; font-size: 14px; padding: 0 6px; }
+.f { display: grid; gap: 3px; font-size: 12px; color: var(--ink-soft); letter-spacing: .04em; min-width: 0; }
+.f2 { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); gap: 10px; }
+/* iPhone draws date fields wider than their box unless their own styling is switched off */
+.f input { min-width: 0; }
+.f input[type="date"] { -webkit-appearance: none; appearance: none; min-height: 39px; }
+.f input[type="date"]::-webkit-date-and-time-value { text-align: left; }
+/* iPhone zooms the page into any field under 16px and leaves it zoomed; 16px keeps it still */
+@media (max-width: 560px) { body :is(input, select, textarea) { font-size: 16px !important; } }
+.f input, .f select, .f textarea { font: inherit; font-size: 15px; padding: 7px 9px; border-radius: 8px; border: 1px solid var(--rule); background: var(--paper); color: var(--ink); width: 100%; letter-spacing: 0; }
+.f textarea { resize: vertical; min-height: 64px; }
+.f input[type="number"], .f input[type="date"], #i-no { font-family: var(--f-num); }
+.check { display: flex; align-items: center; gap: 8px; font-size: 14px; }
+/* address and bank details are split into one field each, grouped under a heading */
+.grp { display: grid; gap: 8px; border-top: 1px dashed var(--rule); padding-top: 10px; }
+.grp-h { font-size: 13px; font-weight: 700; color: var(--ink); letter-spacing: .04em; }
+.zip-row { display: grid; grid-template-columns: 9.5em minmax(0, 1fr); gap: 10px; align-items: end; }
+.zip-row .hint { padding-bottom: 9px; }
+.f2.acct { grid-template-columns: 7em minmax(0, 1fr); }
+/* 銀行 / 支店 sit after the field so only the name itself is typed */
+.sfx-in { display: flex; align-items: center; gap: 6px; }
+.sfx-in input { flex: 1; }
+.sfx { font-size: 15px; color: var(--ink); white-space: nowrap; }
+.extras { display: grid; gap: 6px; }
+.extra { display: grid; grid-template-columns: minmax(0, 1fr) 110px 32px; gap: 6px; }
+.extra input { font: inherit; font-size: 14px; padding: 6px 8px; border-radius: 8px; border: 1px solid var(--rule); background: var(--paper); color: var(--ink); width: 100%; min-width: 0; }
+.extra input[type="number"] { font-family: var(--f-num); }
+.extra button { border: 1px solid var(--rule); background: transparent; border-radius: 8px; color: var(--ink-soft); }
+.hint { font-size: 12px; color: var(--ink-soft); margin: 0; }
+.hours { display: flex; justify-content: space-between; align-items: baseline; border-top: 1px dashed var(--rule); padding-top: 10px; font-size: 13px; color: var(--ink-soft); }
+.hours b { font-family: var(--f-num); font-size: 18px; color: var(--ink); font-variant-numeric: tabular-nums; }
+
+/* A4 invoice sheet */
+/* the preview is a small thumbnail of the A4 page; tapping it opens the page at screen width */
+/* the preview is a picture of the real A4 page (the same render as the PDF), so nothing reflows on a phone */
+.sheet-scroll { display: grid; justify-items: center; gap: 8px; background: var(--paper); border: 1px solid var(--rule); border-radius: 12px; padding: 16px; overflow: hidden; }
+.thumb { border: 0; padding: 0; background: transparent; cursor: zoom-in; display: block; width: min(300px, 100%); }
+.thumb img { display: block; width: 100%; aspect-ratio: 210 / 297; object-fit: contain; background: #fff; box-shadow: 0 1px 3px rgb(0 0 0 / .18); }
+.thumb-cap { font-size: 12px; color: var(--ink-soft); }
+.viewer { padding: 0; place-items: stretch; background: rgb(10 14 20 / .92); }
+.viewer-scroll { height: 100%; overflow-y: auto; padding: 56px 8px 24px; }
+.viewer-scroll img { display: block; width: 100%; max-width: 720px; margin: 0 auto; background: #fff; }
+/* same square-cornered button as the 戻る on the day sheet, so the viewer reads as part of the app */
+.viewer-close { position: fixed; top: 12px; right: 12px; z-index: 2; color: var(--ink); font-weight: 500; box-shadow: 0 1px 3px rgb(0 0 0 / .25); }
+.invoice { width: 720px; min-height: 1018px; margin: 0 auto; background: var(--doc-bg); color: var(--doc-ink); padding: 56px 56px 48px; font-family: var(--f-doc); font-size: 13px; line-height: 1.7; box-shadow: 0 1px 3px rgb(0 0 0 / .12); display: flex; flex-direction: column; gap: 26px; }
+.invoice .ttl { text-align: center; font-size: 28px; letter-spacing: .6em; font-weight: 700; padding-left: .6em; }
+.invoice .meta { display: grid; grid-template-columns: auto auto; justify-content: end; gap: 0 14px; font-size: 12px; }
+.invoice .meta dt { color: var(--doc-soft); } .invoice .meta dd { margin: 0; }
+/* the invoice number is digits only; in the number face it read smaller than the dates beside it */
+.invoice .meta dd.no { font-family: var(--f-num); font-size: 13.5px; letter-spacing: .02em; }
+.invoice .parties { display: grid; grid-template-columns: 1fr 1fr; gap: 24px; align-items: start; }
+.invoice .to-name { font-size: 18px; font-weight: 700; border-bottom: 1px solid var(--doc-ink); padding-bottom: 4px; }
+/* the seal sits beside the sender block instead of on top of it, so neither covers the other;
+   its characters are stacked as separate lines because the PDF renderer cannot draw vertical writing */
+.invoice .from { display: flex; justify-content: flex-end; align-items: flex-start; gap: 12px; text-align: right; font-size: 12px; }
+.invoice .from-text { white-space: pre-line; }
+.invoice .from .name { font-size: 15px; font-weight: 700; }
+.invoice .seal { flex: none; width: 56px; height: 56px; border: 2px solid var(--doc-seal); color: var(--doc-seal); border-radius: 50%; display: flex; flex-direction: column; align-items: center; justify-content: center; font-size: 15px; font-weight: 700; line-height: 1.15; }
+.invoice td.c, .invoice th.c { text-align: center; }
+.invoice .lead { font-size: 13px; }
+.invoice .dg { font-family: var(--f-num); font-size: 1.04em; padding: 0 .06em; }
+.invoice .amount { display: flex; align-items: baseline; gap: 24px; border-bottom: 2px solid var(--doc-ink); padding-bottom: 6px; width: 70%; }
+.invoice .amount span { font-size: 14px; }
+.invoice .amount b { font-family: var(--f-num); font-size: 26px; font-weight: 600; }
+.invoice table { width: 100%; border-collapse: collapse; }
+.invoice th { background: var(--doc-band); font-weight: 500; font-size: 12px; padding: 6px 8px; border: 1px solid var(--doc-rule); }
+.invoice td { padding: 7px 8px; border: 1px solid var(--doc-rule); }
+.invoice td.r, .invoice th.r { text-align: right; }
+.invoice td.n { font-family: var(--f-num); font-variant-numeric: tabular-nums; }
+.invoice .sum { display: grid; grid-template-columns: 1fr 290px; gap: 20px; align-items: start; }
+.invoice .sum table td:first-child { background: var(--doc-band); width: 52%; white-space: nowrap; }
+.invoice .sum tr.total td { font-weight: 700; }
+.invoice .taxbox { font-size: 12px; border: 1px solid var(--doc-rule); padding: 8px 10px; }
+.invoice .taxbox p { margin: 0; }
+.invoice .block h4 { margin: 0 0 4px; font-size: 12px; font-weight: 700; border-left: 3px solid var(--doc-ink); padding-left: 6px; }
+.invoice .block p { margin: 0; white-space: pre-line; }
+.invoice .ph { color: var(--doc-soft); }
+.invoice .grow { flex: 1; }
+
+/* Edit sheet (timecard) */
+.modal-bg { position: fixed; inset: 0; background: rgb(10 14 20 / .45); display: grid; place-items: center; padding: 16px; z-index: 20; }
+.modal { background: var(--card); color: var(--ink); border-radius: 14px; padding: 22px; width: min(480px, 100%); max-height: calc(100% - 16px); overflow-y: auto; display: grid; gap: 14px; border: 1px solid var(--rule); }
+/* sheets scroll up and down only, and never hand the scroll on to the page behind */
+.modal, .viewer-scroll { overflow-x: hidden; overscroll-behavior: contain; -webkit-overflow-scrolling: touch; }
+.modal > *, .fields > * { min-width: 0; }
+.chip-x button:first-child { overflow-wrap: anywhere; text-align: left; }
+.modal-bg { overscroll-behavior: contain; }
+.modal h3 { margin: 0; font-size: 17px; }
+/* the long day sheet scrolls; its title and a way back stay pinned at the top */
+.modal-head { position: sticky; top: -22px; z-index: 1; margin: -22px -22px 0; padding: 16px 22px 12px; background: var(--card); border-bottom: 1px solid var(--rule); display: flex; align-items: center; justify-content: space-between; gap: 12px; }
+.chips { display: flex; flex-wrap: wrap; gap: 6px; }
+.sec { font-size: 13px; font-weight: 700; letter-spacing: .08em; border-top: 1px solid var(--rule); padding-top: 12px; margin-top: 4px; }
+.sec.first { border-top: 0; padding-top: 0; margin-top: 0; }
+.f select.tsel { font-family: var(--f-num); font-variant-numeric: tabular-nums; }
+.work-now { font-family: var(--f-num); font-size: 15px; font-weight: 600; color: var(--stamp); font-variant-numeric: tabular-nums; }
+.work-now:empty { display: none; }
+.sec-row { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 8px; }
+.sec-row .tool { font-weight: 500; letter-spacing: 0; font-size: 12px; }
+/* recorded values stay visible but locked until the person chooses to correct them */
+.fields .locked { opacity: .5; }
+.fields .locked input, .fields .locked select, .fields .locked textarea, .fields .locked button { cursor: not-allowed; border-style: dashed; background: transparent; }
+.abs-note { margin: 0; font-size: 13px; font-weight: 700; color: var(--stamp-red); white-space: pre-line; }
+.actsum { font-family: var(--f-num); font-weight: 400; font-size: 12px; letter-spacing: 0; color: var(--ink-soft); margin-left: 6px; }
+.chip-x { display: inline-flex; align-items: center; padding: 0; overflow: hidden; }
+.chip-x button { border: 0; background: transparent; color: inherit; font: inherit; padding: 4px 4px 4px 12px; }
+.chip-x button + button { padding: 4px 10px 4px 6px; color: var(--ink-soft); }
+.chip-x button + button:hover { color: var(--stamp-red); }
+.proofs { display: flex; flex-wrap: wrap; gap: 8px; }
+.proof { position: relative; width: 84px; height: 84px; border: 1px solid var(--rule); border-radius: 8px; overflow: hidden; background: var(--paper); }
+.proof img { width: 100%; height: 100%; object-fit: cover; display: block; }
+.proof button { position: absolute; top: 3px; right: 3px; width: 22px; height: 22px; border-radius: 50%; border: 0; background: var(--ink); color: var(--card); font-size: 13px; line-height: 1; opacity: .85; }
+.upl { justify-self: start; cursor: pointer; color: var(--ink); }
+.perr { color: var(--stamp-red); }
+.perr:empty { display: none; }
+.chip { border: 1px solid var(--rule); background: var(--paper); color: var(--ink); border-radius: 999px; padding: 4px 12px; font-size: 13px; letter-spacing: 0; }
+.chip:hover { border-color: var(--ink-soft); }
+.chip[aria-pressed="true"] { background: var(--ink); border-color: var(--ink); color: var(--card); }
+.fields { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); gap: 12px; }
+.fields .wide { grid-column: 1 / -1; }
+.modal-actions { display: flex; flex-wrap: wrap; gap: 8px; justify-content: space-between; }
+.modal-actions div { display: flex; gap: 8px; }
+#pdf-host { position: fixed; left: -10000px; top: 0; }
+.proof-page .pp-h { font-size: 18px; font-weight: 700; border-bottom: 2px solid var(--doc-ink); padding-bottom: 6px; }
+.proof-page .pp-meta { display: grid; grid-template-columns: 6em 1fr; gap: 2px 12px; margin: 0; }
+.proof-page .pp-meta dt { color: var(--doc-soft); }
+.proof-page .pp-meta dd { margin: 0; }
+.proof-page img { max-width: 100%; max-height: 780px; object-fit: contain; align-self: center; border: 1px solid var(--doc-rule); }
+
+/* Brand line: the Themis logo on the left, the person's name on the right */
+.brand { display: flex; align-items: flex-end; justify-content: space-between; gap: 16px; border-bottom: 1px solid var(--rule); padding-bottom: 12px; }
+.brand-mark { display: flex; align-items: center; gap: 14px; min-width: 0; }
+.logo { display: block; height: 48px; width: auto; }
+.brand-name { font-size: 20px; font-weight: 700; letter-spacing: .04em; color: var(--ink); white-space: nowrap; line-height: 1.1; padding: 4px 0 4px 14px; border-left: 2px solid var(--accent); }
+.brand-who { font-size: 18px; font-weight: 700; color: var(--ink); letter-spacing: .06em; overflow-wrap: anywhere; text-align: right; min-width: 0; }
+@media (max-width: 560px) { .logo { height: 40px; } .brand-who { font-size: 16px; } .brand-mark { gap: 10px; } .brand-name { font-size: 16px; padding-left: 10px; } }
+
+/* Finish: soft corners, each punch key in its own muted colour, and a three-colour stripe on the clock;
+   colour stays in small doses so the page is cheerful without getting loud */
+.clock, .table-box, .cal, .steps, fieldset, .modal, .sheet-scroll, .key, .key-sub, .btn, .tool, .month-nav button, .proof,
+.f input, .f select, .f textarea, .extra input, .extra button { border-radius: var(--r); }
+.clock { position: relative; overflow: hidden; box-shadow: 0 1px 0 var(--rule), 0 6px 18px -12px rgb(31 42 58 / .25); }
+.clock::before { content: ""; position: absolute; inset: 0 0 auto 0; height: 5px;
+  background: linear-gradient(90deg, var(--stamp) 0 33.3%, var(--break) 33.3% 66.6%, var(--stamp-red) 66.6%); }
+.time { font-weight: 400; letter-spacing: -.01em; }
+.key { border-width: 1.5px; }
+.key.brk:not(:disabled) { background: color-mix(in srgb, var(--break) 12%, var(--card)); }
+.key.dep:not(:disabled) { border-color: var(--dep); color: var(--dep); background: color-mix(in srgb, var(--dep) 10%, var(--card)); }
+.key.in:not(:disabled) { background: color-mix(in srgb, var(--stamp) 11%, var(--card)); }
+.key.out:not(:disabled) { background: color-mix(in srgb, var(--stamp-red) 10%, var(--card)); }
+.key:not(:disabled):hover { filter: brightness(.97); }
+.key.brk:not(:disabled) small, .key.dep:not(:disabled) small, .key.in:not(:disabled) small, .key.out:not(:disabled) small { color: inherit; opacity: .7; }
+.pill { background: color-mix(in srgb, currentColor 9%, transparent); border-width: 1px; padding: 4px 12px; font-size: 13px; }
+.tabs { border-radius: 999px; padding: 4px; }
+.tabs button { border-radius: 999px; padding: 6px 18px; font-size: 14px; }
+.tabs button[aria-selected="true"] { background: var(--accent); color: #fff; font-weight: 700; }
+.btn.primary, .btn.okay { background: var(--accent); border-color: var(--accent); color: #fff; }
+.btn.primary:not(:disabled):hover, .btn.okay:not(:disabled):hover { filter: brightness(1.06); }
+.chip[aria-pressed="true"] { background: var(--accent); border-color: var(--accent); color: #fff; }
+.day.is-today .dn { background: var(--stamp-red); color: #fff; }
+.inv-head h2, .modal h3 { font-weight: 700; letter-spacing: .04em; }
+.grp-h { display: flex; align-items: center; gap: 8px; }
+.grp-h::before { content: ""; width: 4px; height: 1em; border-radius: 2px; background: var(--break); }
+.fixed-to { font-size: 15px; color: var(--ink); font-weight: 700; letter-spacing: 0; padding: 7px 0 2px; }
+
+/* Contract: the full text in its own scroll box, then 乙's details and a hand-drawn signature */
+.modal.contract { width: min(680px, 100%); }
+.contract-text { max-height: 44vh; overflow-y: auto; overscroll-behavior: contain; background: var(--paper); border: 1px solid var(--rule); border-radius: var(--r); padding: 14px 16px; font-size: 13px; line-height: 1.85; }
+.contract-text h4 { margin: 14px 0 2px; font-size: 13px; }
+.contract-text h4:first-child { margin-top: 0; }
+.contract-text p { margin: 0; }
+.contract-text .t { text-align: center; font-size: 16px; font-weight: 700; letter-spacing: .3em; margin-bottom: 10px; }
+.contract-text .in1 { padding-left: 1em; } .contract-text .in2 { padding-left: 2em; }
+.contract-text .who { font-weight: 700; border-bottom: 1px solid var(--ink); padding: 0 .3em; }
+/* a long press on the pad must keep drawing, not select text or open the copy / save-image menu */
+.sig-box { position: relative; -webkit-user-select: none; user-select: none; -webkit-touch-callout: none; }
+/* tall enough to write a name with a finger: about a third of the screen height, at least 220px */
+.sig-box canvas { display: block; width: 100%; height: clamp(220px, 34vh, 320px); background: #fff; border: 1.5px dashed var(--ink-soft); border-radius: var(--r); touch-action: none; cursor: crosshair; }
+.sig-box .sig-hint { position: absolute; inset: 0; display: grid; place-items: center; color: #9a9a96; font-size: 16px; pointer-events: none; }
+.sig-box .tool { position: absolute; top: 8px; right: 8px; }
+
+/* Depth: cards float a little above the paper, buttons stand up with a solid bottom edge and sink when pressed,
+   selected tabs and marks look pushed in; one light source from above, the same in both themes */
+:root {
+  --lift: 0 1px 2px rgb(31 42 58 / .08), 0 4px 0 -1px rgb(31 42 58 / .06), 0 12px 24px -8px rgb(31 42 58 / .26);
+  --lift-hi: 0 2px 4px rgb(31 42 58 / .08), 0 6px 0 -2px rgb(31 42 58 / .07), 0 22px 40px -14px rgb(31 42 58 / .4);
+  --edge: rgb(31 42 58 / .24);
+  --shine: inset 0 1px 0 rgb(255 255 255 / .9), inset 0 -1px 0 rgb(31 42 58 / .06);
+  --sink: inset 0 3px 6px rgb(31 42 58 / .2);
+  --gloss: linear-gradient(180deg, rgb(255 255 255 / .55), rgb(255 255 255 / 0) 50%, rgb(31 42 58 / .03));
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --lift: 0 1px 2px rgb(0 0 0 / .35), 0 4px 0 -1px rgb(0 0 0 / .3), 0 14px 26px -8px rgb(0 0 0 / .6);
+    --lift-hi: 0 2px 4px rgb(0 0 0 / .35), 0 6px 0 -2px rgb(0 0 0 / .3), 0 24px 44px -14px rgb(0 0 0 / .75);
+    --edge: rgb(0 0 0 / .6);
+    --shine: inset 0 1px 0 rgb(255 255 255 / .09), inset 0 -1px 0 rgb(0 0 0 / .25);
+    --sink: inset 0 2px 5px rgb(0 0 0 / .45);
+    --gloss: linear-gradient(180deg, rgb(255 255 255 / .06), rgb(255 255 255 / 0) 50%, rgb(0 0 0 / .12));
+  }
+}
+:root[data-theme="dark"] {
+  --lift: 0 1px 2px rgb(0 0 0 / .35), 0 4px 0 -1px rgb(0 0 0 / .3), 0 14px 26px -8px rgb(0 0 0 / .6);
+  --lift-hi: 0 2px 4px rgb(0 0 0 / .35), 0 6px 0 -2px rgb(0 0 0 / .3), 0 24px 44px -14px rgb(0 0 0 / .75);
+  --edge: rgb(0 0 0 / .6);
+  --shine: inset 0 1px 0 rgb(255 255 255 / .09), inset 0 -1px 0 rgb(0 0 0 / .25);
+  --sink: inset 0 2px 5px rgb(0 0 0 / .45);
+  --gloss: linear-gradient(180deg, rgb(255 255 255 / .06), rgb(255 255 255 / 0) 50%, rgb(0 0 0 / .12));
+}
+/* cards */
+.clock, .shifts .shift-today, .hope-head, .hope-cal, .cal, .steps, fieldset, .sheet-scroll {
+  box-shadow: var(--shine), var(--lift);
+  background-image: var(--gloss);
+}
+.shift-today.big { box-shadow: var(--shine), var(--lift-hi); }
+.modal { box-shadow: var(--lift-hi), 0 30px 60px -20px rgb(0 0 0 / .35); }
+.invoice { box-shadow: 0 2px 6px rgb(0 0 0 / .1), 0 18px 40px -16px rgb(0 0 0 / .3); }
+/* punch keys: raised in their own colour, pressed down on tap, flat when not available */
+.key { box-shadow: var(--shine), 0 5px 0 var(--edge), 0 12px 18px -8px rgb(31 42 58 / .35); background-image: var(--gloss); transition: transform .08s, box-shadow .08s, filter .15s; }
+.key.brk:not(:disabled) { box-shadow: var(--shine), 0 5px 0 color-mix(in srgb, var(--break) 55%, transparent), 0 12px 18px -8px color-mix(in srgb, var(--break) 60%, transparent); }
+.key.dep:not(:disabled) { box-shadow: var(--shine), 0 5px 0 color-mix(in srgb, var(--dep) 55%, transparent), 0 12px 18px -8px color-mix(in srgb, var(--dep) 60%, transparent); }
+.key.in:not(:disabled) { box-shadow: var(--shine), 0 5px 0 color-mix(in srgb, var(--stamp) 55%, transparent), 0 12px 18px -8px color-mix(in srgb, var(--stamp) 60%, transparent); }
+.key.out:not(:disabled) { box-shadow: var(--shine), 0 5px 0 color-mix(in srgb, var(--stamp-red) 55%, transparent), 0 12px 18px -8px color-mix(in srgb, var(--stamp-red) 60%, transparent); }
+.key:not(:disabled):active { transform: translateY(5px); box-shadow: var(--sink); }
+.key:disabled { box-shadow: none; }
+/* buttons */
+.btn, .tool, .month-nav button, .key-sub, .hope-brush button {
+  box-shadow: var(--shine), 0 3px 0 var(--edge), 0 6px 12px -5px rgb(31 42 58 / .28);
+  background-image: var(--gloss);
+  transition: transform .08s, box-shadow .08s, filter .15s;
+}
+.btn.primary, .btn.okay { box-shadow: inset 0 1px 0 rgb(255 255 255 / .2), 0 5px 0 color-mix(in srgb, var(--accent) 55%, #000), 0 8px 16px -8px color-mix(in srgb, var(--accent) 70%, transparent); }
+.btn.primary, .btn.okay { background-image: linear-gradient(180deg, rgb(255 255 255 / .2), rgb(0 0 0 / .06)); }
+.btn.danger { box-shadow: 0 2px 0 color-mix(in srgb, var(--stamp-red) 40%, transparent); }
+.btn:not(:disabled):active, .tool:not(:disabled):active, .month-nav button:not(:disabled):active, .key-sub:not(:disabled):active, .hope-brush button:not(:disabled):active {
+  transform: translateY(3px); box-shadow: var(--sink);
+}
+.btn:disabled, .tool:disabled, .month-nav button:disabled, .key-sub:disabled, .hope-brush button:disabled { box-shadow: none; }
+.hope-submit .btn.primary { box-shadow: inset 0 1px 0 rgb(255 255 255 / .25), 0 6px 0 color-mix(in srgb, var(--accent) 55%, #000), 0 18px 30px -10px rgb(31 42 58 / .55); }
+/* the tab tray is sunk into the page and the chosen tab sits up in it */
+.tabs { box-shadow: var(--sink); background: var(--paper); }
+.tabs button[aria-selected="true"] { background-image: linear-gradient(180deg, rgb(255 255 255 / .2), rgb(0 0 0 / .06)); box-shadow: inset 0 1px 0 rgb(255 255 255 / .25), 0 3px 0 color-mix(in srgb, var(--accent) 55%, #000), 0 4px 8px -4px rgb(31 42 58 / .35); }
+/* a chosen mark is pressed in */
+.hope-brush button[aria-checked="true"] { box-shadow: var(--sink); transform: translateY(2px); }
+.pill { box-shadow: var(--shine), 0 1px 2px rgb(31 42 58 / .12); }
+/* marked days on the wish calendar stand up from the grid */
+.hc.v-ok, .hc.v-maybe { box-shadow: var(--shine), inset 0 -3px 0 rgb(31 42 58 / .1); background-image: var(--gloss); }
+.hc .mk { text-shadow: 0 1px 0 rgb(255 255 255 / .5), 0 2px 3px rgb(31 42 58 / .15); }
+.hc .far { box-shadow: 0 1px 0 color-mix(in srgb, var(--accent) 55%, #000); }
+/* the big clock and today's store get a soft engraved shadow */
+.time { text-shadow: 0 1px 0 rgb(255 255 255 / .6), 0 3px 8px rgb(31 42 58 / .12); }
+.shift-today.big .st-store { text-shadow: 0 1px 0 rgb(255 255 255 / .6); }
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) .time, :root:not([data-theme="light"]) .shift-today.big .st-store, :root:not([data-theme="light"]) .hc .mk { text-shadow: 0 2px 6px rgb(0 0 0 / .5); }
+}
+:root[data-theme="dark"] .time, :root[data-theme="dark"] .shift-today.big .st-store, :root[data-theme="dark"] .hc .mk { text-shadow: 0 2px 6px rgb(0 0 0 / .5); }
+/* inputs are sunk into the card */
+.f input, .f select, .f textarea { box-shadow: inset 0 1px 3px rgb(31 42 58 / .1); }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header class="brand">
+    <div class="brand-mark"><img class="logo" alt="Themis" src="data:image/png;base64,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"><span class="brand-name">Themis Portal</span></div>
+    <span class="brand-who" id="who"></span>
+  </header>
+  <section class="shifts" aria-label="予定">
+    <div class="shift-today big" id="shift-today">
+      <span class="st-label">今日の予定</span>
+      <span class="st-store">—</span>
+      <span class="st-done" id="st-done" hidden>稼働終了、本日もお疲れさまでした。</span>
+      <div class="st-foot"><span class="st-time"></span><button type="button" class="tool st-fix" id="st-fix">修正</button></div>
+    </div>
+    <div class="shift-today small" id="shift-next">
+      <span class="st-label">明日の予定<span class="num" id="st-next-date"></span></span>
+      <span class="st-store">—</span>
+      <div class="st-foot"><span class="st-time"></span><button type="button" class="tool st-fix" id="st-fix-next">修正</button></div>
+    </div>
+  </section>
+  <section class="clock" aria-label="打刻">
+    <div class="clock-top">
+      <div>
+        <div class="date" id="date">—</div>
+        <div class="time" id="time">--:--<span class="sec">:--</span></div>
+      </div>
+      <span class="pill" id="status" data-s="off">勤務外</span>
+    </div>
+    <div class="keys">
+      <button class="key brk" id="k-wake" type="button">起床<small>WAKE</small></button>
+      <button class="key dep" id="k-dep" type="button">出発<small>DEPART</small></button>
+      <button class="key in" id="k-in" type="button">出勤<small>IN</small></button>
+      <button class="key out" id="k-out" type="button" disabled>退勤<small>OUT</small></button>
+    </div>
+    <div class="sub-keys"><button type="button" class="key-sub" id="k-abs">欠勤にする</button></div>
+    <dl class="today">
+      <div><dt>起床</dt><dd id="t-wake">--:--</dd></div>
+      <div><dt>出発</dt><dd id="t-dep">--:--</dd></div>
+      <div><dt>出勤</dt><dd class="in" id="t-in">--:--</dd></div>
+      <div><dt>退勤</dt><dd class="out" id="t-out">--:--</dd></div>
+      <div><dt>実働</dt><dd id="t-work">0:00</dd></div>
+    </dl>
+    <div class="msg" id="msg" role="status" aria-live="polite"></div>
+  </section>
+
+  <div class="bar">
+    <div class="tabs" role="tablist">
+      <button type="button" role="tab" id="tab-card" aria-selected="true" aria-controls="p-card">シフト表</button>
+      <button type="button" role="tab" id="tab-hope" aria-selected="false" aria-controls="p-hope">シフト希望</button>
+      <button type="button" role="tab" id="tab-inv" aria-selected="false" aria-controls="p-inv">請求書</button>
+    </div>
+    <div class="month-nav">
+      <button type="button" id="m-prev" aria-label="前の月">‹</button>
+      <b id="m-label">—</b>
+      <button type="button" id="m-next" aria-label="次の月">›</button>
+      <button type="button" id="m-now">今月</button>
+    </div>
+  </div>
+
+  <section class="panel" id="p-card" role="tabpanel" aria-label="シフト表">
+    <div class="totals">
+      <span>出勤日数<b id="s-days">0</b>日</span>
+      <span>欠勤<b id="s-abs">0</b>日</span>
+      <span>総距離<b id="s-km">0</b>km</span>    </div>
+    <div class="cal">
+      <div class="cal-wd" aria-hidden="true"><div>日</div><div>月</div><div>火</div><div>水</div><div>木</div><div>金</div><div>土</div></div>
+      <div class="cal-grid" id="rows"></div>
+    </div>
+    <div class="legend"><span class="lg worked">出勤済み</span><span class="lg planned">予定</span><span class="lg absent">欠勤</span><span class="lg hol">土日祝</span><span>予定の時間を過ぎた日は、打刻がなくても出勤として数えます。日付を押すと、予定や実際の時間を入力できます。</span></div>
+    <div class="foot">
+      <span id="where">記録を読み込んでいます…</span>
+    </div>
+  </section>
+
+  <section class="panel" id="p-hope" role="tabpanel" aria-label="シフト希望" hidden>
+    <div class="hope-head">
+      <div class="hope-stat">
+        <span class="hope-due" id="h-due">締切 —</span>
+        <span>○ <b class="num" id="h-count">0</b>日</span>
+        <span>△ <b class="num" id="h-maybe">0</b>日</span>
+        <span class="hope-sent" id="h-sent"></span>
+      </div>
+      <p class="hope-how">下で ○ か △ を選んでから、カレンダーの日付を押してください。同じ印の日をもう一度押すと消えます。<b>何も付いていない日は「稼働不可」</b>として出します。</p>
+      <div class="hope-brush" id="h-brush" role="radiogroup" aria-label="付ける印">
+        <button type="button" role="radio" data-b="○" aria-checked="true"><span class="hb">○</span>稼働できる</button>
+        <button type="button" role="radio" data-b="△" aria-checked="false"><span class="hb">△</span>要相談</button>
+      </div>
+      <label class="hope-far" id="h-far-box"><input type="checkbox" id="h-far">遠方での稼働も可能<small>○の日に「遠方」が付きます</small></label>
+    </div>
+    <div class="hope-cal">
+      <div class="cal-wd" aria-hidden="true"><div>日</div><div>月</div><div>火</div><div>水</div><div>木</div><div>金</div><div>土</div></div>
+      <div class="hope-grid" id="h-list"></div>
+    </div>
+    <div class="hope-submit">
+      <div class="msg" id="h-msg" role="status" aria-live="polite"></div>
+      <button type="button" class="btn primary" id="h-submit">この内容で提出する</button>
+    </div>
+  </section>
+
+  <section class="panel" id="p-inv" role="tabpanel" aria-label="請求書" hidden>
+    <div class="inv-head">
+      <h2 id="inv-title">—</h2>
+      <span class="pill" id="inv-status" data-s="draft" hidden></span>
+    </div>
+
+    <div class="steps">
+      <ol id="inv-steps">
+        <li id="st-1">氏名・振込先を入力し、今月の請求金額を入れる</li>
+        <li id="st-p">シフト表で画像を添付する</li>
+        <li id="st-2">下の見本で金額と内容を確認する</li>
+        <li id="st-4">「Themisに提出」を押す（請求書PDFがメールでThemisに届きます）</li>
+      </ol>
+      <div class="actions">
+        <button type="button" class="btn okay" id="a-submit">Themisに提出</button>
+        <button type="button" class="btn okay" id="a-paid" hidden>入金を確認した</button>
+        <button type="button" class="btn danger" id="a-undo" hidden>提出を取り消す</button>
+      </div>
+      <div class="msg" id="inv-msg" role="status" aria-live="polite"></div>
+    </div>
+
+    <div class="forms">
+      <fieldset id="fs-bill">
+        <legend>請求書の内容（<span id="fs-month">—</span>）</legend>
+        <div class="f2">
+          <label class="f">請求番号<input id="i-no" type="text" maxlength="30"></label>
+          <label class="f">請求日<input id="i-date" type="date"></label>
+        </div>
+        <label class="f">件名<input id="i-subject" type="text" maxlength="60"></label>
+        <label class="f">請求金額（円・税込）<input id="i-amount" type="number" min="0" step="1" inputmode="numeric" placeholder="200000"></label>
+        <div class="f">
+          追加の明細（交通費など、税込金額）
+          <div class="extras" id="extras"></div>
+          <button type="button" class="tool" id="x-add" style="justify-self:start">＋ 明細を追加</button>
+        </div>
+        <label class="f">備考<textarea id="i-note" maxlength="300" placeholder="例：振込手数料はご負担ください。"></textarea></label>
+        <div class="hours"><span>この月の稼働日数（シフト表から）</span><b id="i-hours">0日</b></div>
+      </fieldset>
+
+      <fieldset id="fs-set">
+        <legend>毎月共通の設定</legend>
+        <div class="f">請求先<span class="fixed-to">株式会社Themis 御中</span></div>
+        <label class="f">あなたの氏名・屋号<input id="b-from" type="text" maxlength="60"></label>
+        <label class="f">メールアドレス（控えの送り先・Themisからの返信先・任意）<input id="b-mail" type="email" maxlength="80" inputmode="email"></label>
+        <div class="grp">
+          <div class="grp-h">住所・連絡先</div>
+          <div class="zip-row">
+            <label class="f">郵便番号<input id="b-zip" type="text" inputmode="numeric" autocomplete="off" maxlength="8" placeholder="160-0023"></label>
+            <span class="hint" id="b-zipmsg">7桁を入れると住所が自動で入ります</span>
+          </div>
+          <label class="f">住所<input id="b-address" type="text" autocomplete="off" maxlength="100" placeholder="東京都新宿区西新宿1-2-3"></label>
+          <label class="f">建物名・部屋番号（任意）<input id="b-building" type="text" autocomplete="off" maxlength="60" placeholder="〇〇マンション 101"></label>
+          <label class="f">電話番号<input id="b-tel" type="tel" inputmode="tel" autocomplete="off" maxlength="15" placeholder="090-1234-5678"></label>
+        </div>
+        <label class="f">登録番号（インボイス・任意）<input id="b-reg" type="text" maxlength="14" placeholder="T1234567890123" inputmode="latin"></label>
+        <label class="f">支払期限
+          <select id="b-due"><option value="next-end">翌月末</option><option value="next-15">翌月15日</option><option value="next2-end">翌々月末</option></select>
+        </label>
+        <label class="check"><input id="b-wh" type="checkbox"> 源泉徴収税を差し引く</label>
+        <p class="hint">外交員報酬の計算です。税込の合計金額から12万円を引いた額に10.21%を掛けます。合計金額が12万円以下の月は、チェックが自動で外れます。</p>
+        <div class="grp">
+          <div class="grp-h">振込先</div>
+          <div class="f2">
+            <label class="f">銀行名<span class="sfx-in"><input id="b-bankName" type="text" autocomplete="off" maxlength="30" placeholder="三井住友"><span class="sfx" id="b-bankSfx">銀行</span></span></label>
+            <label class="f">支店名<span class="sfx-in"><input id="b-branch" type="text" maxlength="30" placeholder="新宿"><span class="sfx" id="b-branchSfx">支店</span></span></label>
+          </div>
+          <p class="hint">ゆうちょ銀行の方は、支店名に「〇一八店」のように「店」まで入力してください。</p>
+          <div class="f2 acct">
+            <label class="f">口座の種類<select id="b-acctType"><option value="普通" selected>普通</option><option value="当座">当座</option></select></label>
+            <label class="f">口座番号<input id="b-acctNo" type="text" inputmode="numeric" maxlength="8" placeholder="1234567"></label>
+          </div>
+          <label class="f">口座名義（カタカナ）<input id="b-acctName" type="text" maxlength="40" placeholder="ヤマダ タロウ"></label>
+        </div>
+      </fieldset>
+    </div>
+
+    <div class="sheet-scroll">
+      <button type="button" class="thumb" id="inv-thumb" aria-label="請求書を大きく表示"><img id="inv-img" alt="請求書の見本"></button>
+      <span class="thumb-cap" id="inv-cap">請求書を作成しています…</span>
+    </div>
+    <p class="hint">「Themisに提出」を押すと、請求書PDF（交通費の証明画像のページを含む）がThemisの担当者にメールで届きます。メールアドレスを入れておくと、控えがあなたにも届きます。</p>
+  </section>
+</div>
+
+<div class="modal-bg" id="sheet" hidden>
+  <form class="modal" id="edit-form" novalidate>
+    <div class="modal-head"><h3 id="e-title">記録を修正</h3><button type="button" class="tool" id="e-back">‹ 戻る</button></div>
+    <div class="fields">
+      <div class="sec wide first">予定</div>
+      <p class="abs-note wide" id="f-absnote" hidden></p>
+      <label class="f wide">稼働店舗<input type="text" id="f-store" maxlength="60" placeholder="例：〇〇電機 新宿西口店"></label>
+      <div class="chips wide" id="store-chips" role="group" aria-label="前に入れた店舗"></div>
+      <label class="f">開始<input type="time" id="f-pin" step="300"></label>
+      <label class="f">終了<input type="time" id="f-pout" step="300"></label>
+      <div class="chips wide" id="plan-chips" role="group" aria-label="よく使う予定時間"></div>
+      <div class="sec wide sec-row"><span>稼働 <span class="actsum" id="f-actsum"></span></span><button type="button" class="tool" id="f-acttoggle" aria-expanded="false">修正</button></div>
+      <div class="wide act"><button type="button" class="tool" id="f-copyplan">予定の時間を出勤・退勤に入れる</button></div>
+      <label class="f act">出勤<input type="time" id="f-in" step="300"></label>
+      <label class="f act">退勤<input type="time" id="f-out" step="300"></label>
+      <div class="work-now wide act" id="f-work" aria-live="polite"></div>
+      <label class="check wide act"><input type="checkbox" id="f-early"> 早退</label>
+      <label class="f wide act" id="f-early-wrap" hidden>早退理由<input type="text" id="f-early-reason" maxlength="100" placeholder="例：体調不良のため"></label>
+      <div class="sec wide">交通機関</div>
+      <div class="f wide">交通機関（複数選べます）<div class="chips" id="f-transport" role="group" aria-label="交通機関"></div></div>
+      <label class="f wide" id="f-ride-wrap" hidden>誰の車に同乗しましたか<input type="text" id="f-ride" maxlength="40" placeholder="例：山田 太郎"></label>
+      <label class="f wide" id="f-km-wrap">距離（km）<input type="number" id="f-km" min="0" step="0.1" inputmode="decimal" placeholder="12.4"></label>
+      <div class="f wide" id="f-proof-wrap">交通費の証明画像
+        <div class="proofs" id="f-proofs" hidden></div>
+        <label class="tool upl" for="f-file">画像を添付</label>
+        <input type="file" id="f-file" accept="image/*" multiple hidden>
+        <span class="hint">乗換案内の画面か、地図アプリで自宅から現場までの距離が分かる画面のスクリーンショットを添付してください。交通機関か距離を入れた日は必須です（徒歩・自転車だけの日は不要）。</span>
+        <span class="hint perr" id="f-perr" role="alert"></span>
+      </div>
+      <div class="sec wide sec-row"><span>稼働実績</span><button type="button" class="tool" id="f-resedit">修正</button></div>
+      <label class="f wide res">この日の成果・対応内容<textarea id="f-result" maxlength="500" rows="3" placeholder="例：来店対応 12件、新規契約 3件、デモ実施 5回"></textarea></label>
+      <div class="sec wide">メモ</div>
+      <label class="f wide">Themisへの連絡事項など（任意）<textarea id="f-memo" maxlength="200" rows="2" placeholder="例：電車の遅延で10分遅れて到着しました"></textarea></label>
+    </div>
+    <div class="modal-actions">
+      <div>
+        <button type="button" class="btn danger" id="e-del">削除</button>
+        <button type="button" class="btn danger" id="e-abs">欠勤にする</button>
+      </div>
+      <div>
+        <button type="button" class="btn" id="e-cancel">キャンセル</button>
+        <button type="submit" class="btn primary">保存</button>
+      </div>
+    </div>
+  </form>
+</div>
+<div class="modal-bg" id="res-sheet" hidden>
+  <form class="modal" id="res-form" novalidate>
+    <h3>今日の稼働実績</h3>
+    <p class="hint" id="r-sub"></p>
+    <label class="f">この日の成果・対応内容<textarea id="r-text" maxlength="500" rows="5" placeholder="例：来店対応 12件、新規契約 3件、デモ実施 5回"></textarea></label>
+    <label class="check"><input type="checkbox" id="r-early"> 早退</label>
+    <label class="f" id="r-early-wrap" hidden>早退理由<input type="text" id="r-early-reason" maxlength="100" placeholder="例：体調不良のため"></label>
+    <div class="modal-actions">
+      <span></span>
+      <div>
+        <button type="button" class="btn" id="r-skip">あとで入力</button>
+        <button type="submit" class="btn primary">保存</button>
+      </div>
+    </div>
+  </form>
+</div>
+<div class="modal-bg" id="abs-sheet" hidden>
+  <form class="modal" id="abs-form" novalidate>
+    <h3>欠勤にする</h3>
+    <p class="hint" id="a-sub"></p>
+    <label class="f">欠勤理由<textarea id="a-text" maxlength="200" rows="3" placeholder="例：体調不良のため"></textarea></label>
+    <div class="modal-actions">
+      <span></span>
+      <div>
+        <button type="button" class="btn" id="a-cancel">やめる</button>
+        <button type="submit" class="btn danger armed">欠勤にする</button>
+      </div>
+    </div>
+  </form>
+</div>
+<div class="modal-bg" id="setup-sheet" hidden>
+  <form class="modal" id="setup-form" novalidate>
+    <h3>はじめに</h3>
+    <p class="hint">請求書に載せる情報を入力してください。あとから請求書タブの「毎月共通の設定」で変更できます。</p>
+    <label class="f">氏名・屋号<input id="s-from" type="text" maxlength="60" placeholder="例：山田 太郎"></label>
+    <div class="zip-row">
+      <label class="f">郵便番号<input id="s-zip" type="text" inputmode="numeric" autocomplete="off" maxlength="8" placeholder="160-0023"></label>
+      <span class="hint" id="s-zipmsg">7桁を入れると住所が自動で入ります</span>
+    </div>
+    <label class="f">住所<input id="s-address" type="text" autocomplete="off" maxlength="100" placeholder="東京都新宿区西新宿1-2-3"></label>
+    <label class="f">建物名・部屋番号（任意）<input id="s-building" type="text" autocomplete="off" maxlength="60" placeholder="〇〇マンション 101"></label>
+    <label class="f">電話番号<input id="s-tel" type="tel" inputmode="tel" autocomplete="off" maxlength="15" placeholder="090-1234-5678"></label>
+    <span class="hint perr" id="s-err" role="alert"></span>
+    <div class="modal-actions">
+      <span></span>
+      <div><button type="submit" class="btn primary">保存して始める</button></div>
+    </div>
+  </form>
+</div>
+<div class="modal-bg" id="contract-sheet" hidden>
+  <form class="modal contract" id="contract-form" novalidate>
+    <h3>業務委託契約書の締結</h3>
+    <p class="hint">契約書を最後まで読んでから、あなたの情報を入れて署名してください。署名した契約書はPDFになり、Themisに届きます。</p>
+    <div class="contract-text" id="c-text">
+      <div class="t">業務委託契約書</div>
+      <p>株式会社Themis（以下「甲」という。）と<span class="who" id="c-who">＿＿＿＿＿＿＿＿</span>（以下「乙」という。）は、携帯電話販売業務、イベント販売業務その他付随業務に関し、以下のとおり業務委託基本契約（以下「本契約」という。）を締結する。</p>
+      <h4>第1条（目的）</h4>
+      <p>本契約は、甲が乙に委託し、乙がこれを受託する携帯電話販売業務、通信関連サービス販売業務、イベント販売業務その他これらに付随又は関連する業務に関する基本的事項を定めることにより、甲乙間の権利義務関係を明確化し、本業務の適正かつ円滑な遂行を図ることを目的とする。</p>
+      <h4>第2条（委託業務）</h4>
+      <p>1. 甲は乙に対し、次の各号に定める業務（以下「本業務」という。）を委託し、乙はこれを受託するものとする。</p>
+      <p class="in1">（1）携帯電話、スマートフォン、通信回線、インターネット接続サービスその他通信関連商品の販売促進業務</p>
+      <p class="in1">（2）イベント販売、催事運営業務及び営業支援業務</p>
+      <p class="in1">（3）ショッピングモール、家電量販店、商業施設その他の施設における接客、販売及び顧客対応業務</p>
+      <p class="in1">（4）市場調査、販売実績報告その他前各号に付随し又は関連する業務</p>
+      <p class="in1">（5）前各号に付帯し、甲が別途指示する業務</p>
+      <p>2. 本業務の具体的内容、履行場所、履行期間、業務時間、報酬額、支払条件その他必要事項については、甲乙間で別途締結する個別契約書、注文書、発注書、電子メール、LINEその他電磁的方法による記録（以下総称して「個別契約」という。）において定めるものとする。</p>
+      <p>3. 個別契約と本契約の内容が抵触する場合には、個別契約の定めを優先して適用するものとする。</p>
+      <p>4. 乙は、本業務を善良なる管理者の注意をもって誠実に遂行するものとする。</p>
+      <h4>第3条（独立事業者性）</h4>
+      <p>1. 甲乙は、本契約が業務委託契約であり、甲乙間に雇用契約、労働契約、労働者派遣契約その他これらに類する法律関係を生じさせるものではないことを相互に確認する。</p>
+      <p>2. 乙は、自己の裁量及び責任において本業務を遂行するものとし、本業務の遂行方法、労働時間、人員配置その他業務運営に関する事項について甲から直接の指揮命令を受けないものとする。</p>
+      <p>3. 乙は、本業務遂行に必要な人員、設備、車両、通信機器その他一切の物品を自己の責任と費用負担において準備するものとする。</p>
+      <p>4. 乙は、本契約に基づく報酬について自らの責任において納税その他法令上必要な手続を行うものとする。</p>
+      <h4>第4条（業務責任者）</h4>
+      <p>1. 乙は、本業務遂行に関する責任者を選任し、その氏名及び連絡先を甲に通知するものとする。</p>
+      <p>2. 業務責任者に変更が生じた場合、乙は遅滞なく甲に対し書面又は電磁的方法により通知しなければならない。</p>
+      <p>3. 本業務に従事する者に対する指揮監督、勤怠管理、教育指導、安全衛生管理その他労務管理上必要な事項については、乙が自己の責任と費用負担において実施するものとする。</p>
+      <p>4. 乙又は乙の従事者の行為により甲又は第三者に損害が生じた場合、乙はその一切の責任を負うものとする。</p>
+      <h4>第5条（再委託）</h4>
+      <p>1. 乙は、甲の事前の書面による承諾を得ることなく、本業務の全部又は一部を第三者に再委託し、又はその履行を第三者に行わせてはならない。</p>
+      <p>2. 甲が再委託を承諾した場合であっても、乙は再委託先に本契約と同等以上の義務を負わせるものとする。</p>
+      <p>3. 再委託先の行為又は不作為により甲又は第三者に損害が生じた場合、乙は自己の行為と同一の責任を負うものとする。</p>
+      <h4>第6条（報酬及び支払方法）</h4>
+      <p>1. 本業務に対する報酬額は個別契約において定めるものとする。</p>
+      <p>2. 乙は、毎月末日を締日として当月分の報酬を集計し、翌月5営業日以内に甲へ請求書を提出するものとする。</p>
+      <p>3. 甲は、適法かつ有効な請求書を受領した日の属する月の翌月末日までに、乙の指定する金融機関口座へ振込送金の方法により支払うものとする。</p>
+      <p>4. 振込手数料は甲の負担とする。</p>
+      <p>5. 甲は、乙に対する債権を有する場合、乙に対して支払うべき報酬その他金員と対当額において相殺することができるものとする。</p>
+      <p>6. 乙は、甲の事前の書面による承諾なく、本契約に基づく債権を第三者へ譲渡し、担保に供し、又はその他の処分を行ってはならない。</p>
+      <h4>第7条（費用負担）</h4>
+      <p>1. 本業務遂行に要する交通費、通信費、宿泊費、備品代その他一切の費用は、個別契約に別段の定めがある場合を除き、乙の負担とする。</p>
+      <p>2. 甲が事前に承認した費用については、乙は領収書その他支出を証明する資料を添付のうえ甲へ請求するものとする。</p>
+      <h4>第8条（秘密保持）</h4>
+      <p>1. 乙は、本契約又は本業務に関連して知り得た甲、甲の取引先又は顧客に関する営業上、技術上、経営上その他一切の非公開情報（以下「秘密情報」という。）を厳重に管理し、甲の事前の書面による承諾なく第三者へ開示、漏洩又は提供してはならない。</p>
+      <p>2. 乙は、秘密情報を本業務遂行以外の目的に利用してはならない。</p>
+      <p>3. 乙は、秘密情報を知る必要のある者以外に開示してはならず、当該者に対して本契約と同等の秘密保持義務を負わせるものとする。</p>
+      <p>4. 乙は、本契約終了時又は甲から請求を受けた場合、秘密情報及びその複製物を直ちに返還又は廃棄しなければならない。</p>
+      <p>5. 本条に定める義務は、本契約終了後5年間存続するものとする。</p>
+      <h4>第9条（個人情報保護）</h4>
+      <p>1. 乙は、個人情報の保護に関する法律その他関連法令及びガイドラインを遵守し、個人情報を適切に管理するものとする。</p>
+      <p>2. 乙は、本業務遂行上知り得た個人情報を本業務遂行以外の目的に使用してはならない。</p>
+      <p>3. 乙は、個人情報の漏洩、滅失、毀損その他事故が発生し、又はそのおそれが生じた場合には、直ちに甲へ報告するとともに、甲の指示に従い必要な措置を講じなければならない。</p>
+      <p>4. 乙の責に帰すべき事由により個人情報漏洩等が発生し、甲又は第三者に損害が生じた場合、乙はその一切の損害（合理的な弁護士費用を含む。）を賠償する責任を負うものとする。</p>
+      <h4>第10条（顧客との直接取引の禁止）</h4>
+      <p>1. 乙は、本契約期間中及び本契約終了後1年間、甲の事前の書面による承諾なく、本業務を通じて知り得た甲の顧客、取引先又は見込顧客に対し、直接又は間接を問わず営業活動、勧誘、契約締結その他取引行為を行ってはならない。</p>
+      <p>2. 乙は、第三者を介する方法その他名目の如何を問わず、前項の規定を潜脱する行為を行ってはならない。</p>
+      <p>3. 乙が本条に違反した場合、乙は違約金として金500,000円を甲に支払うものとする。</p>
+      <p>4. 前項の違約金は損害賠償額の予定ではなく、甲は当該違約金とは別に、当該違反行為により被った損害の賠償を請求することができるものとする。</p>
+      <p>5. 本条の規定は、本契約終了後も有効に存続するものとする。</p>
+      <h4>第11条（人材及び取引先の引抜き禁止）</h4>
+      <p>1. 甲及び乙は、本契約期間中及び本契約終了後1年間、相手方の役員、従業員、業務委託先、協力会社、取引先その他これらに準ずる関係者に対し、自己又は第三者のために、転職、転籍、業務委託契約の締結その他これらに類する行為を勧誘し、又は引き抜きを行ってはならない。</p>
+      <p>2. 前項の規定には、直接的な勧誘のみならず、第三者を介した勧誘、SNSその他の通信手段を利用した勧誘その他実質的に引抜きに該当する一切の行為を含むものとする。</p>
+      <p>3. 前二項の規定に違反した場合、違反当事者は、違約金として1件につき金1,000,000円を相手方に支払うものとする。</p>
+      <p>4. 前項の違約金は損害賠償額の予定ではなく、相手方は当該違約金とは別に実際に被った損害の賠償を請求することができるものとする。</p>
+      <h4>第12条（競業避止義務）</h4>
+      <p>1. 乙は、本契約期間中及び本契約終了後1年間、甲の営業秘密、顧客情報、取引条件その他本業務を通じて知り得た情報を利用して、甲の既存顧客又は見込顧客に対し、甲と競合する事業又は業務に関する営業活動を行ってはならない。</p>
+      <p>2. 乙は、第三者を利用する方法その他名目の如何を問わず、前項の規定を潜脱する行為を行ってはならない。</p>
+      <p>3. 乙が本条に違反した場合、甲は乙に対し、当該違反行為の差止め及び損害賠償を請求することができるものとする。</p>
+      <h4>第13条（業務の履行及びキャンセル）</h4>
+      <p>1. 乙は、個別契約に基づき受託した業務を善良なる管理者の注意をもって誠実に履行しなければならない。</p>
+      <p>2. 乙は、本業務の履行が困難となり、又はそのおそれが生じた場合には、直ちに甲へ報告し、その指示に従うものとする。</p>
+      <p>3. 乙の都合により業務開始日の前日又は当日に業務をキャンセルする場合、乙は自己の責任と負担において代替要員の確保に最大限努めるものとする。</p>
+      <p>4. 乙による無断欠勤、無断キャンセル、著しい遅刻その他契約不履行により甲又は第三者に損害が生じた場合、乙はその一切の損害を賠償する責任を負うものとする。</p>
+      <p>5. 前項の損害には、代替要員確保費用、取引先対応費用、逸失利益その他合理的に発生した費用を含むものとする。</p>
+      <h4>第14条（損害賠償）</h4>
+      <p>1. 甲又は乙は、本契約又は個別契約に違反し、相手方に損害を与えた場合、その通常かつ直接の損害を賠償する責任を負うものとする。</p>
+      <p>2. 前項に基づく損害賠償額の総額は、損害発生時から遡って過去12か月間に甲が乙へ支払った報酬総額を上限とする。</p>
+      <p>3. 前項の規定は、次の各号のいずれかに該当する場合には適用しない。</p>
+      <p class="in1">（1）故意又は重過失による場合</p>
+      <p class="in1">（2）秘密保持義務違反</p>
+      <p class="in1">（3）個人情報保護義務違反</p>
+      <p class="in1">（4）第10条違反</p>
+      <p class="in1">（5）第11条違反</p>
+      <p class="in1">（6）第12条違反</p>
+      <p>4. 本条に基づく損害には、合理的な弁護士費用を含むものとする。</p>
+      <h4>第15条（反社会的勢力の排除）</h4>
+      <p>1. 甲及び乙は、現在及び将来にわたり、自ら並びにその役員、従業員及び実質的支配者が反社会的勢力に該当しないことを表明し保証する。</p>
+      <p>2. 甲及び乙は、自ら又は第三者を利用して、暴力的要求行為、脅迫的言動、風説の流布、偽計又は威力を用いる行為その他これらに準ずる行為を行わないことを保証する。</p>
+      <p>3. 相手方が前二項に違反した場合、他方当事者は何らの催告を要することなく直ちに本契約及び個別契約の全部又は一部を解除することができる。</p>
+      <p>4. 前項による解除により損害が生じた場合であっても、解除した当事者は何らの責任を負わないものとする。</p>
+      <h4>第16条（不可抗力）</h4>
+      <p>1. 天災地変、地震、津波、台風、感染症の流行、戦争、暴動、テロ行為、法令の制定又は改廃、行政機関による命令その他当事者の合理的支配を超える事由（以下「不可抗力事由」という。）により本契約上の義務を履行できない場合、当該当事者はその責任を負わないものとする。</p>
+      <p>2. 前項の場合、当該当事者は速やかに相手方へ通知し、損害の拡大防止に努めるものとする。</p>
+      <h4>第17条（契約期間）</h4>
+      <p>1. 本契約の有効期間は、本契約締結日から1年間とする。</p>
+      <p>2. 契約期間満了日の30日前までに、甲又は乙のいずれからも書面又は電磁的方法による更新拒絶の通知がなされない場合、本契約は同一条件にてさらに1年間更新されるものとし、以後も同様とする。</p>
+      <h4>第18条（任意解約）</h4>
+      <p>1. 甲又は乙は、相手方に対し30日前までに書面又は電磁的方法により通知することにより、本契約を将来に向かって解約することができる。</p>
+      <p>2. 前項による解約は、解約日以前に成立した個別契約の効力に影響を及ぼさないものとする。</p>
+      <h4>第19条（解除）</h4>
+      <p>1. 甲又は乙は、相手方が次の各号の一に該当した場合、何らの催告を要することなく直ちに本契約及び個別契約の全部又は一部を解除することができる。</p>
+      <p class="in1">（1）本契約又は個別契約に重大な違反をしたとき</p>
+      <p class="in1">（2）支払停止又は支払不能となったとき</p>
+      <p class="in1">（3）差押え、仮差押え、仮処分、強制執行又は競売の申立てを受けたとき</p>
+      <p class="in1">（4）破産手続開始、民事再生手続開始、会社更生手続開始又は特別清算開始の申立てがあったとき</p>
+      <p class="in1">（5）租税公課の滞納処分を受けたとき</p>
+      <p class="in1">（6）信用状態が著しく悪化したと認められるとき</p>
+      <p class="in1">（7）反社会的勢力との関与が判明したとき</p>
+      <p class="in1">（8）その他本契約を継続し難い重大な事由が生じたとき</p>
+      <p>2. 前項による解除により損害が生じた場合、解除した当事者は相手方に対して損害賠償を請求することができる。</p>
+      <h4>第20条（協議事項）</h4>
+      <p>本契約に定めのない事項又は本契約の各条項の解釈について疑義が生じた場合、甲乙は信義誠実の原則に従い、協議の上これを解決するものとする。</p>
+      <h4>第21条（合意管轄及び準拠法）</h4>
+      <p>1. 本契約及び個別契約の成立、効力、履行及び解釈については、日本法を準拠法とする。</p>
+      <p>2. 本契約又は個別契約に関して生じる一切の紛争については、東京地方裁判所を第一審の専属的合意管轄裁判所とする。</p>
+      <h4>第22条（権利義務の譲渡禁止）</h4>
+      <p>1. 甲及び乙は、相手方の事前の書面による承諾なく、本契約又は個別契約上の地位並びにこれらに基づく権利又は義務の全部若しくは一部を第三者に譲渡し、承継させ、担保に供し、その他一切の処分をしてはならない。</p>
+      <p>2. 前項に違反してなされた行為は、相手方に対する関係において無効とする。</p>
+      <h4>第23条（契約終了後の措置）</h4>
+      <p>1. 本契約が終了した場合、乙は、甲から貸与又は提供を受けた資料、名刺、制服、端末機器、記録媒体、営業資料、顧客情報その他甲に帰属する一切の物品及びデータを、直ちに甲へ返還し、又は甲の指示に従い廃棄若しくは削除しなければならない。</p>
+      <p>2. 乙は、前項に基づく廃棄又は削除を行った場合、甲から求められたときは、その事実を証明する書面又は電磁的方法による報告を行うものとする。</p>
+      <p>3. 本契約終了後においても、乙は甲の信用、名誉又は営業上の利益を害する行為を行ってはならない。</p>
+      <h4>第24条（存続条項）</h4>
+      <p>本契約が終了した場合であっても、その性質上存続すべき条項については引き続き有効に存続するものとし、特に第8条（秘密保持）、第9条（個人情報保護）、第10条（顧客との直接取引の禁止）、第11条（人材及び取引先の引抜き禁止）、第12条（競業避止義務）、第14条（損害賠償）、第21条（合意管轄及び準拠法）、本条及び第25条の規定は、本契約終了後も有効に存続するものとする。</p>
+      <h4>第25条（完全合意）</h4>
+      <p>1. 本契約は、本契約締結時における甲乙間の合意内容のすべてを規定するものであり、本契約締結以前に甲乙間でなされた口頭又は書面による協議、交渉、提案、確認その他一切の合意事項に優先するものとする。</p>
+      <p>2. 本契約の変更又は追加は、甲乙双方が書面又は電磁的方法により合意した場合に限り、その効力を生じるものとする。</p>
+      <h4>（甲）</h4>
+      <p>所在地：栃木県佐野市田沼町1220-2<br>商号：株式会社Themis<br>代表取締役：出井 張貴</p>
+    </div>
+    <p class="hint" id="c-readhint">契約書を最後までスクロールすると、同意のチェックができるようになります。</p>
+    <div class="grp">
+      <div class="grp-h">（乙）あなたの情報</div>
+      <label class="f">所在地<input id="c-addr" type="text" maxlength="120" placeholder="東京都新宿区西新宿1-2-3"></label>
+      <label class="f">商号・屋号（任意。個人の方は空欄で大丈夫です）<input id="c-party" type="text" maxlength="60"></label>
+      <label class="f">代表者（氏名）<input id="c-rep" type="text" maxlength="40" placeholder="山田 太郎"></label>
+      <label class="f">メールアドレス（署名済みの契約書の控えが届きます・任意）<input id="c-mail" type="email" maxlength="80" inputmode="email"></label>
+      <label class="f">契約締結日<input id="c-date" type="date"></label>
+      <span class="hint" id="c-date-jp"></span>
+    </div>
+    <div class="f">署名（指やマウスで氏名を書いてください）
+      <div class="sig-box">
+        <canvas id="c-sig" aria-label="署名欄"></canvas>
+        <span class="sig-hint" id="c-sig-hint">ここに署名</span>
+        <button type="button" class="tool" id="c-sig-clear">書き直す</button>
+      </div>
+    </div>
+    <label class="check"><input type="checkbox" id="c-agree" disabled> 上記の業務委託契約書の内容を確認し、同意します</label>
+    <span class="hint perr" id="c-err" role="alert"></span>
+    <div class="modal-actions">
+      <span></span>
+      <div><button type="submit" class="btn primary" id="c-submit">署名して締結する</button></div>
+    </div>
+  </form>
+</div>
+<div class="modal-bg viewer" id="inv-view" hidden>
+  <button type="button" class="tool viewer-close" id="v-close">‹ 戻る</button>
+  <div class="viewer-scroll" role="dialog" aria-label="請求書"><img id="inv-big" alt="請求書"></div>
+</div>
+<div id="pdf-host" aria-hidden="true"></div>
+
+<script src="config.js"></script>
+<script>
+(function () {
+  var q = new URLSearchParams(location.search).get("u"), t = q;
+  try { if (q) localStorage.setItem("tc_token", q); else t = localStorage.getItem("tc_token"); } catch (e) {}
+  window.TC_TOKEN = t && /^[0-9a-f]{32}$/.test(t) ? t : null;
+  window.TC_NAME = "";
+  if ("serviceWorker" in navigator) navigator.serviceWorker.register("sw.js").catch(function () {});
+})();
+</script>
+<script>
+// if the main script fails to start, say so on screen (with the line) instead of leaving dead buttons
+window.addEventListener("error", function (e) {
+  var t = "画面の読み込みでエラーが起きました：" + e.message + "（" + e.lineno + "行目）";
+  var m = document.getElementById("msg"), w = document.getElementById("where");
+  if (m) m.textContent = t;
+  if (w) w.textContent = t;
+});
+</script>
+<script>
+(() => {
+  const WD = ["日", "月", "火", "水", "木", "金", "土"];
+  const $ = (id) => document.getElementById(id);
+  const pad = (n) => String(n).padStart(2, "0");
+  const dayKey = (d) => `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}`;
+  const ymOf = (key) => key.slice(0, 7);
+  const hm = (ms) => { const d = new Date(ms); return `${pad(d.getHours())}:${pad(d.getMinutes())}`; };
+  const dur = (min) => { min = Math.max(0, Math.round(min)); return `${Math.floor(min / 60)}:${pad(min % 60)}`; };
+  const yen = (n) => "¥" + Math.round(n).toLocaleString("ja-JP");
+  const esc = (s) => String(s ?? "").replace(/[&<>"']/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]));
+  const jDate = (iso) => { if (!iso) return ""; const [y, m, d] = iso.split("-").map(Number); return `${y}年${m}月${d}日`; };
+  // Safari ignores autocomplete="off" and offers 連絡先を自動入力 on any field it guesses is a contact
+  // detail; it leaves a field alone when its name contains "search"
+  const noAutofill = (el) => { el.setAttribute("name", "search_" + (el.id || "field")); el.setAttribute("autocomplete", "off"); };
+  document.querySelectorAll('input[type="text"], input[type="tel"], input[type="email"], input:not([type]), textarea').forEach(noAutofill);
+
+  // ---- storage: named documents kept in the Themis spreadsheet through the Apps Script server ----
+  // m-YYYY-MM: {days:{}} · state: {openDate} · billing: settings · inv-YYYY-MM: this month's invoice
+  const docs = {};
+  const listeners = new Set();
+  const changed = () => listeners.forEach((f) => f());
+  let backend = null;
+  const doc = (name) => docs[name] || (docs[name] = {});
+  const month = (ym) => { const m = doc("m-" + ym); if (!m.days) m.days = {}; return m; };
+  const state = () => doc("state");
+
+  // every call carries the member's token from their personal link; the server checks it against
+  // the メンバー sheet and only ever reads or writes that member's rows
+  // opened from Apps Script, the page talks through google.script.run; as the installed app (served from its
+  // own site) it posts the same call as JSON to the Apps Script web app's URL, window.TC_API from config.js
+  const TOKEN = window.TC_TOKEN;
+  const viaGas = !!window.google?.script?.run;
+  const call = (fn, ...args) => viaGas
+    ? new Promise((res, rej) => { google.script.run.withSuccessHandler(res).withFailureHandler(rej)[fn](TOKEN, ...args); })
+    : fetch(window.TC_API, { method: "POST", headers: { "Content-Type": "text/plain;charset=utf-8" }, body: JSON.stringify({ fn, args: [TOKEN, ...args] }) })
+      .then((r) => r.json())
+      .then((d) => { if (!d.ok) throw new Error(d.error); return d.value; });
+  // documents are loaded once per page view (no live updates); proof images are fetched one by one
+  function gasBackend() {
+    const loaded = new Set(), chains = {};
+    return {
+      kind: "gas",
+      async load(names) {
+        const want = names.filter((n) => !loaded.has(n));
+        if (!want.length) return;
+        want.forEach((n) => loaded.add(n));
+        try {
+          const got = JSON.parse(await call("api_load", want));
+          for (const n of want) if (!busy(n)) docs[n] = got[n] || {};
+          changed();
+        } catch (e) {
+          want.forEach((n) => loaded.delete(n));
+          msg("記録を読み込めませんでした。通信状況を確認して、ページを再読み込みしてください。");
+        }
+      },
+      watch(name) { this.load([name]); },
+      async get(name) { const data = await call("api_getProof", name.slice(2)); return data ? { data } : null; },
+      put(name, body) { return call("api_putProof", name.slice(2), body.data); },
+      save(name) {
+        const body = JSON.stringify(doc(name));
+        return (chains[name] = (chains[name] || Promise.resolve()).catch(() => {}).then(() => call("api_save", name, body)));
+      },
+    };
+  }
+
+  // while a doc has an edit waiting or a write in flight, incoming snapshots are older than
+  // what's on screen; taking them would overwrite the newer local value (e.g. 20000 -> 2000)
+  const inflight = {};
+  const busy = (name) => !!saveTimers[name] || inflight[name] > 0;
+  async function persist(...names) {
+    names.forEach((n) => { inflight[n] = (inflight[n] || 0) + 1; });
+    try { await Promise.all(names.map((n) => backend.save(n))); return true; }
+    catch (e) {
+      const t = e?.message?.includes("URL")
+        ? e.message
+        : "保存できませんでした。通信状況を確認して、もう一度操作してください。";
+      msg(t); invMsg(t); return false;
+    } finally { names.forEach((n) => { inflight[n]--; }); }
+  }
+  const saveTimers = {};
+  function saveSoon(name) {
+    clearTimeout(saveTimers[name]);
+    saveTimers[name] = setTimeout(() => { delete saveTimers[name]; persist(name); }, 600);
+  }
+
+  // ---- record math ----
+  function breakMin(r, now) {
+    let m = r.breakMin || 0;
+    for (const b of r.breaks || []) m += ((b.e ?? now) - b.s) / 60000;
+    return m;
+  }
+  function workMin(r, now) {
+    if (!r || !r.in) return 0;
+    // breaks are no longer recorded; old break entries (some left open) are ignored so they can't swallow the shift
+    return Math.max(0, ((r.out ?? now) - r.in) / 60000);
+  }
+  const onBreak = (r) => !!r && !r.out && (r.breaks || []).some((b) => b.e == null);
+  // a worked day that claims travel (transport or distance) needs at least one proof image
+  // walking or cycling alone needs neither a distance nor a proof image; any other mode mixed in does
+  const NO_PROOF = new Set(["徒歩", "自転車"]);
+  const walkOnly = (t) => !!t && t.split("・").every((x) => NO_PROOF.has(x));
+  const missingProof = (r) => !!r && !!r.in && !r.absent && (!!r.transport || r.km != null) && !walkOnly(r.transport) && !(r.proofs && r.proofs.length);
+  const proofCache = {};
+  async function loadProof(id) {
+    if (id in proofCache) return proofCache[id];
+    try { const p = await backend.get("p-" + id); return (proofCache[id] = p?.data || null); } catch { return null; }
+  }
+  const rec = (key) => month(ymOf(key)).days[key];
+  const openRec = () => (state().openDate ? rec(state().openDate) : undefined);
+
+  // ---- punches ----
+  const msg = (t) => { $("msg").textContent = t; };
+  async function punch(kind) {
+    if (!backend) { msg("記録を読み込んでいます。少し待ってからもう一度押してください。"); return; }
+    const now = Date.now();
+    if (kind === "wake") {
+      const key = dayKey(new Date(now)), m = month(ymOf(key));
+      m.days[key] = { ...(m.days[key] || {}), wake: now };
+      msg(`${hm(now)} 起床を記録しました。`);
+      render(); await persist("m-" + ymOf(key)); return;
+    }
+    if (kind === "abs") {
+      const key = dayKey(new Date(now)), m = month(ymOf(key)), r = m.days[key];
+      if (r?.absent) { delete r.absent; delete r.absentReason; msg("今日の欠勤を取り消しました。"); }
+      else { m.days[key] = { ...(r || {}), absent: true }; msg(`今日${r?.store ? "の" + r.store : ""}のシフトを欠勤にしました。`); }
+      render(); await persist("m-" + ymOf(key)); return;
+    }
+    if (kind === "dep") {
+      const key = dayKey(new Date(now)), m = month(ymOf(key)), r = m.days[key];
+      if (!r?.wake) { msg("先に「起床」を押してください。"); return; }
+      m.days[key] = { ...(r || {}), depart: now };
+      msg(`${hm(now)} ${r?.store ? r.store + "へ" : ""}出発を記録しました。`);
+      render(); await persist("m-" + ymOf(key)); return;
+    }
+    if (kind === "in") {
+      const key = dayKey(new Date(now)), m = month(ymOf(key)), r = m.days[key];
+      if (r?.out) return;             // one clock-in per day
+      if (!r?.depart) { msg(r?.wake ? "先に「出発」を押してください。" : "先に「起床」を押してください。"); return; }
+      // keep a planned shift's store and route when clocking in on that day
+      const base = { ...(r || {}) }; delete base.breakMin;
+      m.days[key] = { ...base, in: now, out: null, breaks: [], memo: r?.memo || "" };
+      msg(`${hm(now)} ${r?.store ? r.store + "で" : ""}出勤を記録しました。`);
+      state().openDate = key;
+      render(); await persist("m-" + ymOf(key), "state"); return;
+    }
+    const key = state().openDate, r = openRec();
+    if (!r) return;
+    if (kind === "out") {
+      for (const b of r.breaks || []) if (b.e == null) b.e = now;
+      r.out = now; state().openDate = null;
+      msg(`${hm(now)} 退勤しました。本日の実働 ${dur(workMin(r, now))}。お疲れさまでした。`);
+    }
+    render();
+    // after clocking out, open the day so the results can be written down right away
+    if (kind === "out") openResult(key);
+    await persist("m-" + ymOf(key), "state");
+  }
+  $("k-wake").onclick = () => punch("wake");
+  $("k-dep").onclick = () => punch("dep");
+  // marking absent takes a second press; cancelling an absence does not
+  let absArmed = false, absTimer = null;
+  const resetAbs = () => { clearTimeout(absTimer); absArmed = false; $("k-abs").classList.remove("armed"); render(); };
+  $("k-abs").onclick = () => {
+    if (rec(dayKey(new Date()))?.absent) { punch("abs"); return; }
+    openAbsence(dayKey(new Date()));
+  };
+  $("k-in").onclick = () => punch("in");
+  // 修正 on today's card opens the day's record (the shift still open from yesterday, if any)
+  $("st-fix").onclick = () => openSheet(state().openDate || dayKey(new Date()));
+  $("st-fix-next").onclick = () => { const d = new Date(); openSheet(dayKey(new Date(d.getFullYear(), d.getMonth(), d.getDate() + 1))); };  $("k-out").onclick = () => punch("out");
+
+  // ---- tabs + month ----
+  // the page always opens on the shift calendar
+  let tab = "card";
+  function setTab(t) {
+    // each tab keeps its own month: the shift calendar opens on this month, invoices on last month
+    if (t !== tab) { tabView[tab] = view; tab = t; }
+    view = tabView[t]; clampView(); watchView(); fillForms(true);
+    $("m-now").textContent = { inv: "先月分", hope: "来月" }[t] || "今月";
+    for (const k of ["card", "hope", "inv"]) {
+      $("tab-" + k).setAttribute("aria-selected", t === k);
+      $("p-" + k).hidden = t !== k;
+    }
+    render();
+  }
+  $("tab-card").onclick = () => setTab("card");
+  $("tab-hope").onclick = () => setTab("hope");
+  $("tab-inv").onclick = () => setTab("inv");
+
+  let view = new Date(); view = new Date(view.getFullYear(), view.getMonth(), 1);
+  const tabView = { card: view, inv: new Date(view.getFullYear(), view.getMonth() - 1, 1), hope: new Date(view.getFullYear(), view.getMonth() + 1, 1) };
+  const viewYm = () => `${view.getFullYear()}-${pad(view.getMonth() + 1)}`;
+  function watchView() {
+    if (!backend) return;
+    backend.watch("m-" + viewYm()); backend.watch("inv-" + viewYm());
+    if (tab === "hope") backend.watch("hope-" + viewYm());
+  }
+  // invoices are for finished months only: the invoice tab never goes past last month
+  const lastBillable = () => { const d = new Date(); return new Date(d.getFullYear(), d.getMonth() - 1, 1); };
+  // wishes are for months still ahead: the wish tab never goes before next month
+  const firstHope = () => { const d = new Date(); return new Date(d.getFullYear(), d.getMonth() + 1, 1); };
+  const clampView = () => {
+    if (tab === "inv" && view > lastBillable()) view = lastBillable();
+    if (tab === "hope" && view < firstHope()) view = firstHope();
+  };
+  function shiftMonth(n) { view = new Date(view.getFullYear(), view.getMonth() + n, 1); clampView(); watchView(); fillForms(true); render(); }
+  $("m-prev").onclick = () => shiftMonth(-1);
+  $("m-next").onclick = () => shiftMonth(1);
+  $("m-now").onclick = () => { const d = new Date(); view = new Date(d.getFullYear(), d.getMonth() + ({ inv: -1, hope: 1 }[tab] || 0), 1); watchView(); fillForms(true); render(); };
+
+  function monthRows(ym = viewYm()) {
+    const [y, mo] = ym.split("-").map(Number);
+    const n = new Date(y, mo, 0).getDate(), days = month(ym).days, out = [], now = Date.now();
+    for (let d = 1; d <= n; d++) { const date = new Date(y, mo - 1, d); out.push({ key: dayKey(date), date, r: asWorked(dayKey(date), days[dayKey(date)], now) }); }
+    return out;
+  }
+  // a planned shift whose time has passed without a clock-in or absence counts as worked, at the planned
+  // times; this is derived for display and totals only, the stored record is left as entered
+  function asWorked(key, r, now) {
+    if (!r || r.in || r.absent || !(r.store || r.planIn)) return r;
+    const start = r.planIn ? atTime(key, r.planIn) : atTime(key, "00:00");
+    let end = r.planOut ? atTime(key, r.planOut) : start;
+    if (end < start) end += 86400000;
+    // counts from the planned start; while the planned end is still ahead the shift is in progress
+    const due = r.planIn ? start : start + 86400000;
+    if (due > now) return r;
+    return { ...r, in: start, out: r.planIn && end > now ? null : end, breaks: [], fromPlan: true };
+  }
+  const monthWorkMin = (ym, now) => monthRows(ym).reduce((s, x) => s + (x.r?.in ? workMin(x.r, now) : 0), 0);
+
+  // ---- invoice math ----
+  // 外交員報酬（営業代行）: (税込の支払金額 − 12万円) × 10.21%、1円未満切り捨て
+  const withholding = (base) => Math.max(0, Math.floor((base - 120000) * 0.1021));
+  function dueFrom(ym, rule) {
+    const [y, m] = ym.split("-").map(Number);
+    const d = rule === "next-15" ? new Date(y, m, 15) : rule === "next2-end" ? new Date(y, m + 2, 0) : new Date(y, m + 1, 0);
+    return dayKey(d);
+  }
+  const lastDay = (ym) => { const [y, m] = ym.split("-").map(Number); return dayKey(new Date(y, m, 0)); };
+
+  function computeInvoice(ym, now) {
+    const inv = doc("inv-" + ym);
+    if (inv.snapshot) return inv.snapshot;   // submitted invoices stay exactly as sent
+    const b = doc("billing"), [y, m] = ym.split("-").map(Number);
+    // the month's amount is entered as-is (tax-inclusive); an empty month reuses the last amount entered
+    const amount = Number(inv.amount ?? b.lastAmount) || 0;
+    const minutes = Math.round(monthWorkMin(ym, now));
+    const days = monthRows(ym).filter((x) => x.r?.in).length;
+    const lines = [{ name: `${y}年${m}月分 業務委託料（稼働 ${days}日）`, qty: "1", unitLabel: "式", price: amount, amount }];    for (const x of inv.extras || []) if (x.name || x.amount) lines.push({ name: x.name || "（品目）", qty: "1", unitLabel: "式", price: Number(x.amount) || 0, amount: Number(x.amount) || 0 });
+    // every amount is entered tax-inclusive; the 10% portion is backed out of the total
+    const gross = lines.reduce((s, l) => s + l.amount, 0);
+    const taxRate = 10;
+    const tax = Math.floor(gross * taxRate / (100 + taxRate));
+    const subtotal = gross - tax;
+    // withholding is on unless the person unticked it, and never applies at or below ¥120,000
+    const whOn = b.wh !== false && gross > 120000;
+    const wh = whOn ? withholding(gross) : 0;
+    return {
+      ym, no: inv.no || `${ym.replace("-", "")}-001`, issueDate: inv.date || (dayKey(new Date()) > lastDay(ym) ? dayKey(new Date()) : lastDay(ym)), dueDate: dueFrom(ym, b.due),
+      subject: inv.subject || `${y}年${m}月分 業務委託料`, note: inv.note || "",
+      to: CLIENT, from: b.from || "", addr: b.addr || "", reg: b.reg || "", bank: b.bank || "",
+      days, minutes, lines, gross, subtotal, taxRate, tax, wh, whOn, total: gross - wh,
+    };
+  }
+
+  function invoiceHTML(v) {
+    const ph = (val, text) => val ? esc(val) : `<span class="ph">${text}</span>`;
+    // the mincho face draws digits small beside its kanji; set them in the number face so 2026年9月 reads evenly
+    const dg = (s) => esc(s).replace(/\d+/g, (n) => `<span class="dg">${n}</span>`);
+    const sealChar = (v.from || "").replace(/\s/g, "").slice(0, 2);
+    return `
+      <div class="ttl">請求書</div>
+      <dl class="meta"><dt>請求番号</dt><dd class="no">${esc(v.no)}</dd><dt>請求日</dt><dd>${dg(jDate(v.issueDate))}</dd>${v.reg ? `<dt>登録番号</dt><dd>${esc(v.reg)}</dd>` : ""}</dl>
+      <div class="parties">
+        <div>
+          <div class="to-name">${ph(v.to, "（請求先を入力）")} 御中</div>
+        </div>
+        <div class="from"><div class="from-text"><div class="name">${ph(v.from, "（氏名・屋号を入力）")}</div>${esc(v.addr)}</div>${sealChar ? `<div class="seal">${[...sealChar].map((c) => `<span>${esc(c)}</span>`).join("")}</div>` : ""}</div>
+      </div>
+      <div class="lead">件名：${dg(v.subject)}<br>下記のとおりご請求申し上げます。</div>
+      <div class="amount"><span>ご請求金額</span><b>${yen(v.total)}</b><span>${v.taxRate ? "（税込）" : ""}</span></div>
+      <table>
+        <thead><tr><th>品目</th><th class="c">数量</th><th class="c">単位</th><th class="r">単価${v.taxRate ? "（税込）" : ""}</th><th class="r">金額${v.taxRate ? "（税込）" : ""}</th></tr></thead>
+        <tbody>${v.lines.map((l) => `<tr><td>${dg(l.name)}</td><td class="c n">${esc(l.qty)}</td><td class="c">${l.unitLabel}</td><td class="r n">${yen(l.price)}</td><td class="r n">${yen(l.amount)}</td></tr>`).join("")}</tbody>
+      </table>
+      <div class="sum">
+        <div class="taxbox">${v.taxRate ? `<p>${v.taxRate}%対象（税込）　${yen(v.gross)}<br>内消費税　${yen(v.tax)}</p>` : `<p>消費税は含みません。</p>`}${v.whOn ? `<p>源泉徴収税額は（${v.taxRate ? "税込" : ""}合計 ${yen(v.gross)} − 120,000円）× 10.21%で算出しています。</p>` : ""}</div>
+        <table>
+          <tr><td>合計${v.taxRate ? "（税込）" : ""}</td><td class="r n">${yen(v.gross)}</td></tr>
+          ${v.taxRate ? `<tr><td>うち消費税（${v.taxRate}%）</td><td class="r n">${yen(v.tax)}</td></tr>` : ""}
+          ${v.whOn ? `<tr><td>源泉徴収税</td><td class="r n">−${yen(v.wh)}</td></tr>` : ""}
+          <tr class="total"><td>ご請求金額</td><td class="r n">${yen(v.total)}</td></tr>
+        </table>
+      </div>
+      <div class="block"><h4>お支払期限</h4><p>${dg(jDate(v.dueDate))}</p></div>
+      <div class="block"><h4>お振込先</h4><p>${ph(v.bank, "（振込先を入力）")}</p></div>
+      ${v.note ? `<div class="block"><h4>備考</h4><p>${esc(v.note)}</p></div>` : ""}
+      <div class="grow"></div>`;
+  }
+
+  // ---- invoice form ----
+  const CLIENT = "株式会社Themis";
+  // address and bank account are entered field by field; the invoice still prints them as the two
+  // text blocks addr and bank, rebuilt from the fields on every edit
+  const ADDR = ["zip", "address", "building", "tel"];
+  const BANK = ["bankName", "branch", "acctType", "acctNo", "acctName"];
+  const BILL = ["from", "mail", "reg", "due", ...ADDR, ...BANK];
+  const INV = ["no", "date", "subject", "note"];
+  const BILL_DEFAULTS = { due: "next-end", acctType: "普通" };
+  // 銀行 and 支店 are added for the person; names that already end in another word for the institution
+  // or branch (信用金庫, 本店, 営業部, ゆうちょの「〇一八店」…) are printed as typed
+  const BANK_END = /(銀行|金庫|組合|農協)$/, BRANCH_END = /(店|営業部|出張所|支所)$/;
+  const fullBank = (v) => (v && !BANK_END.test(v) ? v + "銀行" : v || "");
+  const fullBranch = (v) => (v && !BRANCH_END.test(v) ? v + "支店" : v || "");
+  const stripEnd = (v, w) => (v && v.length > w.length && v.endsWith(w) ? v.slice(0, -w.length) : v || "");
+  const syncSfx = () => {
+    $("b-bankSfx").hidden = BANK_END.test($("b-bankName").value.trim());
+    $("b-branchSfx").hidden = BRANCH_END.test($("b-branch").value.trim());
+  };
+  function composeBilling(b) {
+    b.addr = [b.zip ? "〒" + b.zip : "", [b.address, b.building].filter(Boolean).join(" "), b.tel ? "TEL " + b.tel : ""].filter(Boolean).join("\n");
+    const acct = b.acctNo ? `${b.acctType || "普通"} ${b.acctNo}` : "";
+    b.bank = [[fullBank(b.bankName), fullBranch(b.branch)].filter(Boolean).join(" "), [acct, b.acctName].filter(Boolean).join("　")].filter(Boolean).join("\n");
+  }
+  // records saved before the split only have the two text blocks; pull the parts out of them once
+  function splitOldBilling(b) {
+    if (b.addr && !ADDR.some((k) => b[k])) {
+      let rest = b.addr;
+      const zip = rest.match(/〒?\s*(\d{3})-?(\d{4})/);
+      if (zip) { b.zip = `${zip[1]}-${zip[2]}`; rest = rest.replace(zip[0], ""); }
+      const tel = rest.match(/(?:TEL|電話)?[:：\s]*(0\d{1,4}-?\d{1,4}-?\d{3,4})/);
+      if (tel) { b.tel = tel[1]; rest = rest.replace(tel[0], ""); }
+      b.address = rest.replace(/\s+/g, " ").trim();
+    }
+    if (b.bank && !BANK.some((k) => b[k] && !(k === "acctType"))) {
+      const t = b.bank.replace(/\s+/g, " ").trim();
+      const bank = t.match(/^(\S+?(?:銀行|信用金庫|金庫|信用組合|組合|農協))\s*(\S+?(?:支店|出張所|営業部|本店))?/);
+      const acct = t.match(/(普通|当座)\s*(\d{4,8})\s*(.*)$/);
+      if (bank) { b.bankName = bank[1]; b.branch = bank[2] || ""; }
+      if (acct) { b.acctType = acct[1]; b.acctNo = acct[2]; b.acctName = acct[3].trim(); }
+      if (!bank && !acct) b.bankName = t;
+    }
+  }
+  const digits = (s) => String(s || "").normalize("NFKC").replace(/\D/g, "");
+  const toKatakana = (s) => String(s || "").normalize("NFKC").replace(/[ぁ-ゖ]/g, (c) => String.fromCharCode(c.charCodeAt(0) + 0x60));
+  // postal code -> address through zipcloud (JSONP, so it works inside the Apps Script frame)
+  function lookupZip(zip) {
+    return new Promise((res) => {
+      const cb = "zip" + Date.now() + Math.floor(Math.random() * 1e6), s = document.createElement("script");
+      const done = (v) => { delete window[cb]; s.remove(); clearTimeout(t); res(v); };
+      const t = setTimeout(() => done(null), 6000);
+      window[cb] = (d) => { const r = d && d.results && d.results[0]; done(r ? r.address1 + r.address2 + r.address3 : null); };
+      s.onerror = () => done(null);
+      // built from pieces in plain quotes: Apps Script cuts the line at a "//" written inside backticks
+      s.src = "https:" + "/" + "/zipcloud.ibsnet.co.jp/api/search?zipcode=" + zip + "&callback=" + cb;
+      document.head.appendChild(s);
+    });
+  }
+  // a 7-digit postal code fills the address (only while it is empty or still the filled-in town),
+  // and is shown as 123-4567 once the field is left
+  function zipField(zipEl, addrEl, msgEl, onFill) {
+    let auto = "";
+    zipEl.addEventListener("input", async () => {
+      const z = digits(zipEl.value);
+      if (z.length !== 7) return;
+      msgEl.textContent = "住所を探しています…";
+      const a = await lookupZip(z);
+      if (digits(zipEl.value) !== z) return;
+      if (!a) { msgEl.textContent = "住所が見つかりませんでした。直接入力してください。"; return; }
+      msgEl.textContent = "住所を入れました。番地を続けて入力してください。";
+      if (!addrEl.value.trim() || addrEl.value === auto) { addrEl.value = a; auto = a; if (onFill) onFill(); }
+    });
+    zipEl.addEventListener("blur", () => { const z = digits(zipEl.value); if (z.length === 7) zipEl.value = z.slice(0, 3) + "-" + z.slice(3); zipEl.dispatchEvent(new Event("change")); });
+  }
+  function fillForms(force) {
+    const invName = "inv-" + viewYm();
+    const b = doc("billing"), inv = doc(invName), v = computeInvoice(viewYm(), Date.now());
+    splitOldBilling(b);
+    const set = (el, val) => { if (force || document.activeElement !== el) el.value = val ?? ""; };
+    // an empty saved value falls back to the default too, so the account type always shows 普通 until changed
+    for (const k of BILL) set($("b-" + k), b[k] || BILL_DEFAULTS[k] || "");
+    // names saved with 銀行 / 支店 typed in show without them, beside the fixed words
+    set($("b-bankName"), stripEnd(b.bankName, "銀行")); set($("b-branch"), stripEnd(b.branch, "支店"));
+    syncSfx();
+    set($("i-no"), inv.no ?? v.no); set($("i-date"), inv.date ?? v.issueDate);
+    set($("i-subject"), inv.subject ?? v.subject); set($("i-note"), inv.note ?? "");
+    set($("i-amount"), inv.amount ?? b.lastAmount ?? "");
+    const box = $("extras");
+    if (force || !box.contains(document.activeElement)) {
+      box.replaceChildren(...(inv.extras || []).map((x, i) => {
+        const row = document.createElement("div"); row.className = "extra";
+        row.innerHTML = `<input type="text" id="x-name-${i}" maxlength="40" placeholder="交通費" aria-label="品目"><input type="number" id="x-amt-${i}" min="0" step="10" inputmode="numeric" placeholder="0" aria-label="金額"><button type="button" aria-label="この明細を削除">×</button>`;
+        row.children[0].value = x.name || ""; row.children[1].value = x.amount ?? "";
+        noAutofill(row.children[0]);
+        // look the invoice up on every edit: a reload replaces the stored object, and a reference
+        // captured here would keep writing to the old copy that is no longer saved or shown
+        const ex = () => { const d = doc(invName); if (!d.extras) d.extras = []; return d.extras; };
+        row.children[0].oninput = () => { const e = ex()[i]; if (!e) return; e.name = row.children[0].value; invChanged(); };
+        row.children[1].oninput = () => { const e = ex()[i]; if (!e) return; e.amount = Number(row.children[1].value) || 0; invChanged(); };
+        row.children[2].onclick = () => { ex().splice(i, 1); invChanged(); fillForms(true); };
+        return row;
+      }));
+    }
+  }
+  function invChanged() { saveSoon("inv-" + viewYm()); renderInvoice(); }
+  const billEdited = (k) => { const b = doc("billing"); b[k] = $("b-" + k).value.trim(); composeBilling(b); saveSoon("billing"); renderInvoice(); };
+  for (const k of BILL) {
+    $("b-" + k).addEventListener("input", () => billEdited(k));
+    $("b-" + k).addEventListener("change", () => billEdited(k));
+  }
+  // tidy what was typed once the field is left: digits only for numbers, katakana for the account name
+  $("b-bankName").addEventListener("input", syncSfx);
+  $("b-branch").addEventListener("input", syncSfx);
+  $("b-bankName").addEventListener("blur", () => { $("b-bankName").value = stripEnd($("b-bankName").value.trim(), "銀行"); billEdited("bankName"); syncSfx(); });
+  $("b-branch").addEventListener("blur", () => { $("b-branch").value = stripEnd($("b-branch").value.trim(), "支店"); billEdited("branch"); syncSfx(); });
+  $("b-acctNo").addEventListener("blur", () => { $("b-acctNo").value = digits($("b-acctNo").value); billEdited("acctNo"); });
+  $("b-acctName").addEventListener("blur", () => { $("b-acctName").value = toKatakana($("b-acctName").value); billEdited("acctName"); });
+  $("b-tel").addEventListener("blur", () => { $("b-tel").value = $("b-tel").value.normalize("NFKC").replace(/[^\d-]/g, ""); billEdited("tel"); });
+  zipField($("b-zip"), $("b-address"), $("b-zipmsg"), () => billEdited("address"));
+  $("b-wh").addEventListener("change", () => { doc("billing").wh = $("b-wh").checked; saveSoon("billing"); renderInvoice(); });
+  for (const k of INV) $("i-" + k).addEventListener("input", () => { doc("inv-" + viewYm())[k] = $("i-" + k).value; invChanged(); });
+  $("i-amount").addEventListener("input", () => {
+    const val = $("i-amount").value;
+    doc("inv-" + viewYm()).amount = val; doc("billing").lastAmount = val;
+    saveSoon("billing"); invChanged();
+  });
+  $("x-add").onclick = () => { const inv = doc("inv-" + viewYm()); inv.extras = [...(inv.extras || []), { name: "", amount: 0 }]; invChanged(); fillForms(true); const el = $("x-name-" + (inv.extras.length - 1)); if (el) focusIfMouse(el); };
+
+  const invMsg = (t) => { $("inv-msg").textContent = t; };
+  let lastInvKey = "";
+  // ---- shift wishes ----
+  // one doc per month: hope-YYYY-MM = {days: {"YYYY-MM-DD": "○"|"○遠"|"△"}, submittedAt}; a day left blank is 稼働不可
+  // the person picks a mark (○ with or without 遠方, or △) and taps days on the calendar to put it on;
+  // choices stay on this device until 「この内容で提出する」, and the server refuses changes after the deadline
+  const HOPES = ["○", "○遠", "△"];
+  const HOPE_DUE_DAY = 25;   // wishes for a month close on the 25th of the month before, end of day
+  const hopeDoc = (ym) => { const h = doc("hope-" + ym); if (!h.days) h.days = {}; return h; };
+  const hopeDue = (ym) => { const [y, mo] = ym.split("-").map(Number); return new Date(y, mo - 2, HOPE_DUE_DAY, 23, 59, 59); };
+  const hopeDirty = {};
+  let lastHopeSig = "", hopeBrush = "○";
+  const hopeMsg = (t) => { $("h-msg").textContent = t || ""; };
+  const brushValue = () => (hopeBrush === "○" && $("h-far").checked ? "○遠" : hopeBrush);
+
+  function renderHope() {
+    const ym = viewYm(), h = hopeDoc(ym), due = hopeDue(ym), closed = Date.now() > due.getTime();
+    const [y, mo] = ym.split("-").map(Number), n = new Date(y, mo, 0).getDate();
+    const vals = Object.keys(h.days).filter((k) => k.startsWith(ym)).map((k) => h.days[k]);
+    $("h-due").textContent = closed ? "締切済み" : `締切 ${due.getMonth() + 1}/${due.getDate()}`;
+    $("h-due").classList.toggle("closed", closed);
+    $("h-count").textContent = vals.filter((v) => v === "○" || v === "○遠").length;
+    $("h-maybe").textContent = vals.filter((v) => v === "△").length;
+    const sent = $("h-sent");
+    sent.classList.toggle("dirty", !!hopeDirty[ym]);
+    sent.textContent = hopeDirty[ym] ? "まだ提出していない変更があります" : h.submittedAt ? `提出済み（${h.submittedAt}）` : "";
+    for (const b of $("h-brush").querySelectorAll("button")) { b.setAttribute("aria-checked", b.dataset.b === hopeBrush); b.disabled = closed; }
+    // 遠方 only applies to ○
+    $("h-far").disabled = closed || hopeBrush !== "○";
+    $("h-far-box").classList.toggle("off", hopeBrush !== "○");
+    $("h-submit").disabled = closed;
+    $("h-submit").textContent = closed ? "締切を過ぎました" : h.submittedAt ? "この内容で出し直す" : "この内容で提出する";
+
+    const sig = ym + closed + JSON.stringify(h.days);
+    if (sig === lastHopeSig) return;
+    lastHopeSig = sig;
+    const frag = document.createDocumentFragment();
+    const lead = new Date(y, mo - 1, 1).getDay();
+    for (let i = 0; i < lead; i++) frag.appendChild(Object.assign(document.createElement("div"), { className: "hc blank" }));
+    for (let d = 1; d <= n; d++) {
+      const date = new Date(y, mo - 1, d), key = dayKey(date), hol = holidayName(key), v = h.days[key];
+      const cell = document.createElement("button");
+      cell.type = "button"; cell.dataset.k = key; cell.disabled = closed;
+      cell.className = `hc wd-${date.getDay()}` + (hol ? " hol" : "") + (v === "△" ? " v-maybe" : v ? " v-ok" : "");
+      cell.innerHTML = `<span class="dn">${d}</span>` + (hol ? `<span class="hn">${esc(hol)}</span>` : "") +
+        (v ? `<span class="mk">${v === "△" ? "△" : "○"}</span>` : "") + (v === "○遠" ? `<span class="far">✓遠方</span>` : "");
+      cell.setAttribute("aria-label", `${mo}月${d}日（${WD[date.getDay()]}）${hol ? " " + hol : ""} ` +
+        ({ "○": "稼働できる", "○遠": "稼働できる・遠方も可", "△": "要相談" }[v] || "稼働不可"));
+      frag.appendChild(cell);
+    }
+    for (let i = (lead + n) % 7; i && i < 7; i++) frag.appendChild(Object.assign(document.createElement("div"), { className: "hc blank" }));
+    $("h-list").replaceChildren(frag);
+  }
+  $("h-brush").addEventListener("click", (e) => {
+    const b = e.target.closest("button[data-b]");
+    if (!b || b.disabled) return;
+    hopeBrush = b.dataset.b; render();
+  });
+  $("h-far").onchange = () => render();
+  $("h-list").addEventListener("click", (e) => {
+    const c = e.target.closest("button[data-k]");
+    if (!c || c.disabled) return;
+    const ym = viewYm(), h = hopeDoc(ym), v = brushValue();
+    // tapping a day that already has this exact mark clears it (back to 稼働不可)
+    if (h.days[c.dataset.k] === v) delete h.days[c.dataset.k];
+    else h.days[c.dataset.k] = v;
+    hopeDirty[ym] = true; hopeMsg(""); render();
+  });
+  $("h-submit").onclick = async () => {
+    const ym = viewYm(), h = hopeDoc(ym), [, mo] = ym.split("-").map(Number);
+    for (const k of Object.keys(h.days)) if (!k.startsWith(ym) || !HOPES.includes(h.days[k])) delete h.days[k];
+    if (Date.now() > hopeDue(ym).getTime()) { hopeMsg("締切を過ぎたため提出できません。変更はThemisの担当者に連絡してください。"); render(); return; }
+    const btn = $("h-submit"), was = h.submittedAt;
+    btn.disabled = true; hopeMsg("提出しています…");
+    const t = new Date();
+    h.submittedAt = `${dayKey(t)} ${pad(t.getHours())}:${pad(t.getMinutes())}`;
+    try {
+      await call("api_save", "hope-" + ym, JSON.stringify(h));
+      hopeDirty[ym] = false;
+      hopeMsg(`${mo}月のシフト希望を提出しました。締切までは何度でも出し直せます。`);
+    } catch (e) {
+      h.submittedAt = was;
+      const why = String(e?.message || "").replace(/^\w*Error:\s*/, "");
+      hopeMsg(why.includes("締切") || why.includes("URL") ? why
+        : `提出できませんでした。通信状況を確認して、もう一度押してください。${why ? `（詳細：${why}）` : ""}`);
+    }
+    btn.disabled = false; render();
+  };
+
+  function renderInvoice() {
+    const ym = viewYm(), inv = doc("inv-" + ym), v = computeInvoice(ym, Date.now());
+    const st = inv.status || "draft", [y, m] = ym.split("-").map(Number);
+    $("inv-title").textContent = `${y}年${m}月分の請求書`;
+    $("fs-month").textContent = `${y}年${m}月分`;
+    const pill = $("inv-status"); pill.dataset.s = st;
+    pill.textContent = st === "paid" ? `入金済み` : st === "submitted" ? `提出済み（${jDate(inv.submittedOn)}）` : "";
+    pill.hidden = st === "draft";   // a draft needs no label; only 提出済み / 入金済み are shown
+    const locked = st !== "draft";
+    $("fs-bill").disabled = locked; $("fs-set").disabled = locked;
+    $("a-submit").hidden = locked; $("a-paid").hidden = st !== "submitted"; $("a-undo").hidden = !locked;
+    const b = doc("billing"), ready = !!(b.from && b.bank && v.lines[0].amount);
+    $("i-hours").textContent = `${v.days}日`;
+    $("b-wh").checked = v.whOn;
+    $("b-wh").disabled = v.gross <= 120000;
+    const key = JSON.stringify(v);
+    if (key !== lastInvKey) { lastInvKey = key; pictureSoon(v); }
+  }
+  // the preview is drawn off screen at true A4 size and shown as a picture, exactly as the PDF will look;
+  // redrawn shortly after typing stops
+  let picTimer = null, picTurn = 0;
+  function pictureSoon(v) {
+    clearTimeout(picTimer);
+    const turn = ++picTurn;
+    picTimer = setTimeout(async () => {
+      try {
+        const url = await invoicePicture(v);
+        if (turn !== picTurn) return;
+        $("inv-img").src = url; $("inv-big").src = url;
+        $("inv-cap").textContent = "タップすると大きく表示します";
+      } catch {
+        if (turn === picTurn) { lastInvKey = ""; $("inv-cap").textContent = "見本を表示できませんでした。通信状況を確認してください。"; }
+      }
+    }, 400);
+  }
+  async function invoicePicture(v) {
+    await libs(); await document.fonts.ready;
+    const node = document.createElement("div");
+    node.className = "invoice"; node.style.boxShadow = "none"; node.innerHTML = invoiceHTML(v);
+    $("pdf-host").appendChild(node);
+    try { return (await html2canvas(node, { scale: 2, backgroundColor: "#ffffff" })).toDataURL("image/jpeg", 0.9); }
+    finally { node.remove(); }
+  }
+  const closeViewer = () => { $("inv-view").hidden = true; };
+  $("inv-thumb").onclick = () => {
+    if (!$("inv-big").getAttribute("src")) return;
+    $("inv-view").hidden = false;
+    $("inv-view").querySelector(".viewer-scroll").scrollTop = 0;
+  };
+  $("inv-view").addEventListener("click", (e) => { if (e.target === $("inv-view") || e.target.classList.contains("viewer-scroll")) closeViewer(); });
+  $("v-close").onclick = closeViewer;
+  document.addEventListener("keydown", (e) => { if (e.key === "Escape" && !$("inv-view").hidden) closeViewer(); });
+
+  // while any sheet is open the page behind is pinned in place, so a swipe can't scroll the calendar
+  const sheets = [...document.querySelectorAll(".modal-bg")];
+  let pinnedY = null;
+  new MutationObserver(() => {
+    const open = sheets.some((s) => !s.hidden), bs = document.body.style;
+    if (open && pinnedY == null) {
+      pinnedY = scrollY;
+      Object.assign(bs, { position: "fixed", top: `-${pinnedY}px`, left: "0", right: "0" });
+    } else if (!open && pinnedY != null) {
+      Object.assign(bs, { position: "", top: "", left: "", right: "" });
+      scrollTo(0, pinnedY); pinnedY = null;
+    }
+  }).observe(document.body, { subtree: true, attributes: true, attributeFilter: ["hidden"] });
+
+  const missingDays = (ym) => monthRows(ym).filter((x) => missingProof(x.r)).map((x) => `${x.date.getMonth() + 1}/${x.date.getDate()}`);
+  function blockedByProofs(ym) {
+    if (doc("inv-" + ym).snapshot) return false;
+    const miss = missingDays(ym);
+    if (!miss.length) return false;
+    invMsg(`交通費の証明画像がない日があります（${miss.join("、")}）。シフト表で日付を押して、画像を添付してください。`);
+    return true;
+  }
+  function mailText(v) {
+    const [y, m] = v.ym.split("-").map(Number);
+    const proofNote = monthRows(v.ym).some((x) => x.r?.in && !x.r.absent && x.r.proofs?.length) ? "\n交通費の証明画像は、PDFの2ページ目以降に添付しています。" : "";
+    return `件名：【請求書送付】${y}年${m}月分 ${v.subject.replace(`${y}年${m}月分 `, "")}（${v.from}）
+
+${v.to} 御中
+
+いつもお世話になっております。${v.from}です。
+${y}年${m}月分の請求書をお送りします。添付のPDFをご確認ください。${proofNote}
+
+請求番号：${v.no}
+ご請求金額：${yen(v.total)}${v.taxRate ? "（税込）" : ""}
+稼働日数：${v.days}日
+お支払期限：${jDate(v.dueDate)}
+
+ご不明な点がございましたら、お知らせください。
+よろしくお願いいたします。
+
+${v.from}
+${v.addr}`;
+  }
+
+  // ---- invoice actions ----
+  let pdfLibs = null;
+  function loadScript(src) { return new Promise((res, rej) => { const s = document.createElement("script"); s.src = src; s.onload = res; s.onerror = rej; document.head.appendChild(s); }); }
+  function libs() {
+    return pdfLibs || (pdfLibs = Promise.all([
+      loadScript("https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"),
+      loadScript("https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"),
+    ]).catch((e) => { pdfLibs = null; throw e; }));
+  }
+  // builds the invoice page plus one page per proof image and returns the PDF as base64
+  async function buildPdf(ym, v) {
+    {
+      await libs(); await document.fonts.ready;
+      const host = $("pdf-host"), node = document.createElement("div");
+      node.className = "invoice"; node.style.boxShadow = "none"; node.innerHTML = invoiceHTML(v);
+      host.appendChild(node);
+      const canvas = await html2canvas(node, { scale: 2, backgroundColor: "#ffffff" }).finally(() => node.remove());
+      const pdf = new jspdf.jsPDF({ unit: "mm", format: "a4" });
+      let w = 210, h = canvas.height / canvas.width * 210;
+      if (h > 297) { w = w * 297 / h; h = 297; }
+      pdf.addImage(canvas.toDataURL("image/jpeg", 0.95), "JPEG", (210 - w) / 2, 0, w, h);
+      // appendix: one page per proof image, listing every day that used it
+      const [py, pm] = ym.split("-").map(Number), groups = new Map();
+      for (const { date, r } of monthRows(ym)) {
+        if (!r?.in || r.absent) continue;
+        for (const id of r.proofs || []) { if (!groups.has(id)) groups.set(id, []); groups.get(id).push({ date, r }); }
+      }
+      for (const [id, list] of groups) {
+        const data = await loadProof(id);
+        if (!data) continue;
+        const f = list[0].r, pg = document.createElement("div");
+        pg.className = "invoice proof-page"; pg.style.boxShadow = "none";
+        pg.innerHTML = `<div class="pp-h">交通費の証明　${py}年${pm}月分</div>
+          <dl class="pp-meta"><dt>対象日</dt><dd>${list.map((x) => `${x.date.getMonth() + 1}/${x.date.getDate()}`).join("、")}</dd>
+          <dt>稼働店舗</dt><dd>${esc(f.store)}</dd><dt>交通機関</dt><dd>${esc(f.transport)}${f.rideWith ? `（${esc(f.rideWith)}さんの車に同乗）` : ""}</dd>
+          <dt>距離</dt><dd>${f.km != null ? esc(f.km) + " km" : ""}</dd></dl>
+          <img src="${data}" alt="">`;
+        host.appendChild(pg);
+        const cv = await html2canvas(pg, { scale: 2, backgroundColor: "#ffffff" }).finally(() => pg.remove());
+        let pw = 210, ph = cv.height / cv.width * 210;
+        if (ph > 297) { pw = pw * 297 / ph; ph = 297; }
+        pdf.addPage();
+        pdf.addImage(cv.toDataURL("image/jpeg", 0.9), "JPEG", (210 - pw) / 2, 0, pw, ph);
+      }
+      return pdf.output("datauristring").split(",")[1];
+    }
+  }
+  function mailParts(v) {
+    const t = mailText(v), i = t.indexOf("\n");
+    return { subject: t.slice(0, i).replace(/^件名：/, ""), body: t.slice(i + 1).replace(/^\n/, "") };
+  }
+  // submitting builds the PDF here, then the server files it in Drive and emails it to Themis
+  $("a-submit").onclick = async () => {
+    const ym = viewYm(), inv = doc("inv-" + ym), b = doc("billing");
+    const v = computeInvoice(ym, Date.now());
+    if (ym >= ymOf(dayKey(new Date()))) { invMsg("今月以降の請求書は提出できません。月が明けてから提出してください。"); return; }
+    if (blockedByProofs(ym)) return;
+    if (!(b.from && b.bank && v.lines[0].amount)) { invMsg("氏名・振込先・請求金額を入力してから提出してください。"); return; }
+    $("a-submit").disabled = true; invMsg("請求書PDFを作って、Themisに送っています…");
+    try {
+      const b64 = await buildPdf(ym, v);
+      const { subject, body } = mailParts(v);
+      const url = await call("api_submit", ym, b64, subject, body, b.mail || "");
+      inv.snapshot = v; inv.status = "submitted"; inv.submittedOn = dayKey(new Date()); inv.pdfUrl = url;
+      renderInvoice();
+      if (await persist("inv-" + ym)) invMsg(`Themisに提出しました。${b.mail ? `控えのPDFが ${b.mail} にも届きます。` : ""}`);
+    } catch (e) {
+      invMsg(e?.message ? `提出できませんでした。${e.message}` : "提出できませんでした。通信状況を確認して、もう一度押してください。");
+    } finally { $("a-submit").disabled = false; }
+  };
+  $("a-paid").onclick = async () => {
+    const ym = viewYm(), inv = doc("inv-" + ym);
+    inv.status = "paid"; inv.paidOn = dayKey(new Date());
+    renderInvoice();
+    if (await persist("inv-" + ym)) invMsg(`入金済みにしました（${jDate(inv.paidOn)}）。`);
+  };
+  let undoArmed = false;
+  $("a-undo").onclick = async () => {
+    if (!undoArmed) { undoArmed = true; $("a-undo").classList.add("armed"); $("a-undo").textContent = "もう一度押して下書きに戻す"; setTimeout(() => { undoArmed = false; $("a-undo").classList.remove("armed"); $("a-undo").textContent = "提出を取り消す"; }, 4000); return; }
+    undoArmed = false; $("a-undo").classList.remove("armed"); $("a-undo").textContent = "提出を取り消す";
+    const ym = viewYm(), inv = doc("inv-" + ym);
+    delete inv.snapshot; delete inv.submittedOn; delete inv.paidOn; inv.status = "draft";
+    renderInvoice(); fillForms(true);
+    if (await persist("inv-" + ym)) invMsg("下書きに戻しました。Themisに送ったメールは取り消されないので、出し直す場合はその旨を担当者に伝えてください。");
+  };
+
+  // ---- Japanese public holidays (祝日法, incl. 振替休日 and 国民の休日; equinox formula valid to 2099) ----
+  const holidayCache = {};
+  function holidaysOf(y) {
+    if (holidayCache[y]) return holidayCache[y];
+    const h = {}, add = (m, d, name) => { h[`${y}-${pad(m)}-${pad(d)}`] = name; };
+    const nthMon = (m, n) => 1 + ((8 - new Date(y, m - 1, 1).getDay()) % 7) + (n - 1) * 7;
+    const b = y - 1980, q = Math.floor(b / 4);
+    add(1, 1, "元日"); add(1, nthMon(1, 2), "成人の日"); add(2, 11, "建国記念の日"); add(2, 23, "天皇誕生日");
+    add(3, Math.floor(20.8431 + 0.242194 * b) - q, "春分の日");
+    add(4, 29, "昭和の日"); add(5, 3, "憲法記念日"); add(5, 4, "みどりの日"); add(5, 5, "こどもの日");
+    add(7, nthMon(7, 3), "海の日"); add(8, 11, "山の日"); add(9, nthMon(9, 3), "敬老の日");
+    add(9, Math.floor(23.2488 + 0.242194 * b) - q, "秋分の日");
+    add(10, nthMon(10, 2), "スポーツの日"); add(11, 3, "文化の日"); add(11, 23, "勤労感謝の日");
+    const base = { ...h }, shift = (k, n) => { const [yy, mm, dd] = k.split("-").map(Number); return dayKey(new Date(yy, mm - 1, dd + n)); };
+    for (const k of Object.keys(base)) {   // 国民の休日: a non-Sunday sandwiched between two holidays
+      const mid = shift(k, 1), [yy, mm, dd] = mid.split("-").map(Number);
+      if (!base[mid] && base[shift(k, 2)] && new Date(yy, mm - 1, dd).getDay() !== 0) h[mid] = "国民の休日";
+    }
+    for (const k of Object.keys(base)) {   // 振替休日: a Sunday holiday moves to the next free day
+      const [yy, mm, dd] = k.split("-").map(Number);
+      if (new Date(yy, mm - 1, dd).getDay() !== 0) continue;
+      let n = shift(k, 1);
+      while (h[n]) n = shift(n, 1);
+      h[n] = "振替休日";
+    }
+    return (holidayCache[y] = h);
+  }
+  const holidayName = (key) => holidaysOf(Number(key.slice(0, 4)))[key] || "";
+
+  // ---- render ----
+  let lastCalSig = "";
+  function render() {
+    const now = Date.now(), nd = new Date(now);
+    $("date").textContent = `${nd.getFullYear()}年${nd.getMonth() + 1}月${nd.getDate()}日（${WD[nd.getDay()]}）`;
+    $("time").innerHTML = `${pad(nd.getHours())}:${pad(nd.getMinutes())}<span class="sec">:${pad(nd.getSeconds())}</span>`;
+
+    const open = openRec(), todayRec = rec(dayKey(nd));
+    const pre = todayRec && !todayRec.in;
+    const absent = !open && !!todayRec?.absent;
+    const s = open ? "work" : absent ? "absent" : pre && todayRec.depart ? "moving" : pre && todayRec.wake ? "awake" : "off";
+    const st = $("status");
+    st.dataset.s = s;
+    st.textContent = { off: "勤務外", awake: "起床済み", moving: "移動中", work: "勤務中", absent: "欠勤" }[s];
+    $("k-wake").disabled = s === "work" || absent || !!todayRec?.wake;
+    // the day is punched in order: 起床 → 出発 → 出勤; each key opens once the one before it is pressed
+    $("k-dep").disabled = s === "work" || absent || !!todayRec?.depart || !todayRec?.wake;
+    $("k-in").disabled = s === "work" || absent || !!todayRec?.out || !todayRec?.depart;
+    $("k-abs").disabled = s === "work" || !!todayRec?.in;
+    if (!absArmed) $("k-abs").textContent = absent ? "欠勤を取り消す" : "欠勤にする";
+    $("k-out").disabled = s !== "work";
+
+    // today's and tomorrow's store with their planned times (a shift still open from yesterday stands in for today)
+    // once punched, a time shows the punch instead of the plan; after clocking out, tomorrow becomes the large card
+    const shiftCard = (id, r, none, big) => {
+      const card = $(id), absentDay = !!r?.absent && r !== open;
+      card.classList.toggle("big", big); card.classList.toggle("small", !big);
+      card.classList.toggle("empty", !r?.store);
+      card.classList.toggle("absent", absentDay);
+      card.querySelector(".st-store").textContent = r?.store || none;
+      const inT = r?.in ? hm(r.in) : r?.planIn, outT = r?.out ? hm(r.out) : r?.planOut;
+
+      card.querySelector(".st-time").innerHTML = absentDay ? "欠勤"
+        : inT || outT ? `<span class="seg">出勤 <b>${esc(inT || "--:--")}</b></span><span class="seg">退勤 <b>${esc(outT || "--:--")}</b></span>`
+        : r?.store ? "時間はまだ入っていません" : "";
+    };
+    const tmr = new Date(nd.getFullYear(), nd.getMonth(), nd.getDate() + 1);
+    const done = !open && !!todayRec?.out;
+    $("shift-today").closest(".shifts").classList.toggle("done", done);
+    shiftCard("shift-today", open || todayRec, "今日の予定はありません", !done);
+    $("st-done").hidden = !done;
+    $("st-next-date").textContent = `${tmr.getMonth() + 1}月${tmr.getDate()}日（${WD[tmr.getDay()]}）`;
+    shiftCard("shift-next", rec(dayKey(tmr)), "明日の予定はありません", done);
+
+    const tr = open || asWorked(dayKey(nd), todayRec, now);
+    $("t-wake").textContent = tr?.wake ? hm(tr.wake) : "--:--";
+    $("t-dep").textContent = tr?.depart ? hm(tr.depart) : "--:--";
+    $("t-in").textContent = tr?.in ? hm(tr.in) : "--:--";
+    $("t-out").textContent = tr?.out ? hm(tr.out) : "--:--";
+    $("t-work").textContent = dur(workMin(tr, now));
+    $("m-label").textContent = `${view.getFullYear()}年${view.getMonth() + 1}月`;
+    $("m-next").disabled = tab === "inv" && view >= lastBillable();
+    $("m-prev").disabled = tab === "hope" && view <= firstHope();
+    $("who").textContent = doc("billing").from || window.TC_NAME || "";
+
+    if (tab === "inv") { renderInvoice(); return; }
+    if (tab === "hope") { renderHope(); return; }
+
+    let days = 0, total = 0, km = 0, abs = 0;
+    const today = dayKey(nd), rows = monthRows();
+    for (const { r } of rows) {
+      if (r?.in) { days++; total += workMin(r, now); }
+      if (r?.absent) abs++;
+      else km += Number(r?.km) || 0;
+    }
+    // rebuild the calendar only when its content changes, so the 1-second tick keeps keyboard focus
+    // the minute is part of the key so a planned shift flips to worked once its time has passed
+    const sig = viewYm() + today + Math.floor(now / 60000) + JSON.stringify(month(viewYm()).days);
+    if (sig !== lastCalSig) {
+      lastCalSig = sig;
+      const frag = document.createDocumentFragment();
+      const blank = () => Object.assign(document.createElement("div"), { className: "day blank" });
+      const lead = rows[0].date.getDay();
+      for (let i = 0; i < lead; i++) frag.appendChild(blank());
+      for (const { key, date, r } of rows) {
+        const cell = document.createElement("button");
+        cell.type = "button";
+        const hol = holidayName(key);
+        cell.className = `day wd-${date.getDay()}` + (hol ? " hol" : "") + (key === today ? " is-today" : "") + (r?.in ? " worked" : r?.store || r?.planIn ? " planned" : "");
+        cell.onclick = () => openSheet(key);
+        const time = r?.fromPlan ? (r.planIn ? `${r.planIn}–${r.planOut || ""}` : "")
+          : r?.in ? `${hm(r.in)}–${r.out ? hm(r.out) : ""}` : "";
+        // times drop the leading zero and, on a phone, stack start over end so they fit the narrow cell
+        const span = (a, z) => `<span class="tt"><span>${esc(a.replace(/^0(?=\d)/, ""))}</span><span class="sep">–</span><span>${esc((z || "").replace(/^0(?=\d)/, ""))}</span></span>`;
+        const shown = r?.fromPlan ? (r.planIn ? span(r.planIn, r.planOut) : "") : r?.in ? span(hm(r.in), r.out ? hm(r.out) : "") : "";
+        cell.innerHTML =
+          `<span class="dn">${date.getDate()}</span>` +
+          (hol ? `<span class="hn">${hol}</span>` : "") +
+          (r?.absent ? `<span class="ab">欠勤</span>${r.absentReason ? `<span class="tr">${esc(r.absentReason)}</span>` : ""}` : "") +
+          (r?.store ? `<span class="store">${esc(r.store)}</span>` : "") +
+          (r?.in && r.planIn && !r.fromPlan ? `<span class="pl">予定 ${esc(r.planIn)}–${esc(r.planOut || "")}</span>` : "") +
+          (r?.in ? `<span class="tm">${shown}${r.out ? "" : '<span class="live">勤務中</span>'}</span>`
+            : r?.store || r?.planIn ? `<span class="plan"><span class="pw">予定</span>${r.planIn ? span(r.planIn, r.planOut) : ""}</span>` : "") +
+          (r?.early && r?.in ? `<span class="el">早退</span>` : "") +
+          (r?.transport || r?.km != null ? `<span class="tr">${esc(r.transport || "")}${r.rideWith ? `（${esc(r.rideWith)}）` : ""}${r.km != null ? ` ${r.km}km` : ""}</span>` : "") +
+          (missingProof(r) ? `<span class="np"><span class="pw">画像</span>未添付</span>` : r?.proofs?.length && !r.absent ? `<span class="pf">画像${r.proofs.length}枚</span>` : "");
+        cell.setAttribute("aria-label", `${date.getMonth() + 1}月${date.getDate()}日（${WD[date.getDay()]}）${hol ? " " + hol : ""}${r?.absent ? " 欠勤" : ""}${r?.store ? " " + r.store : ""}${time ? " " + time : ""}${r?.early && r?.in ? " 早退" : ""}`);
+        frag.appendChild(cell);
+      }
+      const tail = (7 - (lead + rows.length) % 7) % 7;
+      for (let i = 0; i < tail; i++) frag.appendChild(blank());
+      $("rows").replaceChildren(frag);
+    }
+    $("s-days").textContent = days;
+    $("s-km").textContent = (Math.round(km * 10) / 10).toLocaleString("ja-JP");
+    $("s-abs").textContent = abs;  }
+  listeners.add(() => { fillForms(false); render(); });
+
+  // ---- timecard edit sheet ----
+  let editKey = null, delArmed = false;
+  // on phones a focused field pops the keyboard over the sheet, so sheets open unfocused there
+  const focusIfMouse = (el) => { if (matchMedia("(pointer: fine)").matches) el.focus(); };
+  // time fields become one pulldown of 5-minute times, the same on every device; the original input
+  // keeps a `value` of "HH:MM" (or "") so the rest of the sheet reads and writes it unchanged
+  // the list starts at 06:00 and wraps round to 05:55, so morning shifts sit at the top
+  // every time list starts at 09:00 and wraps round to 08:55
+  const LIST_START = { "f-pin": 9 * 60, "f-pout": 9 * 60, "f-in": 9 * 60, "f-out": 9 * 60 };
+  const rank = (t, start) => { const [h, m] = t.split(":").map(Number); return (h * 60 + m - start + 1440) % 1440; };
+  const timesFrom = (start) => Array.from({ length: 288 }, (_, i) => {
+    const min = (start + i * 5) % 1440;
+    return `${pad(Math.floor(min / 60))}:${pad(min % 60)}`;
+  });
+  for (const id of Object.keys(LIST_START)) {
+    const inp = $(id), s = document.createElement("select"), start = LIST_START[id];
+    s.className = "tsel"; s.setAttribute("aria-label", inp.parentElement.firstChild.textContent.trim());
+    s.append(new Option("--:--", ""), ...timesFrom(start).map((t) => new Option(t, t)));
+    inp.after(s); inp.hidden = true;
+    Object.defineProperty(inp, "value", {
+      get: () => s.value,
+      set: (v) => {
+        v = v || "";
+        if (v && ![...s.options].some((o) => o.value === v)) {   // a punched time like 11:03 keeps its exact minute
+          const next = [...s.options].find((o) => o.value && rank(o.value, start) > rank(v, start));
+          s.insertBefore(new Option(v, v), next || null);
+        }
+        s.value = v;
+      },
+    });
+    s.onchange = updateWork;
+  }
+  // leaving before the planned end counts as 早退; picking such a clock-out ticks it (it can be unticked)
+  const leftEarly = (key, planIn, planOut, outMs) => {
+    if (!planOut || !outMs) return false;
+    let end = atTime(key, planOut);
+    if (planIn && end < atTime(key, planIn)) end += 86400000;
+    return outMs < end - 60000;
+  };
+  const syncEarly = () => { $("f-early-wrap").hidden = !$("f-early").checked; };
+  $("f-early").onchange = syncEarly;
+  $("f-out").nextElementSibling.addEventListener("change", () => {
+    const a = $("f-in").value, z = $("f-out").value;
+    if (!a || !z || !editKey) return;
+    let out = atTime(editKey, z);
+    if (out < atTime(editKey, a)) out += 86400000;
+    if (leftEarly(editKey, $("f-pin").value, $("f-pout").value, out)) { $("f-early").checked = true; syncEarly(); }
+  });
+  function updateWork() {
+    const a = $("f-in").value, z = $("f-out").value;
+    if (!a || !z) { $("f-work").textContent = ""; return; }
+    let min = (atTime("2000-01-01", z) - atTime("2000-01-01", a)) / 60000;
+    if (min < 0) min += 1440;
+    $("f-work").textContent = `実働 ${dur(min)}${atTime("2000-01-01", z) < atTime("2000-01-01", a) ? "（退勤は翌日）" : ""}`;
+  }
+  const TRANSPORTS = ["車", "電車", "バス", "新幹線", "徒歩", "自転車", "同乗"];
+  function chip(text) {
+    const b = document.createElement("button");
+    b.type = "button"; b.className = "chip"; b.textContent = text;
+    return b;
+  }
+  $("f-transport").replaceChildren(...TRANSPORTS.map((t) => {
+    const b = chip(t); b.setAttribute("aria-pressed", "false");
+    b.onclick = () => { b.setAttribute("aria-pressed", String(b.getAttribute("aria-pressed") !== "true")); syncTravelUI(); };
+    return b;
+  }));
+  // proof images: shrunk to a JPEG that fits in one private document (< 256 KiB)
+  let editProofs = [];   // [{id, data, isNew}]
+  const newId = () => [...crypto.getRandomValues(new Uint8Array(8))].map((b) => b.toString(16).padStart(2, "0")).join("");
+  async function shrink(file) {
+    const img = await createImageBitmap(file);
+    const cv = document.createElement("canvas"), cx = cv.getContext("2d");
+    let max = 1400, q = 0.75, out = "";
+    for (let i = 0; i < 8; i++) {
+      const s = Math.min(1, max / Math.max(img.width, img.height));
+      cv.width = Math.round(img.width * s); cv.height = Math.round(img.height * s);
+      cx.fillStyle = "#ffffff"; cx.fillRect(0, 0, cv.width, cv.height);
+      cx.drawImage(img, 0, 0, cv.width, cv.height);
+      out = cv.toDataURL("image/jpeg", q);
+      if (out.length < 240000) return out;
+      max *= 0.82; q = Math.max(0.5, q - 0.05);
+    }
+    throw new Error("too large");
+  }
+  function renderProofs() {
+    const box = $("f-proofs");
+    box.replaceChildren(...editProofs.map((p, i) => {
+      const fig = document.createElement("div"); fig.className = "proof";
+      const img = document.createElement("img"); img.alt = "交通費の証明画像"; if (p.data) img.src = p.data;
+      const x = document.createElement("button"); x.type = "button"; x.textContent = "×"; x.setAttribute("aria-label", "この画像を外す");
+      x.onclick = () => { editProofs.splice(i, 1); renderProofs(); };
+      fig.append(img, x); return fig;
+    }));
+    box.hidden = !editProofs.length;
+  }
+  $("f-file").addEventListener("change", async (e) => {
+    $("f-perr").textContent = "";
+    for (const f of [...e.target.files].slice(0, 4)) {
+      try { editProofs.push({ id: newId(), data: await shrink(f), isNew: true }); renderProofs(); }
+      catch { $("f-perr").textContent = "画像を読み込めませんでした。PNGかJPEGの画像を選んでください。"; }
+    }
+    e.target.value = "";
+  });
+  // each store remembers its planned times, transport, distance and proof images from the last time it was saved;
+  // stores saved before this existed fall back to their most recent day in the loaded months
+  function travelFor(store) {
+    if (!store) return null;
+    const saved = (doc("billing").storeTravel || []).find((t) => t.store === store);
+    if (saved) return saved;
+    let best = null, bestKey = "";
+    for (const [n, d] of Object.entries(docs)) if (n.startsWith("m-")) for (const [k, x] of Object.entries(d.days || {})) {
+      if (x.store === store && k > bestKey && (x.planIn || x.transport || x.km != null || x.proofs?.length)) { best = x; bestKey = k; }
+    }
+    return best;
+  }
+  // values that came from a store (its memory, or the day/last shift the sheet opened with) are replaced
+  // when another store is picked; a store with nothing remembered clears them rather than inheriting
+  let filledBy = null;
+  function applyTravel(store) {
+    if (store === filledBy) return;
+    const t = travelFor(store);
+    if (!t) {
+      if (filledBy) {
+        $("f-pin").value = ""; $("f-pout").value = ""; $("f-ride").value = ""; setTransport(""); $("f-km").value = "";
+        editProofs = []; renderProofs(); filledBy = null;
+      }
+      return;
+    }
+    filledBy = store;
+    $("f-pin").value = t.planIn || ""; $("f-pout").value = t.planOut || "";
+    $("f-ride").value = t.rideWith || "";
+    setTransport(t.transport);
+    $("f-km").value = t.km ?? "";
+    editProofs = (t.proofs || []).map((id) => ({ id, data: proofCache[id] || null }));
+    renderProofs();
+    for (const p of editProofs) if (!p.data) loadProof(p.id).then((d) => { p.data = d; renderProofs(); });
+  }
+  $("f-store").addEventListener("change", () => applyTravel($("f-store").value.trim()));
+  const getTransport = () => [...$("f-transport").children].filter((b) => b.getAttribute("aria-pressed") === "true").map((b) => b.textContent).join("・");
+  function setTransport(s) {
+    const picked = new Set(String(s || "").split("・"));
+    for (const b of $("f-transport").children) b.setAttribute("aria-pressed", String(picked.has(b.textContent)));
+    syncTravelUI();
+  }
+  // distance and proof appear once a mode needing them is picked; the driver's name only for 同乗
+  function syncTravelUI() {
+    const t = getTransport(), skip = !t || walkOnly(t);
+    $("f-km-wrap").hidden = skip;
+    $("f-proof-wrap").hidden = skip;
+    $("f-ride-wrap").hidden = !t.split("・").includes("同乗");
+  }
+  function openSheet(key) {
+    if (!backend) return;
+    editKey = key; delArmed = false;
+    const r = rec(key), [y, m, d] = key.split("-").map(Number);
+    $("e-title").textContent = `${m}月${d}日（${WD[new Date(y, m - 1, d).getDay()]}）の記録`;
+    const eff = asWorked(key, r, Date.now());   // a passed plan opens with its times filled in
+    $("f-in").value = r?.in ? hm(r.in) : eff?.fromPlan && r.planIn ? r.planIn : "";
+    $("f-out").value = r?.out ? hm(r.out) : eff?.fromPlan && r.planOut ? r.planOut : "";
+    $("f-memo").value = r?.memo || "";
+    $("f-absnote").hidden = !r?.absent;
+    $("f-absnote").textContent = r?.absent ? `この日は欠勤です${r.absentReason ? "\n理由：" + r.absentReason : ""}` : "";
+    $("f-result").value = r?.result || "";
+    $("f-early").checked = !!r?.early;
+    $("f-early-reason").value = r?.earlyReason || "";
+    syncEarly();
+    // a new day starts from the last store and route entered, since most shifts repeat
+    const last = doc("billing").lastShift || {}, src = r || last;
+    $("f-store").value = src.store || "";
+    filledBy = src.store || null;
+    $("f-pin").value = src.planIn || "";
+    $("f-pout").value = src.planOut || "";
+    $("f-ride").value = src.rideWith || "";
+    setTransport(src.transport);
+    $("f-perr").textContent = "";
+    editProofs = (src.proofs || []).map((id) => ({ id, data: proofCache[id] || null }));
+    renderProofs();
+    for (const p of editProofs) if (!p.data) loadProof(p.id).then((d) => { p.data = d; renderProofs(); });
+    $("f-km").value = src.km ?? "";
+    const stores = new Set();
+    for (const [n, d] of Object.entries(docs)) if (n.startsWith("m-")) for (const x of Object.values(d.days || {})) if (x.store) stores.add(x.store);
+    // store suggestions can be removed with ×; removed names stay hidden until entered again
+    const hidden = new Set(doc("billing").hiddenStores || []);
+    $("store-chips").replaceChildren(...[...stores].filter((s) => !hidden.has(s)).slice(-8).map((s) => {
+      const wrap = document.createElement("span"); wrap.className = "chip chip-x";
+      const pick = document.createElement("button"); pick.type = "button"; pick.textContent = s;
+      pick.onclick = () => { $("f-store").value = s; applyTravel(s); };
+      const x = document.createElement("button"); x.type = "button"; x.textContent = "×"; x.setAttribute("aria-label", `${s}を候補から消す`);
+      x.onclick = () => {
+        const b = doc("billing"); b.hiddenStores = [...new Set([...(b.hiddenStores || []), s])]; saveSoon("billing");
+        wrap.remove(); $("store-chips").hidden = !$("store-chips").children.length;
+      };
+      wrap.append(pick, x); return wrap;
+    }));
+    $("store-chips").hidden = !$("store-chips").children.length;
+    // the most used planned time pairs, one tap to fill
+    const freq = new Map();
+    for (const [n, d] of Object.entries(docs)) if (n.startsWith("m-")) for (const x of Object.values(d.days || {})) {
+      if (x.planIn && x.planOut) { const k = `${x.planIn}–${x.planOut}`; freq.set(k, (freq.get(k) || 0) + 1); }
+    }
+    const hiddenPlans = new Set(doc("billing").hiddenPlans || []);
+    const top = [...freq].filter(([k]) => !hiddenPlans.has(k)).sort((a, b) => b[1] - a[1]).slice(0, 4).map(([k]) => k);
+    $("plan-chips").replaceChildren(...top.map((k) => {
+      const wrap = document.createElement("span"); wrap.className = "chip chip-x";
+      const pick = document.createElement("button"); pick.type = "button"; pick.textContent = k;
+      pick.onclick = () => { const [a, z] = k.split("–"); $("f-pin").value = a; $("f-pout").value = z; };
+      const x = document.createElement("button"); x.type = "button"; x.textContent = "×"; x.setAttribute("aria-label", `${k}を候補から消す`);
+      x.onclick = () => {
+        const b = doc("billing"); b.hiddenPlans = [...new Set([...(b.hiddenPlans || []), k])]; saveSoon("billing");
+        wrap.remove(); $("plan-chips").hidden = !$("plan-chips").children.length;
+      };
+      wrap.append(pick, x); return wrap;
+    }));
+    $("plan-chips").hidden = !top.length;
+    $("e-del").hidden = !r;
+    eAbsArmed = false; $("e-abs").classList.remove("armed");
+    $("e-abs").textContent = r?.absent ? "欠勤を取り消す" : "欠勤にする";
+    $("e-abs").disabled = !!r?.in;   // a day already clocked in can't be marked absent
+    $("e-del").classList.remove("armed"); $("e-del").textContent = "削除";
+    $("sheet").hidden = false;
+    setActOpen(false);
+    setResOpen(false);
+    updateWork();
+    // the sheet is reused for every day: start each one at the top, not where the last one was scrolled to
+    $("edit-form").scrollTop = 0;
+    focusIfMouse($("f-store"));
+  }
+  const closeSheet = () => { $("sheet").hidden = true; editKey = null; };
+  $("e-cancel").onclick = closeSheet;
+  $("e-back").onclick = closeSheet;
+  $("sheet").addEventListener("click", (e) => { if (e.target === $("sheet")) closeSheet(); });
+  document.addEventListener("keydown", (e) => { if (e.key === "Escape" && !$("sheet").hidden) closeSheet(); });
+  function atTime(key, val) {
+    const [y, m, d] = key.split("-").map(Number), [h, mi] = val.split(":").map(Number);
+    return new Date(y, m - 1, d, h, mi).getTime();
+  }
+  $("edit-form").addEventListener("submit", async (e) => {
+    e.preventDefault();
+    const key = editKey, inV = $("f-in").value, outV = $("f-out").value;
+    const shift = {
+      store: $("f-store").value.trim(), planIn: $("f-pin").value, planOut: $("f-pout").value, transport: getTransport(),
+      km: $("f-km").value === "" ? null : Math.max(0, Number($("f-km").value) || 0),    };
+    // an absent day stays absent unless a clock-in time is entered for it
+    const absent = !!month(ymOf(key)).days[key]?.absent && !inV;
+    // wake-up and departure are punched only; editing a day keeps whatever was punched
+    const kept = absent ? null : month(ymOf(key)).days[key];
+    if (!inV && !shift.store && !shift.planIn && !absent) { $("f-store").focus(); msg("稼働店舗か時刻を入力してください。"); return; }
+    const inMs = inV && !absent ? atTime(key, inV) : null;
+    let outMs = inMs != null && outV ? atTime(key, outV) : null;
+    // only a strictly earlier clock-out means the next day; equal times (minutes only) are a 0-minute shift
+    if (outMs != null && outMs < inMs) outMs += 86400000;
+    shift.rideWith = shift.transport.split("・").includes("同乗") ? $("f-ride").value.trim() : "";
+    if (shift.transport.split("・").includes("同乗") && !shift.rideWith) {
+      $("f-ride").focus(); $("f-perr").textContent = "同乗した車を運転していた人の名前を入力してください。"; return;
+    }
+    if (!shift.transport || walkOnly(shift.transport)) { shift.km = null; editProofs = []; }
+    try {
+      for (const p of editProofs) if (p.isNew) {
+        await backend.put("p-" + p.id, { data: p.data, at: Date.now() });
+        proofCache[p.id] = p.data; p.isNew = false;
+      }
+    } catch { $("f-perr").textContent = "画像を保存できませんでした。通信状況を確認して、もう一度保存してください。"; return; }
+    shift.proofs = editProofs.map((p) => p.id);
+    const m = month(ymOf(key)), prev = m.days[key], stillOpen = inMs != null && !outMs && state().openDate === key;
+    doc("billing").lastShift = shift;
+    if (shift.store) {
+      const list = (doc("billing").storeTravel || []).filter((t) => t.store !== shift.store);
+      list.push({ store: shift.store, planIn: shift.planIn, planOut: shift.planOut, transport: shift.transport, rideWith: shift.rideWith, km: shift.km, proofs: shift.proofs });
+      doc("billing").storeTravel = list;
+    }
+    const hs = doc("billing").hiddenStores;   // entering a removed store again brings it back as a suggestion
+    if (hs?.includes(shift.store)) doc("billing").hiddenStores = hs.filter((s) => s !== shift.store);
+    const hp = doc("billing").hiddenPlans, pk = `${shift.planIn}–${shift.planOut}`;
+    if (hp?.includes(pk)) doc("billing").hiddenPlans = hp.filter((s) => s !== pk);
+    m.days[key] = {
+      ...shift,
+      wake: kept?.wake ?? null,
+      depart: kept?.depart ?? null,
+      in: inMs, out: outMs,
+      breaks: stillOpen ? (prev?.breaks || []).filter((b) => b.e == null) : [],
+      result: $("f-result").value.trim(),
+      memo: $("f-memo").value.trim(),
+      early: inMs != null && $("f-early").checked,
+      earlyReason: inMs != null && $("f-early").checked ? $("f-early-reason").value.trim() : "",
+    };
+    if (absent) { m.days[key].absent = true; if (prev?.absentReason) m.days[key].absentReason = prev.absentReason; }
+    if ((inMs == null || outMs) && state().openDate === key) state().openDate = null;
+    if (inMs != null && !outMs && !state().openDate) state().openDate = key;
+    closeSheet(); render();
+    msg(`${key.slice(5).replace("-", "/")} の記録を保存しました。`);
+    await persist("m-" + ymOf(key), "state", "billing");
+  });
+  // right after clocking out: a small sheet with only the day's results, saved into the same record
+  let resKey = null;
+  function openResult(key) {
+    resKey = key;
+    const r = rec(key);
+    $("r-sub").textContent = `${key.slice(5).replace("-", "/")}${r?.store ? "　" + r.store : ""}　実働 ${dur(workMin(r, Date.now()))}`;
+    $("r-text").value = r?.result || "";
+    $("r-early").checked = !!r?.early || leftEarly(key, r?.planIn, r?.planOut, r?.out);
+    $("r-early-reason").value = r?.earlyReason || "";
+    $("r-early-wrap").hidden = !$("r-early").checked;
+    $("res-sheet").hidden = false; $("res-sheet").querySelector(".modal").scrollTop = 0;
+    focusIfMouse($("r-text"));
+  }
+  $("r-early").onchange = () => { $("r-early-wrap").hidden = !$("r-early").checked; };
+  $("r-skip").onclick =() => { $("res-sheet").hidden = true; msg("稼働実績は、カレンダーの日付からあとで入力できます。"); };
+  $("res-sheet").addEventListener("click", (e) => { if (e.target === $("res-sheet")) $("res-sheet").hidden = true; });
+  document.addEventListener("keydown", (e) => { if (e.key === "Escape" && !$("res-sheet").hidden) $("res-sheet").hidden = true; });
+  $("res-form").addEventListener("submit", async (e) => {
+    e.preventDefault();
+    const key = resKey, r = rec(key);
+    if (!r) { $("res-sheet").hidden = true; return; }
+    r.result = $("r-text").value.trim();
+    r.early = $("r-early").checked;
+    r.earlyReason = r.early ? $("r-early-reason").value.trim() : "";
+    $("res-sheet").hidden = true;
+    render();
+    msg(r.result ? "稼働実績を保存しました。" : "稼働実績は空のまま保存しました。");
+    await persist("m-" + ymOf(key));
+  });
+  // the actual-time fields stay folded away; they open for a forgotten punch or a correction,
+  // and the folded header shows what is recorded
+  function lock(el, locked) {
+    el.classList.toggle("locked", locked);
+    for (const c of el.querySelectorAll("input, select, textarea, button")) c.disabled = locked;
+  }
+  function setActOpen(open) {
+    for (const el of $("edit-form").querySelectorAll(".act")) lock(el, !open);
+    $("f-acttoggle").setAttribute("aria-expanded", String(open));
+    $("f-acttoggle").textContent = open ? "修正を終える" : "修正";
+    $("f-actsum").textContent = open ? "" : $("f-in").value ? "" : "記録なし";
+  }
+  // results open locked behind 修正 (a toggle); only the sheet opened right after clocking out starts unlocked
+  function setResOpen(open) {
+    lock($("edit-form").querySelector(".res"), !open);
+    $("f-resedit").textContent = open ? "修正を終える" : "修正";
+    $("f-resedit").setAttribute("aria-expanded", String(open));
+  }
+  $("f-resedit").onclick = () => {
+    const open = $("f-resedit").getAttribute("aria-expanded") !== "true";
+    setResOpen(open);
+    if (open) $("f-result").focus();
+  };
+  $("f-acttoggle").onclick = () => setActOpen($("f-acttoggle").getAttribute("aria-expanded") !== "true");
+  $("f-copyplan").onclick = () => {
+    if ($("f-pin").value) $("f-in").value = $("f-pin").value;
+    if ($("f-pout").value) $("f-out").value = $("f-pout").value;
+    updateWork();
+  };
+  // mark a past or upcoming day absent (two presses), keeping the planned store and times
+  let eAbsArmed = false;
+  $("e-abs").onclick = async () => {
+    const key = editKey, r = month(ymOf(key)).days[key];
+    if (!r?.absent) {   // ask for the reason, keeping the planned store and times on screen
+      const plan = { store: $("f-store").value.trim(), planIn: $("f-pin").value, planOut: $("f-pout").value };
+      closeSheet(); openAbsence(key, plan); return;
+    }
+    delete r.absent; delete r.absentReason;
+    closeSheet(); render();
+    msg(`${key.slice(5).replace("-", "/")} を欠勤から戻しました。`);
+    await persist("m-" + ymOf(key));
+  };
+  // marking a day absent goes through a small sheet that takes the reason (optional)
+  let absKey = null, absPlan = null;
+  function openAbsence(key, plan) {
+    absKey = key; absPlan = plan || null;
+    const [y, m, d] = key.split("-").map(Number), store = plan?.store || rec(key)?.store;
+    $("a-sub").textContent = `${m}月${d}日（${WD[new Date(y, m - 1, d).getDay()]}）${store ? "　" + store : ""}`;
+    $("a-text").value = rec(key)?.absentReason || "";
+    $("abs-sheet").hidden = false; $("abs-sheet").querySelector(".modal").scrollTop = 0;
+    focusIfMouse($("a-text"));
+  }
+  $("a-cancel").onclick = () => { $("abs-sheet").hidden = true; };
+  $("abs-sheet").addEventListener("click", (e) => { if (e.target === $("abs-sheet")) $("abs-sheet").hidden = true; });
+  document.addEventListener("keydown", (e) => { if (e.key === "Escape" && !$("abs-sheet").hidden) $("abs-sheet").hidden = true; });
+  $("abs-form").addEventListener("submit", async (e) => {
+    e.preventDefault();
+    const key = absKey, m = month(ymOf(key)), r = m.days[key];
+    m.days[key] = { ...(r || {}), ...(absPlan || {}), absent: true, absentReason: $("a-text").value.trim() };
+    $("abs-sheet").hidden = true;
+    render();
+    msg(`${key.slice(5).replace("-", "/")} を欠勤にしました。`);
+    await persist("m-" + ymOf(key));
+  });
+  $("e-del").onclick = async () => {
+    if (!delArmed) { delArmed = true; $("e-del").classList.add("armed"); $("e-del").textContent = "もう一度押して削除"; return; }
+    const key = editKey;
+    delete month(ymOf(key)).days[key];
+    if (state().openDate === key) state().openDate = null;
+    closeSheet(); render();
+    msg(`${key.slice(5).replace("-", "/")} の記録を削除しました。`);
+    await persist("m-" + ymOf(key), "state");
+  };
+
+  // first visit: the name and address the invoice needs, asked once before anything else
+  function openSetup() {
+    const b = doc("billing");
+    splitOldBilling(b);
+    $("s-from").value = b.from || window.TC_NAME || "";
+    for (const k of ADDR) $("s-" + k).value = b[k] || "";
+    $("s-err").textContent = "";
+    $("setup-sheet").hidden = false;
+    focusIfMouse($("s-from"));
+  }
+  zipField($("s-zip"), $("s-address"), $("s-zipmsg"));
+  $("setup-form").addEventListener("submit", async (e) => {
+    e.preventDefault();
+    const from = $("s-from").value.trim(), val = (k) => $("s-" + k).value.trim();
+    if (!from) { $("s-err").textContent = "氏名・屋号を入力してください。"; $("s-from").focus(); return; }
+    if (!val("address")) { $("s-err").textContent = "住所を入力してください。"; $("s-address").focus(); return; }
+    if (!val("tel")) { $("s-err").textContent = "電話番号を入力してください。"; $("s-tel").focus(); return; }
+    const b = doc("billing"); b.from = from;
+    for (const k of ADDR) b[k] = val(k);
+    b.tel = b.tel.normalize("NFKC").replace(/[^\d-]/g, "");
+    composeBilling(b);
+    $("setup-sheet").hidden = true;
+    fillForms(true); lastInvKey = ""; render();
+    if (await persist("billing")) msg("氏名・住所を保存しました。請求書に反映されます。");
+    if (!doc("contract").signedAt) openContract();
+  });
+
+  // ---- 業務委託契約: read it, fill in 乙, sign by hand; the signed PDF goes to Themis ----
+  // the original PDF (with Themis's seal) is fetched and the contractor's details are drawn onto its blanks
+  // as pictures, so no Japanese font has to be embedded; positions are in PDF points from the page's bottom left
+  const BLANKS = {
+    party: { page: 0, x: 304.5, y: 737.6, w: 96, center: true },          // 「と＿＿＿＿（以下「乙」）」
+    year: { page: 6, x: 80.6, y: 176.4, w: 24, center: true },            // 令和＿＿年
+    month: { page: 6, x: 116.6, y: 176.4, w: 24, center: true },          // ＿＿月
+    day: { page: 6, x: 152.6, y: 176.4, w: 24, center: true },            // ＿＿日
+    addr: { page: 7, x: 106, y: 752.2, w: 430 },                          // 所在地：
+    trade: { page: 7, x: 94, y: 732.2, w: 440 },                          // 商号：
+    rep: { page: 7, x: 106, y: 712.2, w: 180 },                           // 代表者：
+    note: { page: 7, x: 56.6, y: 660, w: 480 },                           // signing record under 乙
+  };
+  const SIGN_AT = { page: 7, cx: 302.7, cy: 716, w: 130, h: 44 };          // over the ㊞ after 代表者
+  const sig = $("c-sig"), sctx = sig.getContext("2d");
+  let sigDrawn = false, sigLast = null;
+  function sigReset() {
+    const r = sig.getBoundingClientRect(), k = window.devicePixelRatio || 1;
+    sig.width = Math.round(r.width * k); sig.height = Math.round(r.height * k);
+    sctx.setTransform(k, 0, 0, k, 0, 0);
+    Object.assign(sctx, { lineWidth: 3.2, lineCap: "round", lineJoin: "round", strokeStyle: "#1a1a1a" });
+    sigDrawn = false; $("c-sig-hint").hidden = false;
+  }
+  const sigPt = (e) => { const r = sig.getBoundingClientRect(); return [e.clientX - r.left, e.clientY - r.top]; };
+  sig.addEventListener("pointerdown", (e) => { e.preventDefault(); sig.setPointerCapture(e.pointerId); sigLast = sigPt(e); });
+  sig.addEventListener("pointermove", (e) => {
+    if (!sigLast) return;
+    const p = sigPt(e);
+    sctx.beginPath(); sctx.moveTo(sigLast[0], sigLast[1]); sctx.lineTo(p[0], p[1]); sctx.stroke();
+    sigLast = p; sigDrawn = true; $("c-sig-hint").hidden = true;
+  });
+  for (const t of ["pointerup", "pointercancel"]) sig.addEventListener(t, () => { sigLast = null; });
+  // iPhone still starts its own long-press handling from touch events, so those are stopped on the pad
+  for (const t of ["touchstart", "touchmove"]) sig.addEventListener(t, (e) => e.preventDefault(), { passive: false });
+  sig.addEventListener("contextmenu", (e) => e.preventDefault());
+  sig.addEventListener("selectstart", (e) => e.preventDefault());
+  $("c-sig-clear").onclick = sigReset;
+  // the signature cut to the strokes, so it can be scaled into the box on the PDF
+  function sigImage() {
+    const { width: w, height: h } = sig, px = sctx.getImageData(0, 0, w, h).data;
+    let x0 = w, y0 = h, x1 = -1, y1 = -1;
+    for (let y = 0; y < h; y++) for (let x = 0; x < w; x++) if (px[(y * w + x) * 4 + 3] > 0) {
+      if (x < x0) x0 = x; if (x > x1) x1 = x; if (y < y0) y0 = y; if (y > y1) y1 = y;
+    }
+    const c = document.createElement("canvas"), m = 6;
+    c.width = x1 - x0 + 1 + m * 2; c.height = y1 - y0 + 1 + m * 2;
+    c.getContext("2d").drawImage(sig, x0 - m, y0 - m, c.width, c.height, 0, 0, c.width, c.height);
+    return { url: c.toDataURL("image/png"), w: c.width, h: c.height };
+  }
+  // one line of text as a sharp picture; `base` is how far the baseline sits above the picture's bottom (pt)
+  function textImage(text, pt, maxW) {
+    const k = 6, c = document.createElement("canvas"), x = c.getContext("2d");
+    const face = (size) => `400 ${size}px "Inter", "Zen Kaku Gothic New", "Hiragino Sans", "Yu Gothic", sans-serif`;
+    x.font = face(pt * k);
+    const fit = Math.min(1, (maxW * k) / Math.max(1, x.measureText(text).width)), size = pt * k * fit;
+    x.font = face(size);
+    c.width = Math.ceil(x.measureText(text).width) + 4; c.height = Math.ceil(size * 1.35);
+    x.font = face(size); x.fillStyle = "#1a1a1a"; x.textBaseline = "alphabetic";
+    const baseline = Math.round(size * 1.05);
+    x.fillText(text, 2, baseline);
+    return { url: c.toDataURL("image/png"), w: c.width / k, h: c.height / k, base: (c.height - baseline) / k };
+  }
+  // `on` is the contract date the person chose, printed as 令和…
+  async function signedContract(info, on) {
+    if (!window.PDFLib) await loadScript("https:" + "/" + "/cdnjs.cloudflare.com/ajax/libs/pdf-lib/1.17.1/pdf-lib.min.js");
+    await document.fonts.load('400 24px "Zen Kaku Gothic New"', "所在地代表者");
+    const src = await call("api_contractPdf");
+    const pdf = await PDFLib.PDFDocument.load(Uint8Array.from(atob(src), (ch) => ch.charCodeAt(0)));
+    const pages = pdf.getPages();
+    if (pages.length < 8) throw new Error("契約書PDFの形式が想定と違います。Themisの担当者にお問い合わせください。");
+    const put = async (b, text, pt = 11) => {
+      if (!text) return;
+      const t = textImage(text, pt, b.w), img = await pdf.embedPng(t.url);
+      pages[b.page].drawImage(img, { x: b.center ? b.x + (b.w - t.w) / 2 : b.x, y: b.y - t.base, width: t.w, height: t.h });
+    };
+    await put(BLANKS.party, info.party || info.rep);
+    await put(BLANKS.year, String(on.getFullYear() - 2018));
+    await put(BLANKS.month, String(on.getMonth() + 1));
+    await put(BLANKS.day, String(on.getDate()));
+    await put(BLANKS.addr, info.addr);
+    await put(BLANKS.trade, info.party);
+    await put(BLANKS.rep, info.rep);
+    // the PDF shows only the chosen contract date; the actual signing time is kept by the server (mail and メンバー)
+    await put(BLANKS.note, "電子署名の記録：Themis Portalの本人専用URLから、契約内容に同意のうえ手書きで署名", 8);
+    const s = sigImage(), img = await pdf.embedPng(s.url), fit = Math.min(SIGN_AT.w / s.w, SIGN_AT.h / s.h);
+    pages[SIGN_AT.page].drawImage(img, { x: SIGN_AT.cx - (s.w * fit) / 2, y: SIGN_AT.cy - (s.h * fit) / 2, width: s.w * fit, height: s.h * fit });    return pdf.saveAsBase64();
+  }
+  function openContract() {
+    const b = doc("billing");
+    $("c-addr").value = [b.address, b.building].filter(Boolean).join(" ");
+    $("c-party").value = "";
+    $("c-rep").value = b.from || window.TC_NAME || "";
+    $("c-mail").value = b.mail || "";
+    $("c-who").textContent = $("c-rep").value || "＿＿＿＿＿＿＿＿";
+    $("c-agree").checked = false; $("c-err").textContent = "";    $("c-date").value = dayKey(new Date()); showContractDate();
+    $("contract-sheet").hidden = false;
+    $("c-text").scrollTop = 0;
+    requestAnimationFrame(() => { sigReset(); readCheck(); });
+  }
+  // agreeing is possible only once the whole contract has been scrolled through
+  const readCheck = () => {
+    const t = $("c-text");
+    if (t.scrollTop + t.clientHeight >= t.scrollHeight - 8) { $("c-agree").disabled = false; $("c-readhint").hidden = true; }
+  };
+  $("c-text").addEventListener("scroll", readCheck);
+  // the contract date defaults to today and can be changed; it is shown in 令和 as it will be printed
+  const contractDate = () => { const v = $("c-date").value; if (!v) return null; const [y, m, d] = v.split("-").map(Number); return new Date(y, m - 1, d); };
+  const showContractDate = () => { const d = contractDate(); $("c-date-jp").textContent = d ? `契約書には「令和${d.getFullYear() - 2018}年${d.getMonth() + 1}月${d.getDate()}日」と入ります。` : ""; };
+  $("c-date").addEventListener("input", showContractDate);
+  $("c-date").addEventListener("change", showContractDate);
+  for (const id of ["c-party", "c-rep"]) $(id).addEventListener("input", () => { $("c-who").textContent = $("c-party").value.trim() || $("c-rep").value.trim() || "＿＿＿＿＿＿＿＿"; });
+  $("contract-form").addEventListener("submit", async (e) => {
+    e.preventDefault();
+    const info = { addr: $("c-addr").value.trim(), party: $("c-party").value.trim(), rep: $("c-rep").value.trim() }, mail = $("c-mail").value.trim();
+    const err = (t, el) => { $("c-err").textContent = t; if (el) el.focus(); };
+    if (!info.addr) return err("所在地を入力してください。", $("c-addr"));
+    if (!info.rep) return err("代表者（氏名）を入力してください。", $("c-rep"));
+    const on = contractDate();
+    if (!on || on.getFullYear() < 2019) return err("契約締結日を入力してください。", $("c-date"));
+    if (!sigDrawn) return err("署名欄に署名してください。");
+    if (!$("c-agree").checked) return err($("c-agree").disabled ? "契約書を最後までスクロールして読んでください。" : "内容に同意する場合は、チェックを入れてください。");
+    $("c-submit").disabled = true; err("署名済みの契約書を作って、Themisに送っています…");
+    try {
+      const b64 = await signedContract(info, on);
+      docs.contract = JSON.parse(await call("api_signContract", b64, { ...info, date: dayKey(on) }, mail));
+      if (mail && mail !== doc("billing").mail) { doc("billing").mail = mail; fillForms(true); persist("billing"); }
+      $("contract-sheet").hidden = true;
+      msg(`業務委託契約書を締結しました。${mail ? `控えのPDFが ${mail} に届きます。` : ""}`);
+    } catch (x) {
+      err(x?.message ? `送信できませんでした。${x.message}` : "送信できませんでした。通信状況を確認して、もう一度押してください。");
+    } finally { $("c-submit").disabled = false; }
+  });
+
+  // ---- CSV ----
+  function csv() {
+    const now = Date.now(), q = (s) => `"${String(s ?? "").replace(/"/g, '""')}"`;
+    const lines = ["日付,曜日,稼働店舗,予定開始,予定終了,欠勤,欠勤理由,起床,出発,出勤,退勤,実働,交通機関,同乗者,距離(km),稼働実績,メモ"];
+    for (const { key, date, r } of monthRows()) {
+      if (!r) continue;
+      const on = !!r.in;
+      lines.push([key, WD[date.getDay()], q(r.store), r.planIn || "", r.planOut || "", r.absent ? "欠勤" : "", q(r.absent ? r.absentReason : ""), r.wake ? hm(r.wake) : "", r.depart ? hm(r.depart) : "", on ? hm(r.in) : "", r.out ? hm(r.out) : "",on ? dur(workMin(r, now)) : "", q(r.transport), q(r.rideWith), r.km ?? "", q(r.result), q(r.memo)].join(","));
+    }
+    return lines.join("\n");
+  }
+
+  // ---- boot ----
+  setTab(tab);
+  fillForms(true);
+  setInterval(render, 1000);
+
+  (async () => {
+    if (!TOKEN || (!viaGas && !window.TC_API)) { $("where").textContent = "このページは、Themisから届いた専用URLで開いてください。"; return; }
+    // the installed app has no server-filled name: ask for it, which also checks the link is still valid
+    if (!viaGas) {
+      try { window.TC_NAME = await call("api_me"); }
+      catch (e) {
+        msg(/URL/.test(e?.message || "") ? e.message : "つながりませんでした。通信状況を確認して、アプリを開き直してください。");
+        $("where").textContent = ""; return;
+      }
+    }
+    // load this month, last month (invoices) and the open-shift pointer before any punch is allowed
+    const b = gasBackend(), d = new Date();
+    const cur = ymOf(dayKey(d)), prev = ymOf(dayKey(new Date(d.getFullYear(), d.getMonth() - 1, 1)));
+    await b.load(["state", "billing", "contract", "m-" + cur, "m-" + prev, "inv-" + cur, "inv-" + prev]);
+    if (state().openDate) await b.load(["m-" + ymOf(state().openDate)]);
+    // on the last day of a month, tomorrow's plan lives in next month's record
+    const next = ymOf(dayKey(new Date(d.getFullYear(), d.getMonth(), d.getDate() + 1)));
+    if (next !== cur) await b.load(["m-" + next]);
+    backend = b;
+    $("where").textContent = `${window.TC_NAME || ""}さんの記録です。記録と画像はThemisの勤怠シートに保存され、Themisの担当者が確認できます。`;
+    watchView();
+    fillForms(true); render();
+    // first the name and address, then the contract; both are asked once and block the app until done
+    if (!doc("billing").from || !doc("billing").addr) openSetup();
+    else if (!doc("contract").signedAt) openContract();
+  })();
+})();
+</script>
+</body>
+</html>
