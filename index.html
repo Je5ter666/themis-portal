@@ -4003,15 +4003,13 @@ ${v.addr}`;
         .map(([t, v, w]) => `<div class="ad-stat${w}"><span>${t}</span><b class="num">${v}</b></div>`).join("") + `</div>`;
   }
   function adSales() {
-    const { months, all, now } = salesMonths(), nowYm = workYm(dayKey(new Date()));
-    // this month is shown above only, not again in the table
-    const rows = Object.keys(months).filter((ym) => ym !== nowYm).sort().reverse().map((ym) => {
+    const { months, all } = salesMonths();
+    const rows = Object.keys(months).sort().reverse().map((ym) => {
       const m = months[ym], [y, mo] = ym.split("-").map(Number);
       return `<tr${m.sales < m.cost ? ` class="warn"` : ""}><th>${y}年${mo}月</th><td>${yen(m.sales)}</td><td>${yen(m.cost)}</td><td>${signed(m.sales - m.cost)}</td><td>${profitRate(m)}</td></tr>`;
     });
     $("ad-body").innerHTML =
-      `<h4 class="bl-h">${new Date().getMonth() + 1}月</h4>` + liveBox(nowYm) +
-      `<h4 class="bl-h">今月</h4>` + salesBox(now) +
+      `<h4 class="bl-h">${new Date().getFullYear()}年${new Date().getMonth() + 1}月</h4>` + liveBox(workYm(dayKey(new Date()))) +
       `<h4 class="bl-h">全体</h4>` + salesBox(all) +
       (rows.length ? `<h4 class="bl-h">月ごと</h4><div class="sl-wrap"><table class="sl-tbl num"><thead><tr><th>月</th><th>売上</th><th>報酬</th><th>利益</th><th>利益率</th></tr></thead>` +
         `<tbody>${rows.join("")}</tbody></table></div>` : "");
