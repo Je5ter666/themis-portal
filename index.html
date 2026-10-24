@@ -263,8 +263,15 @@ button.day.wd-0:hover, button.day.wd-6:hover, button.day.hol:hover { background:
 .hope-brush button { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; border: 1.5px solid var(--rule); background: var(--card); border-radius: var(--r); padding: 10px 12px; font-size: 14px; font-weight: 700; color: var(--ink); text-align: left; }
 .hope-brush button small { flex-basis: 100%; font-size: 11px; font-weight: 500; color: var(--ink-soft); margin-left: 30px; margin-top: -4px; }
 .hope-brush .hb { font-size: 20px; line-height: 1; width: 22px; text-align: center; }
-.hope-brush button[aria-checked="true"][data-b="○"] { border-color: var(--accent); background: color-mix(in srgb, var(--accent) 12%, var(--card)); }
-.hope-brush button[aria-checked="true"][data-b="△"] { border-color: var(--break); background: color-mix(in srgb, var(--break) 14%, var(--card)); }
+/* ○ is always green and △ orange, wherever the marks appear */
+:root { --hope-ok: #179a5b; --hope-maybe: #e07b00; }
+@media (prefers-color-scheme: dark) { :root:not([data-theme="light"]) { --hope-ok: #4fd18e; --hope-maybe: #ffad42; } }
+:root[data-theme="dark"] { --hope-ok: #4fd18e; --hope-maybe: #ffad42; }
+.hope-brush [data-b="○"] .hb, .hm-ok { color: var(--hope-ok); font-weight: 800; font-style: normal; }
+.hope-brush [data-b="△"] .hb, .hm-maybe { color: var(--hope-maybe); font-weight: 800; font-style: normal; }
+.far-ico { font-size: 18px; line-height: 1; }
+.hope-brush button[aria-checked="true"][data-b="○"] { border-color: var(--hope-ok); background: color-mix(in srgb, var(--hope-ok) 14%, var(--card)); }
+.hope-brush button[aria-checked="true"][data-b="△"] { border-color: var(--hope-maybe); background: color-mix(in srgb, var(--hope-maybe) 14%, var(--card)); }
 .hope-brush button:disabled { opacity: .5; cursor: default; }
 .hope-far { display: flex; flex-wrap: wrap; align-items: center; gap: 4px 10px; font-size: 14px; font-weight: 700; padding: 2px 2px; }
 .hope-far input { width: 20px; height: 20px; accent-color: var(--accent); margin: 0; }
@@ -280,14 +287,15 @@ button.day.wd-0:hover, button.day.wd-6:hover, button.day.hol:hover { background:
 .hc.wd-6 .dn { color: var(--sat); } .hc.wd-0 .dn, .hc.hol .dn { color: var(--sun); font-weight: 700; }
 .hc .hn { font-size: 9px; font-weight: 700; color: var(--sun); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
 .hc .mk { font-size: 24px; font-weight: 700; line-height: 1; text-align: center; margin-top: auto; }
-.hc .far { align-self: center; font-size: 10px; font-weight: 700; color: #fff; background: var(--accent); border-radius: 4px; padding: 0 5px; line-height: 1.6; white-space: nowrap; }
-.hc.v-ok { background: color-mix(in srgb, var(--accent) 14%, var(--card)); }
-.hc.v-ok .mk { color: var(--accent); }
-.hc.v-maybe { background: color-mix(in srgb, var(--break) 16%, var(--card)); }
-.hc.v-maybe .mk { color: var(--break); }
+.hc .far { align-self: center; font-size: 10px; font-weight: 700; color: var(--accent); background: var(--card); border: 1px solid color-mix(in srgb, var(--accent) 45%, transparent); border-radius: 4px; padding: 0 4px; line-height: 1.6; white-space: nowrap; }
+.hc .far span { font-size: 12px; margin-right: 1px; }
+.hc.v-ok { background: color-mix(in srgb, var(--hope-ok) 16%, var(--card)); }
+.hc.v-ok .mk { color: var(--hope-ok); }
+.hc.v-maybe { background: color-mix(in srgb, var(--hope-maybe) 18%, var(--card)); }
+.hc.v-maybe .mk { color: var(--hope-maybe); }
 .hc:disabled { cursor: default; }
 button.hc:not(:disabled):hover { filter: brightness(.97); }
-@media (max-width: 400px) { .hc { min-height: 64px; padding: 4px; } .hc .mk { font-size: 20px; } .hc .far { font-size: 9px; padding: 0 3px; } }
+@media (max-width: 400px) { .hc { min-height: 64px; padding: 4px; } .hc .mk { font-size: 20px; } .hc .far { font-size: 9px; padding: 0 2px; } }
 .hope-submit { position: sticky; bottom: 12px; display: grid; gap: 6px; z-index: 2; }
 .hope-submit .msg:empty { display: none; }
 .hope-submit .msg { background: var(--card); border: 1px solid var(--rule); border-radius: 8px; padding: 8px 12px; }
@@ -411,8 +419,10 @@ fieldset:disabled .f input, fieldset:disabled .f textarea, fieldset:disabled .f 
 .sub-sum dd.tot { color: var(--accent); }
 /* member tabs on top; the day's plan and clock only on シフト表 */
 .bar-tabs .tabs { width: 100%; display: grid; grid-auto-flow: column; grid-auto-columns: 1fr; }
-.bar-tabs .tabs button { text-align: center; }
+.bar-tabs .tabs button { text-align: center; white-space: nowrap; }
 .bar-tabs .tabs button[hidden] { display: none; }
+/* four tabs (シフト希望, 給与明細…) stay on one line on a phone */
+@media (max-width: 560px) { .bar-tabs .tabs button { padding: 7px 2px; font-size: 13px; letter-spacing: 0; } }
 #member-ui:not([data-tab="card"]) > .shifts, #member-ui:not([data-tab="card"]) > .clock { display: none; }
 .same-last { font-weight: 700; }
 .set-sum { margin: 0; font-size: 13px; color: var(--ink-soft); background: var(--paper); border-radius: 8px; padding: 8px 10px; }
@@ -688,7 +698,7 @@ fieldset:disabled .f input, fieldset:disabled .f textarea, fieldset:disabled .f 
 .st { display: inline-block; font-size: 11px; font-weight: 700; border-radius: 999px; padding: 2px 10px; border: 1px solid currentColor; }
 .st-work { color: var(--stamp); } .st-done { color: var(--ok); } .st-move { color: var(--dep); } .st-wake { color: var(--break); }
 .st-late, .st-abs { color: var(--stamp-red); } .st-plan, .st-none { color: var(--ink-soft); }
-.far-tag { font-size: 9px; color: #fff; background: var(--accent); border-radius: 3px; padding: 0 3px; margin-left: 1px; vertical-align: 1px; }
+.far-tag { font-size: 11px; font-weight: 400; margin-left: 1px; }
 .ad-add { background: var(--card); border: 1px solid var(--rule); border-radius: var(--r); padding: 14px 16px; display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 10px; align-items: end; }
 .ad-add > b, .ad-add > .hint { grid-column: 1 / -1; }
 .ad-acts { display: flex; gap: 6px; }
@@ -838,8 +848,8 @@ button.pcal-c { cursor: pointer; }
 .pcal-c.today .pcal-d { color: #fff; background: var(--stamp-red); border-radius: 999px; align-self: flex-start; padding: 0 5px; }
 .pcal-s { font-size: 9.5px; line-height: 1.25; color: var(--ink); display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; word-break: break-all; }
 .pcal-t { font-size: 10px; font-weight: 700; line-height: 1.2; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-.pcal-n { font-size: 14px; font-weight: 700; line-height: 1.3; color: var(--accent); }
-.pcal-n.maybe { color: var(--break); }
+.pcal-n { font-size: 14px; font-weight: 700; line-height: 1.3; color: var(--hope-ok); }
+.pcal-n.maybe { color: var(--hope-maybe); }
 /* a person's month totals in one compact row */
 .ad-stats.row5 { grid-template-columns: repeat(5, minmax(0, 1fr)); gap: 6px; }
 .ad-stats.row5:has(> :nth-child(3):last-child) { grid-template-columns: repeat(3, minmax(0, 1fr)); }
@@ -860,16 +870,16 @@ button.pcal-c { cursor: pointer; }
 .pcal-c.k-abs .pcal-t { color: var(--stamp-red); }
 .pcal-c.k-plan { border-style: dashed; border-color: var(--ink-soft); }
 .pcal-c.k-plan .pcal-t { color: var(--ink-soft); }
-.pcal-c.v-ok { background: color-mix(in srgb, var(--accent) 12%, var(--card)); }
-.pcal-c.v-ok .pcal-m, .pcal-c.v-ok .pcal-t:not(.maybe) { color: var(--accent); }
-.pcal-c.v-maybe { background: color-mix(in srgb, var(--break) 14%, var(--card)); }
-.pcal-c.v-maybe .pcal-m { color: var(--break); }
+.pcal-c.v-ok { background: color-mix(in srgb, var(--hope-ok) 14%, var(--card)); }
+.pcal-c.v-ok .pcal-m, .pcal-c.v-ok .pcal-n:not(.maybe) { color: var(--hope-ok); }
+.pcal-c.v-maybe { background: color-mix(in srgb, var(--hope-maybe) 16%, var(--card)); }
+.pcal-c.v-maybe .pcal-m { color: var(--hope-maybe); }
 .pcal-c.sel { outline: 2.5px solid var(--accent); outline-offset: 0; }
 .pcal-detail { background: var(--card); border: 1px solid var(--rule); border-radius: var(--r); padding: 14px 16px; }
 .pcal-detail .ad-kv dd { font-size: 14px; }
 .hope-who { display: grid; gap: 2px; padding: 8px 0; border-top: 1px solid var(--rule); font-size: 14px; }
 .hope-who b { font-size: 12px; }
-.hope-who.v-ok b { color: var(--accent); } .hope-who.v-maybe b { color: var(--break); }
+.hope-who.v-ok b { color: var(--hope-ok); } .hope-who.v-maybe b { color: var(--hope-maybe); }
 /* the PDF viewer fills the screen on a phone */
 .pdf-bg { padding: 8px; }
 .pdf-modal { width: min(920px, 100%); height: 100%; max-height: 100%; grid-template-rows: auto auto 1fr; gap: 8px; padding: 12px; }
@@ -1054,7 +1064,7 @@ button.pcal-c { cursor: pointer; }
 /* marked days on the wish calendar stand up from the grid */
 .hc.v-ok, .hc.v-maybe { box-shadow: var(--shine), inset 0 -3px 0 rgb(31 42 58 / .1); background-image: var(--gloss); }
 .hc .mk { text-shadow: 0 1px 0 rgb(255 255 255 / .5), 0 2px 3px rgb(31 42 58 / .15); }
-.hc .far { box-shadow: 0 1px 0 color-mix(in srgb, var(--accent) 55%, #000); }
+.hc .far { box-shadow: 0 1px 0 color-mix(in srgb, var(--accent) 30%, transparent); }
 /* the big clock and today's store get a soft engraved shadow */
 .time { text-shadow: 0 1px 0 rgb(255 255 255 / .6), 0 3px 8px rgb(31 42 58 / .12); }
 .shift-today.big .st-store { text-shadow: 0 1px 0 rgb(255 255 255 / .6); }
@@ -1300,8 +1310,8 @@ button.pcal-c { cursor: pointer; }
     <div class="hope-head">
       <div class="hope-stat">
         <span class="hope-due" id="h-due">締切 —</span>
-        <span>○ <b class="num" id="h-count">0</b>日</span>
-        <span>△ <b class="num" id="h-maybe">0</b>日</span>
+        <span><i class="hm-ok">○</i> <b class="num" id="h-count">0</b>日</span>
+        <span><i class="hm-maybe">△</i> <b class="num" id="h-maybe">0</b>日</span>
         <span class="hope-sent" id="h-sent"></span>
       </div>
       <p class="hope-how">下で ○ か △ を選んでから、カレンダーの日付を押してください。同じ印の日をもう一度押すと消えます。<b>何も付いていない日は「稼働不可」</b>として出します。</p>
@@ -1309,7 +1319,7 @@ button.pcal-c { cursor: pointer; }
         <button type="button" role="radio" data-b="○" aria-checked="true"><span class="hb">○</span>稼働できる</button>
         <button type="button" role="radio" data-b="△" aria-checked="false"><span class="hb">△</span>要相談</button>
       </div>
-      <label class="hope-far" id="h-far-box"><input type="checkbox" id="h-far">遠方での稼働も可能<small>○の日に「遠方」が付きます</small></label>
+      <label class="hope-far" id="h-far-box"><input type="checkbox" id="h-far"><span class="far-ico" aria-hidden="true">🚄</span>遠方での稼働も可能<small>○の日に🚄が付きます。遠方の交通費・宿泊費は、Themisが負担します。</small></label>
     </div>
     <div class="hope-cal">
       <div class="cal-wd" aria-hidden="true"><div>日</div><div>月</div><div>火</div><div>水</div><div>木</div><div>金</div><div>土</div></div>
@@ -2225,7 +2235,7 @@ window.addEventListener("error", function (e) {
       cell.type = "button"; cell.dataset.k = key; cell.disabled = closed;
       cell.className = `hc wd-${date.getDay()}` + (hol ? " hol" : "") + (v === "△" ? " v-maybe" : v ? " v-ok" : "");
       cell.innerHTML = `<span class="dn">${d}</span>` + (hol ? `<span class="hn">${esc(hol)}</span>` : "") +
-        (v ? `<span class="mk">${v === "△" ? "△" : "○"}</span>` : "") + (v === "○遠" ? `<span class="far">✓遠方</span>` : "");
+        (v ? `<span class="mk">${v === "△" ? "△" : "○"}</span>` : "") + (v === "○遠" ? `<span class="far"><span aria-hidden="true">🚄</span>遠方</span>` : "");
       cell.setAttribute("aria-label", `${mo}月${d}日（${WD[date.getDay()]}）${hol ? " " + hol : ""} ` +
         ({ "○": "稼働できる", "○遠": "稼働できる・遠方も可", "△": "要相談" }[v] || "稼働不可"));
       frag.appendChild(cell);
@@ -3668,7 +3678,8 @@ ${v.addr}`;
   const numName = (i, name) => `<span class="no">${String(i + 1).padStart(3, "0")}</span>${esc(name)}`;
 
   function adToday() {
-    const today = adData.today, live = adData.members.filter((m) => m.active);
+    // 代表 is not on site: no clocking to check
+    const today = adData.today, live = adData.members.filter((m) => m.active && !m.rep);
     const rec = Object.fromEntries(adRows((r) => r[DH.date] === today).map((r) => [r[DH.name], r]));
     const list = live.map((m) => ({ m, r: rec[m.name], s: statusOf(rec[m.name]) }));
     const order = { late: 0, wake: 1, move: 2, work: 3, plan: 4, done: 5, abs: 6, none: 7 };
@@ -3703,7 +3714,7 @@ ${v.addr}`;
   const bindPeople = () => { for (const b of $("ad-body").querySelectorAll("[data-person]")) b.onclick = () => adOpenPerson(b.dataset.person); };
 
   function adWork() {
-    const ym = adMonth.work, live = adData.members.filter((m) => m.active || adData.days.some((r) => r[DH.name] === m.name && r[DH.date].slice(0, 7) === ym));
+    const ym = adMonth.work, live = adData.members.filter((m) => !m.rep && (m.active || adData.days.some((r) => r[DH.name] === m.name && r[DH.date].slice(0, 7) === ym)));
     const rows = adRows((r) => r[DH.date].slice(0, 7) === ym);
     $("ad-body").innerHTML = `<p class="hint">名前を押すと、その人の${esc(ymLabel(ym))}のカレンダーが開きます。</p>` + byWork(live).map(([t, g]) =>
       `<h3 class="ad-grp">${esc(groupName(t))}（${g.length}人）</h3><div class="ad-cards">` + g.map((m, i) => {
@@ -3729,7 +3740,7 @@ ${v.addr}`;
       const [y, mo, d] = key.split("-").map(Number), wd = new Date(y, mo - 1, d).getDay();
       const part = (t, list, cls) => `<div class="hope-who ${cls}"><b>${t}（${list.length}人）</b><span>${list.length ? list.map((m) => esc(m.name)).join("、") : "—"}</span></div>`;
       return `<h3 class="ad-h3">${mo}月${d}日（${WD[wd]}）${holidayName(key) ? `<small>${esc(holidayName(key))}</small>` : ""}</h3>` +
-        part("○ 稼働できる", who(key, "○"), "v-ok") + part("○ 遠方も可", who(key, "○遠方可"), "v-ok") + part("△ 要相談", who(key, "△"), "v-maybe");
+        part("○ 稼働できる", who(key, "○"), "v-ok") + part("○🚄 遠方も可", who(key, "○遠方可"), "v-ok") + part("△ 要相談", who(key, "△"), "v-maybe");
     };
     $("ad-body").innerHTML =
       `<div class="ad-stats"><div class="ad-stat"><span>提出済み</span><b class="num">${sent} / ${live.length}</b></div>` +
@@ -3743,7 +3754,7 @@ ${v.addr}`;
       `<p class="hint">名前を押すと、その人のシフト希望がカレンダーで開きます。常勤の人はシフト希望がないので、ここには出ません。</p>` +
       byWork(live).map(([t, g]) => `<h3 class="ad-grp">${esc(groupName(t))}（${g.length}人）</h3><div class="ad-cards">` + g.map((m, i) => {
         const r = byName[m.name];
-        return personCard(m, i, r ? `<span>○ <b class="num">${esc(r[3])}</b>日</span><span>うち遠方可 <b class="num">${esc(r[4])}</b></span><span>△ <b class="num">${esc(r[5])}</b>日</span>`
+        return personCard(m, i, r ? `<span><i class="hm-ok">○</i> <b class="num">${esc(r[3])}</b>日</span><span>うち🚄遠方可 <b class="num">${esc(r[4])}</b></span><span><i class="hm-maybe">△</i> <b class="num">${esc(r[5])}</b>日</span>`
           : `<span class="st st-late">未提出</span>`, !r);
       }).join("") + `</div>`).join("");
     bindPeople();
@@ -3781,11 +3792,11 @@ ${v.addr}`;
       const ym = adMonth.hope, r = adData.hopes.find((x) => x[0] === m.name);
       $("ad-body").innerHTML = head + (r
         ? `<div class="ad-stats row5"><div class="ad-stat"><span>○</span><b class="num">${esc(r[3])}</b></div><div class="ad-stat"><span>うち遠方可</span><b class="num">${esc(r[4])}</b></div>` +
-          `<div class="ad-stat"><span>△</span><b class="num">${esc(r[5])}</b></div></div><p class="hint">提出 ${esc(r[2])}　○ 稼働できる　<b class="far-tag">遠</b> 遠方も可　△ 要相談　空欄は稼働不可</p>`
+          `<div class="ad-stat"><span>△</span><b class="num">${esc(r[5])}</b></div></div><p class="hint">提出 ${esc(r[2])}　<i class="hm-ok">○</i> 稼働できる　<b class="far-tag">🚄</b> 遠方も可　<i class="hm-maybe">△</i> 要相談　空欄は稼働不可</p>`
         : `<p class="hint">${esc(ymLabel(ym))}のシフト希望はまだ提出されていません。</p>`) +
         monthCal(ym, (key) => {
           const v = r?.[5 + Number(key.slice(8))] || "";
-          return v ? { cls: v === "△" ? "v-maybe" : "v-ok", html: `<span class="pcal-m">${v === "○遠方可" ? `○<b class="far-tag">遠</b>` : esc(v)}</span>` } : {};
+          return v ? { cls: v === "△" ? "v-maybe" : "v-ok", html: `<span class="pcal-m">${v === "○遠方可" ? `○<b class="far-tag">🚄</b>` : esc(v)}</span>` } : {};
         }, "", true);
     } else {
       const ym = adMonth.work, rows = Object.fromEntries(adRows((x) => x[DH.name] === m.name && x[DH.date].startsWith(ym)).map((x) => [x[DH.date], x]));
