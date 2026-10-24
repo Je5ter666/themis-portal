@@ -3965,12 +3965,13 @@ ${v.addr}`;
 
   // 売上・利益 (its own tab, from the same read as 他社請求): 売上 = the 他社請求, 利益 = 売上 − what the members invoice
   // Themis, matched by the month the work was done: this month's invoices (dated October) are for September, as are
-  // the members' September invoices. All 税抜 (交通費 included). The months before the app (past, from the PDF invoices) are added in
+  // the members' September invoices. All 税抜 (交通費 included). The months before the app (past, from the work sheets in
+  // 「稼働」) show only those figures, so an invoice also made in the app for such a month is not counted twice
   function adSales() {
     const costs = blData.costs || {}, past = blData.past || {}, now = workYm(dayKey(new Date())), months = {};
     const at = (ym) => (months[ym] ||= { sales: 0, cost: 0 });
-    for (const b of blData.bills) at(workYm(b.date)).sales += b.total - (b.taxAmount ?? billTotals(b).tax);
-    for (const [ym, v] of Object.entries(costs)) at(ym).cost += v;
+    for (const b of blData.bills) if (!past[workYm(b.date)]) at(workYm(b.date)).sales += b.total - (b.taxAmount ?? billTotals(b).tax);
+    for (const [ym, v] of Object.entries(costs)) if (!past[ym]) at(ym).cost += v;
     for (const [ym, v] of Object.entries(past)) { at(ym).sales += v.sales || 0; at(ym).cost += v.cost || 0; }
     const all = Object.values(months).reduce((s, m) => ({ sales: s.sales + m.sales, cost: s.cost + m.cost }), { sales: 0, cost: 0 });
     const signed = (v) => `${v < 0 ? "−" : ""}${yen(Math.abs(v))}`;
@@ -3985,10 +3986,11 @@ ${v.addr}`;
     $("ad-body").innerHTML =
       `<h4 class="bl-h">今月（${workMonth()}月分）</h4>` + box(months[now] || { sales: 0, cost: 0 }) +
       `<h4 class="bl-h">全体</h4>` + box(all) +
-      (rows.length ? `<h4 class="bl-h">月ごと</h4><div class="sl-wrap"><table class="sl-tbl num"><thead><tr><th>月</th><th>売上</th><th>支払い</th><th>利益</th><th>利益率</th></tr></thead>` +
+      (rows.length ? `<h4 class="bl-h">月ごと</h4><div class="sl-wrap"><table class="sl-tbl num"><thead><tr><th>月</th><th>売上</th><th>経費</th><th>利益</th><th>利益率</th></tr></thead>` +
         `<tbody>${rows.join("")}</tbody></table></div>` : "") +
       `<p class="hint">金額は税抜（消費税を除く。交通費は含む）です。売上は他社請求の合計、利益は売上からメンバーへの支払い（メンバーの請求書の金額。源泉徴収を引く前）を引いたもの、利益率は利益÷売上です。` +
-      `今月は、今月の請求日の他社請求と、メンバーの${workMonth()}月分の請求書で計算します。アプリを使う前の月は、フォルダに保存した請求書PDFの金額です。</p>`;
+      `今月は、今月の請求日の他社請求と、メンバーの${workMonth()}月分の請求書で計算します。` +
+      `アプリを使う前の月（${Object.keys(past).sort().map((ym) => `${Number(ym.slice(5))}月`).join("・")}）は、「稼働」の表の売上・利益です（税抜。先方からもらう交通費は売上に含みます。経費は売上−利益）。</p>`;
   }
   async function adBills() {
     // only a first read clears the message line, so 「保存しました」 and the like stay after a redraw
