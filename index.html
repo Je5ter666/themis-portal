@@ -259,24 +259,25 @@ button.day.wd-0:hover, button.day.wd-6:hover, button.day.hol:hover { background:
 .hope-how { margin: 0; font-size: 13px; color: var(--ink-soft); line-height: 1.7; }
 .hope-how b { color: var(--ink); }
 /* the mark to paint: pick ○ or △, then tap days */
-.hope-brush { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
+.hope-brush { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 6px; }
+/* on a phone the three sit side by side, each its mark above its words */
+@media (max-width: 560px) { .hope-brush button { flex-direction: column; justify-content: center; gap: 4px; padding: 9px 4px; font-size: 13px; text-align: center; } }
+.hope-far-note { margin: 0; font-size: 12.5px; color: var(--ink); }
 .hope-brush button { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; border: 1.5px solid var(--rule); background: var(--card); border-radius: var(--r); padding: 10px 12px; font-size: 14px; font-weight: 700; color: var(--ink); text-align: left; }
 .hope-brush button small { flex-basis: 100%; font-size: 11px; font-weight: 500; color: var(--ink-soft); margin-left: 30px; margin-top: -4px; }
 .hope-brush .hb { font-size: 20px; line-height: 1; width: 22px; text-align: center; }
-/* ○ is always green and △ orange, wherever the marks appear */
-:root { --hope-ok: #179a5b; --hope-maybe: #e07b00; }
-@media (prefers-color-scheme: dark) { :root:not([data-theme="light"]) { --hope-ok: #4fd18e; --hope-maybe: #ffad42; } }
-:root[data-theme="dark"] { --hope-ok: #4fd18e; --hope-maybe: #ffad42; }
+/* ○ is always green, 🚄 blue and △ orange, wherever the marks appear */
+:root { --hope-ok: #179a5b; --hope-far: #2f6fd6; --hope-maybe: #e07b00; }
+@media (prefers-color-scheme: dark) { :root:not([data-theme="light"]) { --hope-ok: #4fd18e; --hope-far: #7fb0ff; --hope-maybe: #ffad42; } }
+:root[data-theme="dark"] { --hope-ok: #4fd18e; --hope-far: #7fb0ff; --hope-maybe: #ffad42; }
+.hm-far { font-style: normal; }
+.hope-brush button[aria-checked="true"][data-b="○遠"] { border-color: var(--hope-far); background: color-mix(in srgb, var(--hope-far) 14%, var(--card)); }
+.hc.v-far { background: color-mix(in srgb, var(--hope-far) 16%, var(--card)); }
 .hope-brush [data-b="○"] .hb, .hm-ok { color: var(--hope-ok); font-weight: 800; font-style: normal; }
 .hope-brush [data-b="△"] .hb, .hm-maybe { color: var(--hope-maybe); font-weight: 800; font-style: normal; }
-.far-ico { font-size: 18px; line-height: 1; }
 .hope-brush button[aria-checked="true"][data-b="○"] { border-color: var(--hope-ok); background: color-mix(in srgb, var(--hope-ok) 14%, var(--card)); }
 .hope-brush button[aria-checked="true"][data-b="△"] { border-color: var(--hope-maybe); background: color-mix(in srgb, var(--hope-maybe) 14%, var(--card)); }
 .hope-brush button:disabled { opacity: .5; cursor: default; }
-.hope-far { display: flex; flex-wrap: wrap; align-items: center; gap: 4px 10px; font-size: 14px; font-weight: 700; padding: 2px 2px; }
-.hope-far input { width: 20px; height: 20px; accent-color: var(--accent); margin: 0; }
-.hope-far small { font-size: 11px; font-weight: 500; color: var(--ink-soft); }
-.hope-far.off { opacity: .45; }
 /* the month as a calendar; each day shows its mark large */
 .hope-cal { background: var(--card); border: 1px solid var(--rule); border-radius: 12px; overflow: hidden; }
 .hope-grid { display: grid; grid-template-columns: repeat(7, minmax(0, 1fr)); gap: 1px; background: var(--rule); }
@@ -287,15 +288,13 @@ button.day.wd-0:hover, button.day.wd-6:hover, button.day.hol:hover { background:
 .hc.wd-6 .dn { color: var(--sat); } .hc.wd-0 .dn, .hc.hol .dn { color: var(--sun); font-weight: 700; }
 .hc .hn { font-size: 9px; font-weight: 700; color: var(--sun); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
 .hc .mk { font-size: 24px; font-weight: 700; line-height: 1; text-align: center; margin-top: auto; }
-.hc .far { align-self: center; font-size: 10px; font-weight: 700; color: var(--accent); background: var(--card); border: 1px solid color-mix(in srgb, var(--accent) 45%, transparent); border-radius: 4px; padding: 0 4px; line-height: 1.6; white-space: nowrap; }
-.hc .far span { font-size: 12px; margin-right: 1px; }
 .hc.v-ok { background: color-mix(in srgb, var(--hope-ok) 16%, var(--card)); }
 .hc.v-ok .mk { color: var(--hope-ok); }
 .hc.v-maybe { background: color-mix(in srgb, var(--hope-maybe) 18%, var(--card)); }
 .hc.v-maybe .mk { color: var(--hope-maybe); }
 .hc:disabled { cursor: default; }
 button.hc:not(:disabled):hover { filter: brightness(.97); }
-@media (max-width: 400px) { .hc { min-height: 64px; padding: 4px; } .hc .mk { font-size: 20px; } .hc .far { font-size: 9px; padding: 0 2px; } }
+@media (max-width: 400px) { .hc { min-height: 64px; padding: 4px; } .hc .mk { font-size: 20px; } }
 .hope-submit { position: sticky; bottom: 12px; display: grid; gap: 6px; z-index: 2; }
 .hope-submit .msg:empty { display: none; }
 .hope-submit .msg { background: var(--card); border: 1px solid var(--rule); border-radius: 8px; padding: 8px 12px; }
@@ -829,8 +828,22 @@ body.gate { position: fixed; inset: 0; touch-action: none; }
 .tabs.ad-tabs button[hidden] { display: none; }
 /* 管理画面 | 運営画面: a plain two-way switch above the tabs, ink-coloured so it reads as a level above them */
 .ad-space { display: grid; grid-template-columns: 1fr 1fr; gap: 4px; padding: 4px; margin-bottom: 10px; border-radius: 12px; background: var(--paper); border: 1px solid var(--rule); box-shadow: var(--sink); }
-.ad-space button { border: 0; border-radius: 9px; background: transparent; padding: 9px 4px; font-size: 14px; font-weight: 700; color: var(--ink-soft); letter-spacing: .04em; }
-.ad-space button[aria-selected="true"] { background: var(--ink); color: var(--card); box-shadow: 0 2px 0 color-mix(in srgb, var(--ink) 60%, #000); }
+/* each part has its own colour (管理画面 green, 運営画面 purple): the one on screen is filled and says 表示中, and the
+   tabs below take the same colour, so it is plain which part is open */
+:root { --kanri: #2b7a72; --unei: #6a4fb3; }
+@media (prefers-color-scheme: dark) { :root:not([data-theme="light"]) { --kanri: #6cc4b8; --unei: #b39cf2; } }
+:root[data-theme="dark"] { --kanri: #6cc4b8; --unei: #b39cf2; }
+.ad-space button { --sp: var(--kanri); border: 1.5px dashed color-mix(in srgb, var(--sp) 45%, var(--rule)); border-radius: 9px; background: transparent;
+  padding: 8px 4px; font-size: 14px; font-weight: 700; color: var(--sp); letter-spacing: .04em; display: flex; align-items: center; justify-content: center; gap: 8px; }
+.ad-space button[data-s="unei"] { --sp: var(--unei); }
+.ad-space button small { display: none; font-size: 11px; font-weight: 700; letter-spacing: 0; padding: 1px 7px; border-radius: 999px; background: rgb(255 255 255 / .25); }
+.ad-space button[aria-selected="true"] { border: 1.5px solid var(--sp); background: var(--sp); color: #fff; box-shadow: 0 2px 0 color-mix(in srgb, var(--sp) 60%, #000); }
+.ad-space button[aria-selected="true"] small { display: inline-block; }
+:root:not([data-theme="light"]) .ad-space button[aria-selected="true"] { color: var(--card); }
+:root[data-theme="light"] .ad-space button[aria-selected="true"] { color: #fff; }
+#admin[data-space="kanri"] .ad-tabs button[aria-selected="true"] { background: var(--kanri); }
+#admin[data-space="unei"] .ad-tabs button[aria-selected="true"] { background: var(--unei); }
+#admin[data-space="unei"] .ad-tabs button[aria-selected="true"] { box-shadow: inset 0 1px 0 rgb(255 255 255 / .25), 0 3px 0 color-mix(in srgb, var(--unei) 55%, #000); }
 @media (max-width: 560px) { .tabs.ad-tabs button { font-size: 12.5px; letter-spacing: 0; } }
 /* people as cards: name and badge on top, then label / value lines; no sideways scrolling */
 .ad-cards { display: grid; grid-template-columns: repeat(auto-fill, minmax(min(330px, 100%), 1fr)); gap: 10px; }
@@ -899,6 +912,8 @@ button.pcal-c { cursor: pointer; }
 .pcal-c.v-ok .pcal-m, .pcal-c.v-ok .pcal-n:not(.maybe) { color: var(--hope-ok); }
 .pcal-c.v-maybe { background: color-mix(in srgb, var(--hope-maybe) 16%, var(--card)); }
 .pcal-c.v-maybe .pcal-m { color: var(--hope-maybe); }
+.pcal-c.v-far { background: color-mix(in srgb, var(--hope-far) 14%, var(--card)); }
+.hope-who.v-far b { color: var(--hope-far); }
 .pcal-c.sel { outline: 2.5px solid var(--accent); outline-offset: 0; }
 .pcal-detail { background: var(--card); border: 1px solid var(--rule); border-radius: var(--r); padding: 14px 16px; }
 .pcal-detail .ad-kv dd { font-size: 14px; }
@@ -1087,9 +1102,8 @@ button.pcal-c { cursor: pointer; }
 .hope-brush button[aria-checked="true"] { box-shadow: var(--sink); transform: translateY(2px); }
 .pill { box-shadow: var(--shine), 0 1px 2px rgb(31 42 58 / .12); }
 /* marked days on the wish calendar stand up from the grid */
-.hc.v-ok, .hc.v-maybe { box-shadow: var(--shine), inset 0 -3px 0 rgb(31 42 58 / .1); background-image: var(--gloss); }
+.hc.v-ok, .hc.v-far, .hc.v-maybe { box-shadow: var(--shine), inset 0 -3px 0 rgb(31 42 58 / .1); background-image: var(--gloss); }
 .hc .mk { text-shadow: 0 1px 0 rgb(255 255 255 / .5), 0 2px 3px rgb(31 42 58 / .15); }
-.hc .far { box-shadow: 0 1px 0 color-mix(in srgb, var(--accent) 30%, transparent); }
 /* the big clock and today's store get a soft engraved shadow */
 .time { text-shadow: 0 1px 0 rgb(255 255 255 / .6), 0 3px 8px rgb(31 42 58 / .12); }
 .shift-today.big .st-store { text-shadow: 0 1px 0 rgb(255 255 255 / .6); }
@@ -1145,8 +1159,8 @@ button.pcal-c { cursor: pointer; }
   <section class="admin" id="admin" hidden aria-label="管理画面">
     <!-- 運営 only: the admin screen in two parts, 管理画面 (everyone's days, shifts, members) and 運営画面 (money) -->
     <div class="ad-space" id="ad-space" role="tablist" aria-label="画面の切り替え" hidden>
-      <button type="button" role="tab" data-s="kanri" aria-selected="true">管理画面</button>
-      <button type="button" role="tab" data-s="unei" aria-selected="false">運営画面</button>
+      <button type="button" role="tab" data-s="kanri" aria-selected="true">管理画面<small>● 表示中</small></button>
+      <button type="button" role="tab" data-s="unei" aria-selected="false">運営画面<small>● 表示中</small></button>
     </div>
     <div class="bar">
       <div class="tabs ad-tabs" role="tablist" id="ad-tabs">
@@ -1336,15 +1350,18 @@ button.pcal-c { cursor: pointer; }
       <div class="hope-stat">
         <span class="hope-due" id="h-due">締切 —</span>
         <span><i class="hm-ok">○</i> <b class="num" id="h-count">0</b>日</span>
+        <span><i class="hm-far">🚄</i> <b class="num" id="h-far-n">0</b>日</span>
         <span><i class="hm-maybe">△</i> <b class="num" id="h-maybe">0</b>日</span>
         <span class="hope-sent" id="h-sent"></span>
       </div>
-      <p class="hope-how">下で ○ か △ を選んでから、カレンダーの日付を押してください。同じ印の日をもう一度押すと消えます。<b>何も付いていない日は「稼働不可」</b>として出します。</p>
+      <p class="hope-how">下で印を選んでから、カレンダーの日付を押してください。同じ印の日をもう一度押すと消えます。<b>何も付いていない日は「稼働不可」</b>として出します。</p>
+      <!-- 🚄 is 稼働できる with 遠方 too (stored as "○遠") -->
       <div class="hope-brush" id="h-brush" role="radiogroup" aria-label="付ける印">
         <button type="button" role="radio" data-b="○" aria-checked="true"><span class="hb">○</span>稼働できる</button>
+        <button type="button" role="radio" data-b="○遠" aria-checked="false"><span class="hb">🚄</span>遠方も可</button>
         <button type="button" role="radio" data-b="△" aria-checked="false"><span class="hb">△</span>要相談</button>
       </div>
-      <label class="hope-far" id="h-far-box"><input type="checkbox" id="h-far"><span class="far-ico" aria-hidden="true">🚄</span>遠方での稼働も可能<small>○の日に🚄が付きます。遠方の交通費・宿泊費は、Themisが負担します。</small></label>
+      <p class="hope-far-note">交通費・宿泊費は、遠方も含めThemisが負担します。</p>
     </div>
     <div class="hope-cal">
       <div class="cal-wd" aria-hidden="true"><div>日</div><div>月</div><div>火</div><div>水</div><div>木</div><div>金</div><div>土</div></div>
@@ -2219,7 +2236,7 @@ window.addEventListener("error", function (e) {
   let lastInvKey = "";
   // ---- shift wishes ----
   // one doc per month: hope-YYYY-MM = {days: {"YYYY-MM-DD": "○"|"○遠"|"△"}, submittedAt}; a day left blank is 稼働不可
-  // the person picks a mark (○ with or without 遠方, or △) and taps days on the calendar to put it on;
+  // the person picks a mark (○, 🚄 for ○ with 遠方, or △) and taps days on the calendar to put it on;
   // choices stay on this device until 「この内容で提出する」, and the server refuses changes after the deadline
   const HOPES = ["○", "○遠", "△"];
   const HOPE_DUE_DAY = 25;   // wishes for a month close on the 25th of the month before, end of day
@@ -2228,7 +2245,7 @@ window.addEventListener("error", function (e) {
   const hopeDirty = {};
   let lastHopeSig = "", hopeBrush = "○";
   const hopeMsg = (t) => { $("h-msg").textContent = t || ""; };
-  const brushValue = () => (hopeBrush === "○" && $("h-far").checked ? "○遠" : hopeBrush);
+  const brushValue = () => hopeBrush;
 
   function renderHope() {
     const ym = viewYm(), h = hopeDoc(ym), due = hopeDue(ym), closed = Date.now() > due.getTime();
@@ -2236,15 +2253,13 @@ window.addEventListener("error", function (e) {
     const vals = Object.keys(h.days).filter((k) => k.startsWith(ym)).map((k) => h.days[k]);
     $("h-due").textContent = closed ? "締切済み" : `締切 ${due.getMonth() + 1}/${due.getDate()}`;
     $("h-due").classList.toggle("closed", closed);
-    $("h-count").textContent = vals.filter((v) => v === "○" || v === "○遠").length;
+    $("h-count").textContent = vals.filter((v) => v === "○").length;
+    $("h-far-n").textContent = vals.filter((v) => v === "○遠").length;
     $("h-maybe").textContent = vals.filter((v) => v === "△").length;
     const sent = $("h-sent");
     sent.classList.toggle("dirty", !!hopeDirty[ym]);
     sent.textContent = hopeDirty[ym] ? "まだ提出していない変更があります" : h.submittedAt ? `提出済み（${h.submittedAt}）` : "";
     for (const b of $("h-brush").querySelectorAll("button")) { b.setAttribute("aria-checked", b.dataset.b === hopeBrush); b.disabled = closed; }
-    // 遠方 only applies to ○
-    $("h-far").disabled = closed || hopeBrush !== "○";
-    $("h-far-box").classList.toggle("off", hopeBrush !== "○");
     $("h-submit").disabled = closed;
     $("h-submit").textContent = closed ? "締切を過ぎました" : h.submittedAt ? "この内容で出し直す" : "この内容で提出する";
 
@@ -2258,9 +2273,9 @@ window.addEventListener("error", function (e) {
       const date = new Date(y, mo - 1, d), key = dayKey(date), hol = holidayName(key), v = h.days[key];
       const cell = document.createElement("button");
       cell.type = "button"; cell.dataset.k = key; cell.disabled = closed;
-      cell.className = `hc wd-${date.getDay()}` + (hol ? " hol" : "") + (v === "△" ? " v-maybe" : v ? " v-ok" : "");
+      cell.className = `hc wd-${date.getDay()}` + (hol ? " hol" : "") + (v === "△" ? " v-maybe" : v === "○遠" ? " v-far" : v ? " v-ok" : "");
       cell.innerHTML = `<span class="dn">${d}</span>` + (hol ? `<span class="hn">${esc(hol)}</span>` : "") +
-        (v ? `<span class="mk">${v === "△" ? "△" : "○"}</span>` : "") + (v === "○遠" ? `<span class="far"><span aria-hidden="true">🚄</span>遠方</span>` : "");
+        (v ? `<span class="mk">${{ "△": "△", "○遠": "🚄" }[v] || "○"}</span>` : "");
       cell.setAttribute("aria-label", `${mo}月${d}日（${WD[date.getDay()]}）${hol ? " " + hol : ""} ` +
         ({ "○": "稼働できる", "○遠": "稼働できる・遠方も可", "△": "要相談" }[v] || "稼働不可"));
       frag.appendChild(cell);
@@ -2273,7 +2288,6 @@ window.addEventListener("error", function (e) {
     if (!b || b.disabled) return;
     hopeBrush = b.dataset.b; render();
   });
-  $("h-far").onchange = () => render();
   $("h-list").addEventListener("click", (e) => {
     const c = e.target.closest("button[data-k]");
     if (!c || c.disabled) return;
@@ -3576,7 +3590,7 @@ ${v.addr}`;
     // still showing last time's copy because the server could not be reached: say so instead of doing nothing
     if (mode === "member" && !backend) { msg("サーバーから記録を読み込めていないため、管理画面を開けません。通信状況を確認して、画面を更新してください。"); window.scrollTo(0, 0); return; }
     if (mode === "member" && backend && !needsSetup() &&
-      !await ask("管理画面を開きますか？", "メンバー全員の勤怠・シフト・請求書を見る画面に移ります。", "開く")) return;
+      !await ask("管理画面を開きますか？", window.TC_OWNER ? "全員の勤怠・シフト・請求書を見ます。" : "全員の勤怠・シフトを見ます。", "開く")) return;   // invoices are 運営's only
     switchMode();
   };
   function switchMode() {
@@ -3676,6 +3690,7 @@ ${v.addr}`;
       b.setAttribute("aria-selected", b.dataset.t === adTab);
     }
     for (const b of $("ad-space").querySelectorAll("button")) b.setAttribute("aria-selected", b.dataset.s === sp);
+    $("admin").dataset.space = window.TC_OWNER ? sp : "";
     $("admin").setAttribute("aria-label", sp === "unei" ? "運営画面" : "管理画面");
   }
   function startAdmin() {
@@ -3839,7 +3854,7 @@ ${v.addr}`;
       const [y, mo, d] = key.split("-").map(Number), wd = new Date(y, mo - 1, d).getDay();
       const part = (t, list, cls) => `<div class="hope-who ${cls}"><b>${t}（${list.length}人）</b><span>${list.length ? list.map((m) => esc(m.name)).join("、") : "—"}</span></div>`;
       return `<h3 class="ad-h3">${mo}月${d}日（${WD[wd]}）${holidayName(key) ? `<small>${esc(holidayName(key))}</small>` : ""}</h3>` +
-        part("○ 稼働できる", who(key, "○"), "v-ok") + part("○🚄 遠方も可", who(key, "○遠方可"), "v-ok") + part("△ 要相談", who(key, "△"), "v-maybe");
+        part("○ 稼働できる", who(key, "○"), "v-ok") + part("🚄 遠方も可", who(key, "○遠方可"), "v-far") + part("△ 要相談", who(key, "△"), "v-maybe");
     };
     $("ad-body").innerHTML =
       `<div class="ad-stats"><div class="ad-stat"><span>提出済み</span><b class="num">${sent} / ${live.length}</b></div>` +
@@ -3895,7 +3910,7 @@ ${v.addr}`;
         : `<p class="hint">${esc(ymLabel(ym))}のシフト希望はまだ提出されていません。</p>`) +
         monthCal(ym, (key) => {
           const v = r?.[5 + Number(key.slice(8))] || "";
-          return v ? { cls: v === "△" ? "v-maybe" : "v-ok", html: `<span class="pcal-m">${v === "○遠方可" ? `○<b class="far-tag">🚄</b>` : esc(v)}</span>` } : {};
+          return v ? { cls: v === "△" ? "v-maybe" : v === "○遠方可" ? "v-far" : "v-ok", html: `<span class="pcal-m">${v === "○遠方可" ? "🚄" : esc(v)}</span>` } : {};
         }, "", true);
     } else {
       const ym = adMonth.work, rows = Object.fromEntries(adRows((x) => x[DH.name] === m.name && x[DH.date].startsWith(ym)).map((x) => [x[DH.date], x]));
