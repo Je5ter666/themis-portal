@@ -460,7 +460,8 @@ fieldset:disabled .f input, fieldset:disabled .f textarea, fieldset:disabled .f 
 .nt-doc h3 { margin: 0; font-size: 18px; }
 .nt-doc .nt-meta { font-size: 12px; color: var(--ink-soft); }
 .nt-doc .nt-text { white-space: pre-wrap; overflow-wrap: anywhere; font-size: 15px; line-height: 1.7; }
-.nt-doc.imp { border-color: #e5373d; box-shadow: inset 4px 0 0 #e5373d; }
+.nt-doc.imp { border: 1.5px solid #e5373d; }
+.nt-ok { font-size: 13px; font-weight: 700; color: var(--accent); align-self: center; }
 /* an お問い合わせ as a chat: the person's own messages on the right */
 .nt-chat { display: grid; gap: 10px; }
 .nt-msg { max-width: 85%; justify-self: start; display: grid; gap: 2px; }
@@ -472,7 +473,10 @@ fieldset:disabled .f input, fieldset:disabled .f textarea, fieldset:disabled .f 
 .nt-form { display: grid; gap: 10px; }
 .nt-form .btn { justify-self: end; }
 /* 戻る on 請求書 / 給与明細 stays at the top of the screen while the page scrolls under it */
-.sub-back { position: sticky; top: calc(8px + env(safe-area-inset-top, 0px)); z-index: 14; margin-bottom: -12px; justify-self: start; }
+.sub-back { position: sticky; top: calc(8px + env(safe-area-inset-top, 0px)); z-index: 14; margin-bottom: -12px; display: flex; justify-content: space-between; align-items: center; gap: 8px; pointer-events: none; }
+.sub-back button { pointer-events: auto; }
+/* the right end of that row: お知らせを出す (運営・代表), apart from the list */
+#sub-act .tool { color: var(--accent); }
 .sub-back .tool { font-size: 14px; font-weight: 700; padding: 8px 16px 8px 12px; border-radius: 999px; background: var(--card);
   box-shadow: 0 2px 0 rgb(31 42 58 / .12), 0 6px 16px -6px rgb(31 42 58 / .45); }
 .menu-list { display: grid; background: var(--card); border: 1px solid var(--rule); border-radius: var(--r); overflow: hidden; }
@@ -505,6 +509,9 @@ body:has(#member-ui:not([hidden])) .brand-btns { display: none; }
 .bnav button[aria-current="page"] { color: #fff; background: var(--accent); background-image: linear-gradient(180deg, rgb(255 255 255 / .22), rgb(0 0 0 / .06));
   box-shadow: inset 0 1px 0 rgb(255 255 255 / .3), 0 3px 0 color-mix(in srgb, var(--accent) 55%, #000); transform: translateY(-3px); }
 .bnav button[aria-current="page"] svg { fill-opacity: .25; }
+/* a new お知らせ: a red dot on ホーム too */
+.bnav button { position: relative; }
+.bnav button.has-new::after { content: ""; position: absolute; top: 6px; left: calc(50% + 10px); width: 10px; height: 10px; border-radius: 50%; background: #e5373d; border: 2px solid var(--card); }
 .bnav button:active { transform: translateY(0); }
 /* a message said off the ホーム screen shows for a moment just above the bar */
 .toast { position: fixed; left: 50%; transform: translateX(-50%); bottom: calc(88px + env(safe-area-inset-bottom, 0px)); z-index: 16; width: max-content; max-width: min(92vw, 520px);
@@ -1223,7 +1230,7 @@ button.pcal-c { cursor: pointer; }
 <div class="wrap">
   <header class="brand">
     <div class="brand-mark"><img class="logo" alt="Themis" src="data:image/png;base64,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"><span class="brand-name">Themis Portal</span></div>
-    <div class="brand-side"><span class="brand-who" id="who"></span><div class="brand-btns"><button type="button" class="tool" id="adminbtn" hidden>管理画面</button><button type="button" class="tool" id="chpass" hidden>パスワード変更</button><button type="button" class="tool" id="logout" hidden>ログアウト</button></div></div>
+    <div class="brand-side"><span class="brand-who" id="who"></span><div class="brand-btns"><button type="button" class="tool" id="adminbtn" hidden>管理者画面</button><button type="button" class="tool" id="chpass" hidden>パスワード変更</button><button type="button" class="tool" id="logout" hidden>ログアウト</button></div></div>
   </header>
 
   <!-- shown on a phone browser (not the installed app): a nudge to put Themis Portal on the home screen -->
@@ -1260,10 +1267,10 @@ button.pcal-c { cursor: pointer; }
       </form>    </div>
   </section>
 
-  <section class="admin" id="admin" hidden aria-label="管理画面">
+  <section class="admin" id="admin" hidden aria-label="管理者画面">
     <!-- 運営 only: the admin screen in two parts, 管理画面 (everyone's days, shifts, members) and 運営画面 (money) -->
     <div class="ad-space" id="ad-space" role="tablist" aria-label="画面の切り替え" hidden>
-      <button type="button" role="tab" data-s="kanri" aria-selected="true">管理画面<small>● 表示中</small></button>
+      <button type="button" role="tab" data-s="kanri" aria-selected="true">管理者画面<small>● 表示中</small></button>
       <button type="button" role="tab" data-s="unei" aria-selected="false">運営画面<small>● 表示中</small></button>
     </div>
     <div class="bar">
@@ -1384,7 +1391,7 @@ button.pcal-c { cursor: pointer; }
       <button type="button" role="tab" id="tab-hope" aria-selected="false" aria-controls="p-hope">シフト希望</button>
     </div>
   </div>
-  <div class="sub-back" id="sub-back"><button type="button" class="tool" id="back-menu">‹ 戻る</button></div>
+  <div class="sub-back" id="sub-back"><button type="button" class="tool" id="back-menu">‹ 戻る</button><span id="sub-act"></span></div>
   <!-- ホーム: the bell, with the number of お知らせ not yet seen -->
   <div class="bell-row"><button type="button" class="bell" id="bell" aria-label="お知らせ"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6 16V11a6 6 0 0 1 12 0v5l1.5 2h-15z"/><path d="M10 20.5a2 2 0 0 0 4 0"/></svg><span class="bell-n" id="bell-n" hidden></span></button></div>
   <section class="shifts" aria-label="予定">
@@ -1575,7 +1582,7 @@ button.pcal-c { cursor: pointer; }
     </div>
     <!-- 管理者以上: the way into the admin screen, in a box of its own at the foot -->
     <div class="menu-list">
-      <button type="button" class="menu-item danger" id="m-admin" hidden><b>管理画面</b><small>全員の勤怠・シフトを見る</small></button>
+      <button type="button" class="menu-item danger" id="m-admin" hidden><b>管理者画面</b><small>全員の勤怠・シフトを管理する</small></button>
     </div>
   </section>
 
@@ -1930,7 +1937,7 @@ window.addEventListener("error", function (e) {
   let CRED = null, mode = "login";   // login | member | admin
   try { CRED = localStorage.getItem(CRED_KEY); } catch (e) {}
   // signing out also forgets the copy of the records kept for a quick start
-  const setCred = (c) => { CRED = c; try { if (c) localStorage.setItem(CRED_KEY, c); else { localStorage.removeItem(CRED_KEY); localStorage.removeItem("tc_cache"); dropView(); } } catch (e) {} };
+  const setCred = (c) => { CRED = c; try { if (c) localStorage.setItem(CRED_KEY, c); else { localStorage.removeItem(CRED_KEY); localStorage.removeItem("tc_cache"); localStorage.removeItem("tc_inbox"); dropView(); } } catch (e) {} };
   const viaGas = !!window.google?.script?.run;
   const rawCall = (fn, ...args) => viaGas
     ? new Promise((res, rej) => { google.script.run.withSuccessHandler(res).withFailureHandler(rej)[fn](CRED, ...args); })
@@ -2094,6 +2101,7 @@ window.addEventListener("error", function (e) {
     $("m-now").textContent = { inv: "先月分", pay: "先月分", hope: "来月" }[t] || "今月";
     for (const k of ["card", "hope"]) $("tab-" + k).setAttribute("aria-selected", t === k);
     for (const k of ["card", "hope", "inv", "pay", "menu", "notice"]) $("p-" + k).hidden = t !== k;
+    $("sub-act").replaceChildren();
     if (t === "notice") renderNotice();
     for (const b of document.querySelectorAll(".bnav button")) {
       if (b.dataset.g === GROUP[t]) b.setAttribute("aria-current", "page"); else b.removeAttribute("aria-current");
@@ -2117,22 +2125,32 @@ window.addEventListener("error", function (e) {
   // ---- お知らせ・お問い合わせ ----
   // the bell on ホーム counts what is not yet seen; opening the list clears all of it except a 重要 お知らせ,
   // which clears only once it is opened. 管理者以上 see every お問い合わせ and answer them here; 運営 and 代表 post お知らせ
-  let inbox = { items: [], admin: false, topics: [] };
+  // the last list is kept on this device, so the bell and the list show at once and are brought up to date after
+  const INBOX_KEY = "tc_inbox";
+  let inbox = { items: [], admin: false, owner: false, topics: [] }, inboxAt = 0;
+  try { const c = JSON.parse(localStorage.getItem(INBOX_KEY) || "null"); if (c?.items) inbox = c; } catch (e) {}
   let nt = { view: "list", id: null, from: "home", fromList: false };
   const ntAt = (s) => { const m = /^\d{4}-(\d{2})-(\d{2}) (\d{2}:\d{2})$/.exec(s || ""); return m ? `${Number(m[1])}/${Number(m[2])} ${m[3]}` : ""; };
+  // the count shows on the bell and, so it is seen from every screen, as a dot on ホーム in the bar
   function paintBell() {
     const n = inbox.items.filter((x) => x.unread).length;
     $("bell-n").hidden = !n; $("bell-n").textContent = n > 99 ? "99+" : String(n);
     $("bell").setAttribute("aria-label", n ? `お知らせ（新着${n}件）` : "お知らせ");
+    document.querySelector('.bnav [data-g="home"]').classList.toggle("has-new", n > 0);
   }
-  async function loadInbox() {
-    if (!backend || mode === "login") return;
-    try { inbox = JSON.parse(await call("api_inbox")); } catch (e) { return; }
+  function setInbox(v) {
+    inbox = v; inboxAt = Date.now();
+    try { localStorage.setItem(INBOX_KEY, JSON.stringify(v)); } catch (e) {}
     paintBell();
     // what is on screen is drawn again, unless something is being typed there
     if (tab === "notice" && ![...$("nt-body").querySelectorAll("textarea, input[type=text]")].some((el) => el.value.trim())) renderNotice();
   }
-  setInterval(() => { if (document.visibilityState === "visible") loadInbox(); }, 120000);
+  async function loadInbox() {
+    if (!CRED || mode === "login") return;
+    try { setInbox(JSON.parse(await call("api_inbox"))); } catch (e) {}
+  }
+  paintBell();
+  setInterval(() => { if (document.visibilityState === "visible" && mode !== "login") loadInbox(); }, 60000);
   document.addEventListener("visibilitychange", () => { if (document.visibilityState === "visible") loadInbox(); });
   function markSeen(ids) {
     const want = ids.filter((id) => inbox.items.some((x) => x.id === id && x.unread));
@@ -2148,18 +2166,20 @@ window.addEventListener("error", function (e) {
     if (tab !== "notice") pickTab("notice"); else { setTab("notice"); }
     scrollToY(0);
   }
-  $("bell").onclick = () => showNotice("list", null, "home");
+  $("bell").onclick = () => { showNotice("list", null, "home"); loadInbox(); };
   $("m-ask").onclick = () => showNotice("new", null, "menu");
+  // an お問い合わせ is 「お問い合わせについて」 to the person who sent it; 管理者以上 see who sent it and its 種類
+  const askTitle = (x) => inbox.admin && !x.mine ? `${x.name}さん：${x.topic}` : "お問い合わせについて";
   function renderNotice() {
     const box = $("nt-body"), items = inbox.items, it = items.find((x) => x.id === nt.id);
     if (nt.view === "list") {
       // opening the list clears every new mark but a 重要 お知らせ's
       markSeen(items.filter((x) => x.unread && !(x.kind === "n" && x.important)).map((x) => x.id));
-      // お問い合わせ is started from メニュー, not here; only 運営 and 代表 post お知らせ
-      box.innerHTML = (inbox.owner ? `<div class="nt-tools"><button type="button" class="tool" data-nt="post">＋ お知らせを出す</button></div>` : "") +
-        `<div class="nt-list">` + (items.length ? items.map((x) => {
+      // お問い合わせ is started from メニュー, not here; only 運営 and 代表 post お知らせ, from the top row beside 戻る
+      $("sub-act").innerHTML = inbox.owner ? `<button type="button" class="tool" data-nt="post">＋ お知らせを出す</button>` : "";
+      box.innerHTML = `<div class="nt-list">` + (items.length ? items.map((x) => {
           const imp = x.kind === "n" && x.important, last = x.kind === "q" ? x.msgs[x.msgs.length - 1] : null;
-          const title = x.kind === "n" ? x.title : `${inbox.admin && !x.mine ? x.name + "さん：" : ""}${x.topic}`;
+          const title = x.kind === "n" ? x.title : askTitle(x);
           const sub = x.kind === "n" ? x.text : `${last.admin ? "Themis" : last.by}：${last.text}`;
           // a 重要 one shown as new keeps its dot until it is opened; others were just marked seen above
           const isNew = imp && x.unread;
@@ -2168,20 +2188,25 @@ window.addEventListener("error", function (e) {
             `<span class="nt-at">${esc(ntAt(x.last || x.at))}</span><span class="nt-sub">${esc(sub)}</span></button>`;
         }).join("") : `<p class="nt-empty">お知らせはまだありません。</p>`) + `</div>`;
       for (const b of box.querySelectorAll("[data-open]")) b.onclick = () => { const x = items.find((y) => y.id === b.dataset.open); showNotice(x.kind, x.id); };
-      for (const b of box.querySelectorAll("[data-nt]")) b.onclick = () => showNotice(b.dataset.nt);
+      for (const b of $("sub-act").querySelectorAll("[data-nt]")) b.onclick = () => showNotice(b.dataset.nt);
       return;
     }
+    $("sub-act").replaceChildren();
     if ((nt.view === "n" || nt.view === "q") && !it) { box.innerHTML = `<p class="nt-empty">読み込んでいます…</p>`; return; }
     if (nt.view === "n") {
-      markSeen([it.id]);
+      // a 重要 one counts as read only once 確認しました is pressed; until then it offers no 削除 either
+      const waiting = it.important && it.unread;
+      if (!it.important) markSeen([it.id]);
       box.innerHTML = `<article class="nt-doc${it.important ? " imp" : ""}">${it.important ? `<span><span class="nt-tag imp">重要</span></span>` : ""}<h3>${esc(it.title)}</h3>` +
         `<span class="nt-meta">${esc(ntAt(it.at))}　${esc(it.by)}</span><div class="nt-text">${esc(it.text)}</div>` +
-        (inbox.owner ? `<div class="nt-tools"><button type="button" class="tool danger" id="nt-del">このお知らせを消す</button></div>` : "") + `</article>`;
-      if (inbox.owner) {
+        `<div class="nt-tools">` + (waiting ? `<button type="button" class="btn primary" id="nt-ok">確認しました</button>` : it.important ? `<span class="nt-ok">✓ 確認済み</span>` : "") +
+        (inbox.owner && !waiting ? `<button type="button" class="tool danger" id="nt-del">このお知らせを削除</button>` : "") + `</div></article>`;
+      if (waiting) $("nt-ok").onclick = () => { markSeen([it.id]); renderNotice(); };
+      if (inbox.owner && !waiting) {
         let armed = false;
         $("nt-del").onclick = async () => {
-          if (!armed) { armed = true; $("nt-del").textContent = "もう一度押して消す"; return; }
-          try { await call("api_noticeDelete", it.id); inbox.items = inbox.items.filter((x) => x.id !== it.id); msg("お知らせを消しました。"); showNotice("list"); }
+          if (!armed) { armed = true; $("nt-del").textContent = "もう一度押して削除"; return; }
+          try { await call("api_noticeDelete", it.id); inbox.items = inbox.items.filter((x) => x.id !== it.id); msg("お知らせを削除しました。"); showNotice("list"); }
           catch (e) { msg(errText(e)); }
         };
       }
@@ -2189,7 +2214,7 @@ window.addEventListener("error", function (e) {
     }
     if (nt.view === "q") {
       markSeen([it.id]);
-      box.innerHTML = `<div class="nt-doc"><h3>${esc(it.topic)}</h3><span class="nt-meta">${esc(inbox.admin && !it.mine ? it.name + "さんから　" : "")}${esc(ntAt(it.at))}</span></div>` +
+      box.innerHTML = `<div class="nt-doc"><h3>${esc(askTitle(it))}</h3><span class="nt-meta">${esc(it.topic)}　${esc(ntAt(it.at))}</span></div>` +
         `<div class="nt-chat">` + it.msgs.map((x) => {
           // the person's own side on the right: for 管理者以上 answering, Themis's side
           const me = inbox.admin && !it.mine ? x.admin : !x.admin;
@@ -2218,9 +2243,12 @@ window.addEventListener("error", function (e) {
         if (!text) { $("nt-text").focus(); msg("内容を入力してください。"); return; }
         if (e.submitter) e.submitter.disabled = true;
         try {
-          const id = await call("api_askSend", $("nt-topic").value, text);
-          $("nt-text").value = ""; msg("お問い合わせを送りました。返事はベルに届きます。");
-          await loadInbox(); showNotice("q", id);
+          // sent: back to where it was written from; Themis's answer comes to the bell
+          await call("api_askSend", $("nt-topic").value, text);
+          $("nt-text").value = "";
+          pickTab(nt.from); scrollToY(0);
+          msg("お問い合わせを送りました。返事はホームのベルに届きます。");
+          loadInbox();
         } catch (err) { msg(errText(err)); if (e.submitter) e.submitter.disabled = false; }
       };
       return;
@@ -3611,7 +3639,7 @@ ${v.addr}`;
   // the screen that `mode` says (the admin screen shown above is only a look until restoreView opens it)
   function showMode() {
     const ad = mode === "admin";
-    $("admin").hidden = !ad; $("member-ui").hidden = ad; $("adminbtn").textContent = ad ? "‹ 通常画面に戻る" : "管理画面";
+    $("admin").hidden = !ad; $("member-ui").hidden = ad; $("adminbtn").textContent = ad ? "‹ 通常画面に戻る" : "管理者画面";
   }
   function restoreView() {
     const v = savedView();
@@ -3686,7 +3714,6 @@ ${v.addr}`;
     $("logout").hidden = false; $("chpass").hidden = false;
     // admins use the normal site too; the header button switches to the admin screen and back
     $("adminbtn").hidden = !me.admin; $("m-admin").hidden = !me.admin;
-    $("m-admin").querySelector("small").textContent = me.owner ? "全員の勤怠・シフト・請求書を見る" : "全員の勤怠・シフトを見る";
     paintWho();
     $("ad-space").hidden = !me.owner;
     paintAdTabs();
@@ -3913,9 +3940,9 @@ ${v.addr}`;
   // opening the admin screen asks first; going back to the normal screen (and a reload putting the admin screen back) does not
   $("adminbtn").onclick = async () => {
     // still showing last time's copy because the server could not be reached: say so instead of doing nothing
-    if (mode === "member" && !backend) { msg("サーバーから記録を読み込めていないため、管理画面を開けません。通信状況を確認して、画面を更新してください。"); scrollToY(0); return; }
+    if (mode === "member" && !backend) { msg("サーバーから記録を読み込めていないため、管理者画面を開けません。通信状況を確認して、画面を更新してください。"); scrollToY(0); return; }
     if (mode === "member" && backend && !needsSetup() &&
-      !await ask("管理画面を開きますか？", window.TC_OWNER ? "全員の勤怠・シフト・請求書を見ます。" : "全員の勤怠・シフトを見ます。", "開く")) return;   // invoices are 運営's only
+      !await ask("管理者画面を開きますか？", "全員の勤怠・シフトを管理します。", "開く")) return;
     switchMode();
   };
   function switchMode() {
@@ -3925,7 +3952,7 @@ ${v.addr}`;
     viewPicked = true;   // chosen by hand: kept over a reload, like a tab
     mode = toAdmin ? "admin" : "member";
     $("admin").hidden = !toAdmin; $("member-ui").hidden = toAdmin;
-    $("adminbtn").textContent = toAdmin ? "‹ 通常画面に戻る" : "管理画面";
+    $("adminbtn").textContent = toAdmin ? "‹ 通常画面に戻る" : "管理者画面";
     scrollToY(0);
     if (toAdmin) { if (!adStarted) { adStarted = true; adReady = startAdmin(); } else adReady = adLoad(); }
     else { setTab("card"); render(); }   // back from the admin screen: always the シフト表
@@ -4016,7 +4043,7 @@ ${v.addr}`;
     }
     for (const b of $("ad-space").querySelectorAll("button")) b.setAttribute("aria-selected", b.dataset.s === sp);
     $("admin").dataset.space = window.TC_OWNER ? sp : "";
-    $("admin").setAttribute("aria-label", sp === "unei" ? "運営画面" : "管理画面");
+    $("admin").setAttribute("aria-label", sp === "unei" ? "運営画面" : "管理者画面");
   }
   function startAdmin() {
     for (const b of $("ad-tabs").querySelectorAll("button")) b.onclick = () => { viewPicked = true; adTab = b.dataset.t; adPerson = null; adLoad(); };
@@ -5083,6 +5110,7 @@ ${v.addr}`;
   async function boot(names) {
     try {
       const r = JSON.parse(await rawCall("api_boot", names));
+      if (r.inbox) setInbox(r.inbox);
       return [r.me, r.docs && { docs: r.docs, names }];
     } catch (e) {
       if (!/使えない操作/.test(String(e?.message || e))) throw e;
@@ -5111,7 +5139,7 @@ ${v.addr}`;
     }
     if (window.TC_ADMIN) adPrefetch();
     cacheSoon();
-    loadInbox();
+    if (!inboxAt) loadInbox();   // the opening call brings it; asked separately only when it did not
   }
   // first the name, address and 勤務形態, then the contract; both block the app (admins too) until done
   function needsSetup() {
