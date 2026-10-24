@@ -870,7 +870,36 @@ button.pcal-c { cursor: pointer; }
 /* a checkbox or pill inside a .f field is not a text box: no full width, padding or inset shadow */
 .f .check input, .f .ad-seg input { width: auto; padding: 0; border: 0; box-shadow: none; background: none; }
 .f .check input { width: 18px; height: 18px; flex: none; accent-color: var(--stamp); }
-.ad-add .check { min-height: 39px; font-size: 15px; color: var(--ink); letter-spacing: 0; }
+.ad-add .check { min-height: 32px; font-size: 14px; color: var(--ink); letter-spacing: 0; }
+/* メンバーを追加: name across the top, then the choices; each pill row fills its field evenly and never wraps */
+.ad-add { grid-template-columns: repeat(auto-fit, minmax(230px, 1fr)); gap: 8px 12px; padding: 10px 12px; align-items: start; }
+.ad-add > b { font-size: 14px; }
+.ad-add-name { grid-column: 1 / -1; }
+.ad-add .ad-seg { flex-wrap: nowrap; width: 100%; border-radius: 9px; }
+.ad-add .ad-seg label { flex: 1 1 0; text-align: center; }
+.ad-add .ad-seg span { border-radius: 7px; padding: 5px 4px; }
+.ad-add-go { grid-column: 1 / -1; display: flex; align-items: center; gap: 10px; flex-wrap: wrap; }
+.ad-add-go .btn { padding: 7px 22px; }
+.ad-add-go .hint { margin: 0; flex: 1 1 220px; font-size: 11px; }
+/* member cards: tight, one line per item */
+.ad-cards { gap: 8px; }
+.ad-card { padding: 9px 11px; gap: 6px; }
+.ad-card-h { font-size: 14px; }
+.ad-card .ad-id { font-size: 12px; font-weight: 600; color: var(--ink-soft); gap: 6px; margin-top: -3px; }
+.ad-id-lb { font-family: var(--f-sans, inherit); font-size: 10px; font-weight: 700; letter-spacing: .04em; border: 1px solid var(--rule); border-radius: 4px; padding: 0 4px; }
+.ad-copy { border: 0; background: none; padding: 0 2px; font-size: 11px; color: var(--accent); cursor: pointer; letter-spacing: 0; }
+.ad-copy:hover { text-decoration: underline; }
+.ad-card .ad-kv { grid-template-columns: 4.2em 1fr; gap: 5px 8px; }
+.ad-card .ad-kv dt { font-size: 11px; }
+.ad-card .ad-kv dd { gap: 6px; }
+.ad-card .ad-seg { padding: 2px; }
+.ad-card .ad-seg span { padding: 3px 10px; font-size: 12px; }
+.ad-card .tool { padding: 3px 9px; font-size: 12px; }
+.ad-card .check { font-size: 12px; gap: 5px; color: var(--ink-soft); }
+.ad-card .f .check input, .ad-card .check input { width: 15px; height: 15px; accent-color: var(--stamp); }
+.ad-signed { font-family: var(--f-num); font-size: 12px; }
+.ad-card .ad-acts { border-top: 1px dashed var(--rule); padding-top: 6px; gap: 6px; }
+.ad-card .ad-acts .danger { margin-left: auto; }
 .tool.danger { color: var(--stamp-red); border-color: color-mix(in srgb, var(--stamp-red) 45%, var(--rule)); }
 .s-work { display: flex; gap: 18px; padding: 4px 0; }
 .s-work .check { font-size: 15px; color: var(--ink); }
@@ -3853,24 +3882,28 @@ ${v.addr}`;
     const badge = (m) => m.rep ? `<span class="st st-done">代表</span>` : m.role === "運営" ? `<span class="st st-done">運営</span>` : m.role === "管理者" ? `<span class="st st-work">管理者</span>` : "";
     $("ad-body").innerHTML =
       (owner ? `<form class="ad-add" id="ad-add" novalidate><b>メンバーを追加</b>` +
-        `<label class="f">氏名<input id="ad-who" autocomplete="off" autocorrect="off" spellcheck="false" enterkeyhint="done"></label>` +
+        `<label class="f ad-add-name">氏名<input id="ad-who" autocomplete="off" autocorrect="off" spellcheck="false" enterkeyhint="done"></label>` +
         `<div class="f">勤務形態${workSel("", "ad-work", 'id="ad-work"')}</div>` +
         `<div class="f">役割${roleSel("", "ad-role", 'id="ad-role"')}</div>` +
-        `<div class="f">業務委託契約書${askChk(true, 'id="ad-ask"')}</div><button type="submit" class="btn primary" id="ad-add-btn">追加</button>` +
-        `<p class="hint">ログインIDと仮パスワードは自動で作られます。追加したあとに出る画面からコピーして、本人に伝えてください。</p></form>` : "") +
+        `<div class="f">業務委託契約書${askChk(true, 'id="ad-ask"')}</div>` +
+        `<div class="ad-add-go"><button type="submit" class="btn primary" id="ad-add-btn">追加</button>` +
+        `<p class="hint">ログインIDと仮パスワードは自動で作られます。追加したあとに出る画面からコピーして、本人に伝えてください。</p></div></form>` : "") +
       byWork(list).map(([t, g]) => `<h3 class="ad-grp">${esc(groupName(t))}（${g.length}人）</h3><div class="ad-cards">` + g.map((m, i) => {
         // 運営 (and 代表) can be changed or removed by 代表 only; 出井張貴 stays 代表 and nobody changes their own role
         const self = m.id === adData.me, signed = m.contract.split("（")[0], touch = owner && !self && !m.fixed && (rep || !m.owner);
+        const askable = owner && !m.hasContract && (self || rep || !m.owner);
+        // name and ログインID on top, then one line each for 勤務形態 · 役割 · 契約, and the account buttons last
         return `<div class="ad-card" data-id="${esc(m.id)}" data-name="${esc(m.name)}">` +
           `<div class="ad-card-h"><span>${numName(i, m.name)}</span>${badge(m)}</div>` +
+          (m.loginId ? `<div class="ad-id"><span class="ad-id-lb">ID</span>${esc(m.loginId)}<button type="button" class="ad-copy" data-copyid="${esc(m.loginId)}">コピー</button></div>` : "") +
           `<dl class="ad-kv">` +
-          (m.loginId ? `<dt>ログインID</dt><dd><span class="ad-id">${esc(m.loginId)}<button type="button" class="tool" data-copyid="${esc(m.loginId)}">コピー</button></span></dd>` : "") +
           `<dt>勤務形態</dt><dd>${workSel(m.workType, `wt-${esc(m.id)}`, 'data-k="workType"')}</dd>` +
-          `<dt>契約</dt><dd>${m.hasContract ? `<span class="num">${esc(signed)}</span><button type="button" class="tool" data-contract>契約書を見る</button><button type="button" class="tool" data-cdl>ダウンロード</button>` : `<span class="st st-late">未締結</span>`}</dd>` +
-          (owner && !m.hasContract && (self || rep || !m.owner) ? `<dt>契約書</dt><dd>${askChk(m.contractAsk, 'data-k="contractAsk"')}</dd>` : "") +
           (touch ? `<dt>役割</dt><dd>${roleSel(m.role, `rl-${esc(m.id)}`, 'data-k="role"')}</dd>` : "") +
+          `<dt>契約</dt><dd>${m.hasContract
+            ? `<span class="ad-signed">${esc(signed)} 締結</span><button type="button" class="tool" data-contract>見る</button><button type="button" class="tool" data-cdl>保存</button>`
+            : `<span class="st st-late">未締結</span>${askable ? askChk(m.contractAsk, 'data-k="contractAsk"') : ""}`}</dd>` +
           `</dl>` +
-          (touch ? `<div class="ad-acts"><button type="button" class="tool" data-temp>ID・仮パスワードを発行</button><button type="button" class="tool danger" data-del>削除</button></div>` : "") +
+          (touch ? `<div class="ad-acts"><button type="button" class="tool" data-temp>仮パスワードを発行</button><button type="button" class="tool danger" data-del>削除</button></div>` : "") +
           `</div>`;
       }).join("") + `</div>`).join("");
     const card = (el) => el.closest(".ad-card"), person = (c) => adData.members.find((m) => m.id === c.dataset.id);
