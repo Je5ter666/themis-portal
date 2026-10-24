@@ -3647,20 +3647,19 @@ ${v.addr}`;
   }
 
   // the owner's list: each person's PDF, and 入金完了 once paid; the member then confirms the money arrived
-  // columns of 請求書一覧: 0 氏名 · 4 状態 · 6 入金日 · 7 PDF · 9 本人の入金確認 · 10 Themisが設定した金額 · 11 税抜金額
+  // columns of 請求書一覧: 0 氏名 · 4 状態 · 6 入金日 · 7 PDF · 9 本人の入金確認 · 10 Themisが設定した金額 · 11 本人が足した金額
   // A confirmed amount shows as text with 修正; the ids being corrected are kept here until 金額を確定 is pressed again
   const adAmtEdit = new Set();
-  // the month's 利益: 他社請求 of that work month (税抜) − the members' 報酬 for it, before 源泉徴収, as the server counts it:
-  // the sent invoice's amount before 源泉徴収, or the amount Themis entered
+  // the month's 利益: 売上見込 (the 他社請求 of that work month, 税抜) − the members' 報酬 for it, as the server counts it:
+  // the amount Themis confirmed plus the lines the member added (交通費 and the like), before 源泉徴収
   function invProfit(ym) {
-    const pay = adData.invs.filter((r) => r[1] === ym).reduce((s, r) => s + num(r[11] || r[10]), 0);
+    const pay = adData.invs.filter((r) => r[1] === ym).reduce((s, r) => s + num(r[10]) + num(r[11]), 0);
     const sales = blData.bills.filter((b) => workYm(b.date) === ym).reduce((s, b) => s + b.total - (b.taxAmount ?? billTotals(b).tax), 0);
     const profit = sales - pay, warn = sales < pay ? " warn" : "";
-    return `<h4 class="bl-h">${esc(ymLabel(ym))}分の利益</h4><div class="ad-stats bl-stats">` +
-      [["他社請求", yen(sales), ""], ["報酬", yen(pay), ""], ["利益", `${profit < 0 ? "−" : ""}${yen(Math.abs(profit))}`, warn],
+    return `<h4 class="bl-h">${ym === workYm(dayKey(new Date())) ? "今月" : `${esc(ymLabel(ym))}分`}の売上・利益</h4><div class="ad-stats bl-stats">` +
+      [["売上見込", yen(sales), ""], ["報酬", yen(pay), ""], ["利益", `${profit < 0 ? "−" : ""}${yen(Math.abs(profit))}`, warn],
         ["利益率", sales ? `${(profit / sales * 100).toFixed(1)}%` : "—", warn]]
-        .map(([t, v, w]) => `<div class="ad-stat${w}"><span>${t}</span><b class="num">${v}</b></div>`).join("") + `</div>` +
-      `<p class="hint">他社請求は、この月の仕事の分として作った他社への請求書の合計（税抜）です。報酬は、下で確定した金額の合計（源泉徴収を引く前）です。</p>`;
+        .map(([t, v, w]) => `<div class="ad-stat${w}"><span>${t}</span><b class="num">${v}</b></div>`).join("") + `</div>`;
   }
   function adInv() {
     const ym = adMonth.inv, byName = Object.fromEntries(adData.invs.map((r) => [r[0], r]));
@@ -3678,7 +3677,6 @@ ${v.addr}`;
       `<div class="ad-stats">` + [["未提出", "none"], ["提出済み", "sent"], ["確認待ち", "paid"], ["確認済み", "ok"]]
         .map(([t, k]) => `<div class="ad-stat${k === "sent" && cnt(k) ? " warn" : ""}"><span>${t}</span><b class="num">${cnt(k)}</b></div>`).join("") + `</div>` +
       `<div id="inv-profit">${blData ? invProfit(ym) : ""}</div>` +
-      `<p class="hint">請求金額は全員分ここで入れます。「金額を確定」を押すと本人の請求書にその金額が入り（本人は変えられません）、本人が金額に間違いがないことを確かめて提出します。確定した金額は「修正」で直せます。「入金完了」を押すと本人に知らせが届き、本人が金額を確かめて「入金を確認しました」を押します。その月に稼働がなく金額も設定していない人は「請求なし」です。</p>` +
       byWork(live).map(([t, g]) => `<h3 class="ad-grp">${esc(groupName(t))}（${g.length}人）</h3><div class="ad-cards">` + g.map((m, i) => {
         const r = byName[m.name], k = stOf(m);
         return `<div class="ad-card${k === "nobill" ? " dim" : ""}" data-id="${esc(m.id)}" data-name="${esc(m.name)}">` +
@@ -3718,8 +3716,8 @@ ${v.addr}`;
       try {
         await call("api_adminSetAmount", c.dataset.id, ym, v);
         // keep the copy on screen in step: a row now exists for this person as a 下書き with the amount
-        const r = byName[name] || (adData.invs[adData.invs.push([name, ym, "", "", "下書き", "", "", "", "", "", "", ""]) - 1]);
-        r[10] = v; r[11] = "";
+        const r = byName[name] || (adData.invs[adData.invs.push([name, ym, "", "", "下書き", "", "", "", "", "", ""]) - 1]);
+        r[10] = v;
         adAmtEdit.delete(c.dataset.id);
         adChanged(); adMsg(v ? `${name}さんの${ymLabel(ym)}分の請求金額を ${Number(v).toLocaleString("ja-JP")}円 で確定しました。` : `${name}さんの設定金額を消しました。`);
       } catch (e) { adMsg(errText(e)); }
@@ -4009,19 +4007,17 @@ ${v.addr}`;
     [["売上", yen(m.sales)], ["利益", signed(m.sales - m.cost), m.sales < m.cost], ["利益率", profitRate(m), m.sales < m.cost]].map(([t, v, warn]) =>
       `<div class="ad-stat${warn ? " warn" : ""}"><span>${t}</span><b class="num">${v}</b></div>`).join("") + `</div>`;
   function adSales() {
-    const { months, all, now } = salesMonths(), past = blData.past || {};
-    const rows = Object.keys(months).sort().reverse().map((ym) => {
+    const { months, all, now } = salesMonths(), nowYm = workYm(dayKey(new Date()));
+    // this month is shown above only, not again in the table
+    const rows = Object.keys(months).filter((ym) => ym !== nowYm).sort().reverse().map((ym) => {
       const m = months[ym], [y, mo] = ym.split("-").map(Number);
       return `<tr${m.sales < m.cost ? ` class="warn"` : ""}><th>${y}年${mo}月</th><td>${yen(m.sales)}</td><td>${yen(m.cost)}</td><td>${signed(m.sales - m.cost)}</td><td>${profitRate(m)}</td></tr>`;
     });
     $("ad-body").innerHTML =
-      `<h4 class="bl-h">今月（${workMonth()}月分）</h4>` + salesBox(now) +
+      `<h4 class="bl-h">今月</h4>` + salesBox(now) +
       `<h4 class="bl-h">全体</h4>` + salesBox(all) +
       (rows.length ? `<h4 class="bl-h">月ごと</h4><div class="sl-wrap"><table class="sl-tbl num"><thead><tr><th>月</th><th>売上</th><th>報酬</th><th>利益</th><th>利益率</th></tr></thead>` +
-        `<tbody>${rows.join("")}</tbody></table></div>` : "") +
-      `<p class="hint">売上は他社請求の合計（税抜。交通費は含む）、報酬はメンバーへの報酬（源泉徴収を引く前）、利益は売上から報酬を引いたもの、利益率は利益÷売上です。` +
-      `今月は、今月の請求日の他社請求と、メンバーの${workMonth()}月分の請求書で計算します。` +
-      `アプリを使う前の月（${Object.keys(past).sort().map((ym) => `${Number(ym.slice(5))}月`).join("・")}）は、「稼働」の表の売上・利益です（税抜。先方からもらう交通費は売上に含みます。報酬は売上−利益）。</p>`;
+        `<tbody>${rows.join("")}</tbody></table></div>` : "");
   }
   async function adBills() {
     // only a first read clears the message line, so 「保存しました」 and the like stay after a redraw
