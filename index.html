@@ -613,22 +613,33 @@ fieldset:disabled .f input, fieldset:disabled .f textarea, fieldset:disabled .f 
 .install-inline .im-step:first-child { border-top: 0; padding-top: 0; }
 .install-inline .im-body b { font-size: 15px; }
 .install-inline .im-body b svg { width: 17px; height: 17px; vertical-align: -3px; }
-.im-after { margin: 6px 0 0; padding-top: 8px; border-top: 1px solid var(--rule); font-size: 12px; color: var(--ink-soft); display: flex; align-items: center; gap: 6px; flex-wrap: wrap; }
+.im-after { margin: 6px 0 0; padding-top: 8px; border-top: 1px solid var(--rule); font-size: 13px; color: var(--ink); display: flex; align-items: center; gap: 6px; flex-wrap: wrap; }
 .im-after .im-tile { display: inline-flex; vertical-align: middle; }
 .im-after .im-tile img { width: 22px; height: 22px; border-radius: 6px; }
 .im-after .im-tile span { display: none; }
 /* iPhone Safari: a bobbing arrow at the very bottom, where the share button is */
-.install-pointer { position: fixed; left: 50%; bottom: calc(10px + env(safe-area-inset-bottom, 0px)); transform: translateX(-50%); z-index: 30;
-  display: flex; align-items: center; gap: 6px; padding: 7px 14px; border-radius: 999px; background: var(--accent); color: #fff;
-  font-size: 13px; font-weight: 700; box-shadow: 0 6px 18px rgb(0 0 0 / .25); animation: ip-bob 1.2s ease-in-out infinite; pointer-events: none; white-space: nowrap; }
+/* where the button sits: at-b the middle of Safari's bottom bar (before iOS 26), at-br its ⋯ at the bottom right
+   (iOS 26), at-tr the share button in Chrome's address bar at the top right */
+.install-pointer { position: fixed; z-index: 30; display: flex; align-items: center; gap: 6px; padding: 8px 14px; border-radius: 999px;
+  background: var(--ink); color: var(--card); font-size: 14px; font-weight: 700; box-shadow: 0 6px 18px rgb(0 0 0 / .3);
+  animation: ip-bob 1.2s ease-in-out infinite; pointer-events: none; white-space: nowrap; }
+.install-pointer.at-b { left: 50%; bottom: calc(10px + env(safe-area-inset-bottom, 0px)); animation-name: ip-bob-c; }
+.install-pointer.at-br { right: 10px; bottom: calc(10px + env(safe-area-inset-bottom, 0px)); }
+.install-pointer.at-tr { right: 10px; top: calc(10px + env(safe-area-inset-top, 0px)); animation-name: ip-bob-up; }
 .install-pointer[hidden] { display: none; }
-.install-pointer svg { width: 16px; height: 16px; }
-@keyframes ip-bob { 0%, 100% { transform: translate(-50%, 0); } 50% { transform: translate(-50%, 6px); } }
+.install-pointer svg { width: 17px; height: 17px; }
+@keyframes ip-bob { 0%, 100% { transform: translateY(0); } 50% { transform: translateY(6px); } }
+@keyframes ip-bob-c { 0%, 100% { transform: translate(-50%, 0); } 50% { transform: translate(-50%, 6px); } }
+@keyframes ip-bob-up { 0%, 100% { transform: translateY(0); } 50% { transform: translateY(-6px); } }
 .install-top { display: grid; grid-template-columns: auto 1fr auto; gap: 12px; align-items: center; }
 .install-icon { width: 52px; height: 52px; border-radius: 13px; background: #fff; box-shadow: 0 4px 12px rgb(0 0 0 / .25); }
-.install-text { display: grid; gap: 3px; font-size: 12.5px; line-height: 1.5; color: rgb(255 255 255 / .85); }
-.install-text b { font-size: 15px; color: #fff; letter-spacing: .02em; }
-.install-later { align-self: start; font: inherit; font-size: 12px; color: rgb(255 255 255 / .8); background: none; border: 0; padding: 2px 0; cursor: pointer; position: relative; z-index: 1; }
+.install-text { display: grid; gap: 4px; font-size: 13.5px; line-height: 1.55; color: #fff; }
+.install-text b { font-size: 16px; color: #fff; letter-spacing: .02em; }
+.install-later { align-self: start; font: inherit; font-size: 13px; font-weight: 700; color: #fff; background: rgb(255 255 255 / .18); border: 0; border-radius: 999px; padding: 4px 10px; cursor: pointer; position: relative; z-index: 1; }
+.install-later[hidden] { display: none; }
+/* a phone's browser: only the steps to add the app, nothing to sign in to */
+body.gate #login, body.gate #member-ui, body.gate #admin, body.gate .brand-side { display: none !important; }
+body.gate .install { margin-top: 8px; }
 .install-go { font: inherit; font-size: 15px; font-weight: 700; color: var(--accent); background: #fff; border: 0; border-radius: 12px; padding: 12px;
   box-shadow: 0 3px 0 rgb(0 0 0 / .15); cursor: pointer; position: relative; z-index: 1; }
 .install-go:active { transform: translateY(1px); box-shadow: 0 2px 0 rgb(0 0 0 / .15); }
@@ -647,15 +658,15 @@ fieldset:disabled .f input, fieldset:disabled .f textarea, fieldset:disabled .f 
 .im-body { display: grid; gap: 6px; min-width: 0; }
 .im-body b { font-size: 14.5px; line-height: 1.5; display: flex; align-items: center; gap: 4px; flex-wrap: wrap; }
 .im-body b svg { width: 18px; height: 18px; color: var(--sat); }
-.im-body p { margin: 0; font-size: 12.5px; line-height: 1.65; color: var(--ink-soft); }
+.im-body p { margin: 0; font-size: 13px; line-height: 1.6; color: var(--ink); }
 .im-pic { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; }
-.im-chip { display: inline-flex; align-items: center; gap: 6px; padding: 7px 12px; border-radius: 10px; background: var(--paper); border: 1px solid var(--rule); font-size: 13px; color: var(--ink); }
+.im-chip { display: inline-flex; align-items: center; gap: 6px; padding: 7px 12px; border-radius: 10px; background: var(--paper); border: 1px solid var(--rule); font-size: 14px; font-weight: 600; color: var(--ink); }
 .im-chip svg { width: 18px; height: 18px; color: var(--sat); }
 .im-chip.on { border-color: var(--sat); box-shadow: 0 0 0 3px color-mix(in srgb, var(--sat) 18%, transparent); }
 .im-bar { display: flex; align-items: center; justify-content: space-between; width: 100%; max-width: 280px; padding: 8px 14px; border-radius: 14px; background: color-mix(in srgb, var(--ink) 6%, var(--paper)); color: var(--sat); }
 .im-bar > svg { width: 18px; height: 18px; opacity: .5; }
 .im-bar .im-chip { padding: 4px 8px; }
-.im-or { font-size: 11px; color: var(--ink-soft); }
+.im-or { font-size: 13px; color: var(--ink); }
 .im-alt { display: flex; align-items: center; gap: 6px; flex-basis: 100%; }
 .im-arrow { color: var(--ink-soft); }
 .im-tile { display: inline-grid; justify-items: center; gap: 4px; font-size: 11px; color: var(--ink-soft); }
@@ -1087,7 +1098,7 @@ button.pcal-c { cursor: pointer; }
   <div class="install" id="install" hidden role="region" aria-label="アプリとして使う">
     <div class="install-top">
       <img class="install-icon" alt="" src="icons/apple-touch-icon.png" onerror="this.style.visibility='hidden'">
-      <div class="install-text"><b>Themis Portal をアプリで使う</b><span id="install-sub">ホーム画面に追加すると、ワンタップで開けて全画面で使えます。</span></div>
+      <div class="install-text"><b id="install-title">Themis Portal をアプリで使う</b><span id="install-sub">ホーム画面に追加すると、ワンタップで開けて全画面で使えます。</span></div>
       <button type="button" class="install-later" id="install-later">後で</button>
     </div>
     <div class="install-inline" id="install-inline" hidden></div>
@@ -3333,10 +3344,22 @@ ${v.addr}`;
   // the installed app runs full screen from the home screen; people using it in a phone's browser are shown how to add it
   let installEvt = null;
   window.addEventListener("beforeinstallprompt", (e) => { e.preventDefault(); installEvt = e; });
-  window.addEventListener("appinstalled", () => { $("install").hidden = true; $("install-pointer").hidden = true; $("install-sheet").hidden = true; });
+  window.addEventListener("appinstalled", () => {
+    $("install-pointer").hidden = true; $("install-sheet").hidden = true;
+    // a phone stays on the steps in the browser: from now on the app is opened from the home screen
+    if (mode !== "gate") { $("install").hidden = true; return; }
+    $("install-inline").hidden = true; $("install-go").hidden = true;
+    $("install-title").textContent = "追加できました";
+    $("install-sub").textContent = "ホーム画面の Themis Portal から開いてください。";
+  });
   const UA = navigator.userAgent;
   const isIOS = /iPhone|iPad|iPod/.test(UA) || (/Macintosh/.test(UA) && navigator.maxTouchPoints > 1);
   const isAndroid = /Android/.test(UA);
+  // a phone (not a tablet): there the app is used only from the home screen
+  const isPhone = /iPhone|iPod/.test(UA) || (isAndroid && /Mobile/.test(UA));
+  // Safari 26 (iOS 26) keeps 共有 in the ⋯ menu at the bottom right; Chrome on iPhone has it in the address bar
+  const iosSafari = isIOS && !/CriOS|FxiOS|EdgiOS|OPiOS|GSA\//.test(UA), iosChrome = isIOS && /CriOS/.test(UA);
+  const safari26 = iosSafari && Number((UA.match(/Version\/(\d+)/) || [])[1]) >= 26;
   // LINE, Instagram and the like open links in their own browser, which cannot add to the home screen
   const inAppBrowser = /Line\/|Instagram|FBAN|FBAV|Twitter|MicroMessenger/i.test(UA);
   // LINE hands a link carrying openExternalBrowser=1 to Safari / Chrome, where the app can be added to the home
@@ -3354,9 +3377,38 @@ ${v.addr}`;
     }
   })();
   const standalone = () => matchMedia("(display-mode: standalone)").matches || navigator.standalone === true;
+  // on a phone the app opens only from the home screen: in the browser only the steps to add it are shown
+  const mustInstall = () => isPhone && !standalone();
+  async function installGate() {
+    document.body.classList.add("gate");
+    mode = "gate";
+    $("install-later").hidden = true;
+    $("install-title").textContent = "スマホでは、アプリで使います";
+    $("install-sub").textContent = "下の手順でホーム画面に追加して、ホーム画面の Themis Portal から開いてください。";
+    // the Apps Script page cannot be added itself: the button opens the app's own address
+    if (viaGas) {
+      $("install-sub").textContent = "下のボタンでアプリ版を開いて、そこからホーム画面に追加してください。";
+      $("install-go").textContent = "アプリ版を開く"; $("install-go").hidden = false; $("install").hidden = false;
+      try { $("install").dataset.url = await rawCall("api_appUrl"); } catch (e) { $("install-go").hidden = true; }
+      return;
+    }
+    showSteps();
+  }
+  // the steps written out on the banner; the button stays only where one tap can install (Android Chrome)
+  function showSteps() {
+    $("install-inline").innerHTML = installSteps(); $("install-inline").hidden = false;
+    $("install-go").hidden = !(isAndroid && !inAppBrowser);
+    if (isPhone && isIOS && !inAppBrowser && (iosSafari || iosChrome)) {
+      const p = $("install-pointer");
+      p.className = "install-pointer " + (iosChrome ? "at-tr" : safari26 ? "at-br" : "at-b");
+      p.innerHTML = iosChrome ? `↑ ここ（右上）の${ICON.share}` : safari26 ? `ここ（右下）の ⋯ ↓` : `${ICON.share}ここ（画面の下）の共有ボタン ↓`;
+      p.hidden = false;
+    }
+    $("install").hidden = false;
+  }
   const LATER = "tc_install_later", LATER_DAYS = 7;
   function installHint(appUrl) {
-    if (standalone() || !(isIOS || isAndroid) || !$("install").hidden) return;
+    if (mode === "gate" || standalone() || !(isIOS || isAndroid) || !$("install").hidden) return;
     // just sent over from LINE to add the app: shown even after 後で
     if (!fromLine) try { if (Date.now() - Number(localStorage.getItem(LATER) || 0) < LATER_DAYS * 864e5) return; } catch (e) {}
     fromLine = false;
@@ -3366,13 +3418,7 @@ ${v.addr}`;
       $("install").dataset.url = appUrl;
       $("install-sub").textContent = "アプリ版を開いて、そこからホーム画面に追加してください。";
       $("install-go").textContent = "アプリ版を開く";
-    } else {
-      // in a phone's browser the steps are written out on the page itself, not behind a button; the button stays
-      // only where one tap can install (Android Chrome)
-      $("install-inline").innerHTML = installSteps(); $("install-inline").hidden = false;
-      $("install-go").hidden = !(isAndroid && !inAppBrowser);
-      if (isIOS && !inAppBrowser) { $("install-pointer").innerHTML = `${ICON.share}ここ（画面の下）の共有ボタン ↓`; $("install-pointer").hidden = false; }
-    }
+    } else return showSteps();
     $("install").hidden = false;
   }
   // line icons drawn like the phone's own buttons
@@ -3410,13 +3456,27 @@ ${v.addr}`;
     const tile = `<span class="im-tile"><img alt="" src="icons/apple-touch-icon.png" onerror="this.style.visibility='hidden'"><span>Themis</span></span>`;
     // three short steps at most, each with the button to look for; one line under them for what comes after
     const arrow = `<span class="im-arrow">→</span>`;
+    const more = "見つからない時は、下にスクロールしてください。";
     return `<ol class="im-steps">` + (inAppBrowser
       ? step(1, "右上の「…」を押す", "", chip(ICON.dots, "", true)) +
         step(2, "「ブラウザで開く」を押す", "", chip(ICON.globe, "ブラウザで開く", true))
+      : isIOS && !isPhone
+      ? step(1, `画面の上の ${ICON.share} を押す`, "", chip(ICON.share, "共有", true)) +
+        step(2, "「ホーム画面に追加」を押す", more, chip(ICON.plus, "ホーム画面に追加", true)) +
+        step(3, "右上の「追加」を押す", "", chip("", "追加", true))
+      : safari26
+      ? step(1, "右下の ⋯ を押して、「共有」を押す", "", chip(ICON.dots, "", true) + arrow + chip(ICON.share, "共有", true) +
+          `<span class="im-alt"><span class="im-or">⋯ がない時は、画面の下の</span>${chip(ICON.share, "")}</span>`) +
+        step(2, "「ホーム画面に追加」を押す", more, chip(ICON.plus, "ホーム画面に追加", true)) +
+        step(3, "右上の「追加」を押す", "「Webアプリとして開く」は、オンのままにしてください。", chip("", "追加", true))
+      : iosChrome
+      ? step(1, `右上のアドレスバーの ${ICON.share} を押す`, "", chip(ICON.share, "共有", true)) +
+        step(2, "「ホーム画面に追加」を押す", more, chip(ICON.plus, "ホーム画面に追加", true)) +
+        step(3, "右上の「追加」を押す", "", chip("", "追加", true))
       : isIOS
       ? step(1, `画面の下の ${ICON.share} を押す`, "", chip(ICON.share, "共有", true) +
           `<span class="im-alt"><span class="im-or">ない時は</span>${chip(ICON.dots, "")}${arrow}${chip(ICON.share, "共有")}</span>`) +
-        step(2, "「ホーム画面に追加」を押す", "", chip(ICON.plus, "ホーム画面に追加", true)) +
+        step(2, "「ホーム画面に追加」を押す", more, chip(ICON.plus, "ホーム画面に追加", true)) +
         step(3, "右上の「追加」を押す", "", chip("", "追加", true))
       : step(1, "右上の「⋮」を押す", "", chip(ICON.dots3, "", true)) +
         step(2, "「ホーム画面に追加」を押す", "", chip(ICON.plus, "ホーム画面に追加", true)) +
@@ -4618,6 +4678,7 @@ ${v.addr}`;
     return ["state", "billing", "contract", "m-" + cur, "m-" + prev, "inv-" + cur, "inv-" + prev].concat(next !== cur ? ["m-" + next] : []);
   }
   (async () => {
+    if (mustInstall()) { installGate(); return; }
     if (!viaGas && !window.TC_API) { showLogin("アプリの設定（接続先）が入っていません。Themisの担当者にお問い合わせください。"); return; }
     if (!CRED) { showLogin(); return; }
     const cached = readCache();
