@@ -83,8 +83,11 @@ document.documentElement.classList.add("fonts-wait");
 /* manipulation drops double-tap zoom, so quick taps on buttons don't blow the page up (pinch is handled in the script) */
 html { -webkit-text-size-adjust: 100%; text-size-adjust: 100%; touch-action: manipulation; }
 [hidden] { display: none !important; }
-body {
-  background: var(--paper); color: var(--ink); font-family: var(--f-body); font-size: 15px; line-height: 1.6;
+/* the page is one screen that never scrolls; #scroller fills it and scrolls instead (see the note on #scroller) */
+html, body { height: 100%; overflow: hidden; }
+body { margin: 0; background: var(--paper); color: var(--ink); font-family: var(--f-body); font-size: 15px; line-height: 1.6; }
+#scroller {
+  position: fixed; inset: 0; overflow-x: hidden; overflow-y: auto; -webkit-overflow-scrolling: touch; overscroll-behavior-y: contain;
   padding-left: max(16px, env(safe-area-inset-left, 0px)); padding-right: max(16px, env(safe-area-inset-right, 0px));
   padding-block: 24px 48px;
 }
@@ -479,14 +482,17 @@ fieldset:disabled .f input, fieldset:disabled .f textarea, fieldset:disabled .f 
 .menu-item b { font-size: 16px; }
 .menu-item small { font-size: 12px; color: var(--ink-soft); }
 .menu-item.danger b { color: var(--stamp-red); }
+.menu-list:not(:has(.menu-item:not([hidden]))) { display: none; }
+/* on the admin screen the header keeps only the way back (password and ログアウト are in the normal screen's メニュー) */
+body:has(#admin:not([hidden])) :is(#chpass, #logout) { display: none; }
 .menu-item:active { background: color-mix(in srgb, var(--ink) 6%, transparent); }
 /* the bar at the foot, like a game's: three big buttons, the one on screen lifted and coloured */
-body:has(#member-ui:not([hidden])) { padding-bottom: calc(96px + env(safe-area-inset-bottom, 0px)); }
+body:has(#member-ui:not([hidden])) #scroller { padding-bottom: calc(96px + env(safe-area-inset-bottom, 0px)); }
+/* the bar and its messages are outside the member screens, so they are hidden with them */
+body:has(#member-ui[hidden]) :is(.bnav, .toast), body.gate :is(.bnav, .toast) { display: none !important; }
 body:has(#member-ui:not([hidden])) .brand-btns { display: none; }
-/* held at the foot of the screen: the page never bounces (which would carry the bar with it), the bar sits on its own
-   layer so a fast scroll does not leave it lagging, and while the keyboard is up (when an iPhone lets fixed bars drift
-   with the scroll) it steps aside */
-html:has(#member-ui:not([hidden])), body:has(#member-ui:not([hidden])) { overscroll-behavior-y: none; }
+/* held at the foot of the screen: it is outside the scrolling area, sits on its own layer, and while the keyboard is up
+   (when an iPhone lets fixed bars drift) it steps aside */
 @media (hover: none) and (pointer: coarse) {
   body:has(:is(input:not([type="checkbox"]):not([type="radio"]):not([type="file"]), textarea):focus) :is(.bnav, .toast) { display: none; }
 }
@@ -667,8 +673,8 @@ html:has(#member-ui:not([hidden])), body:has(#member-ui:not([hidden])) { overscr
 .member-ui { display: contents; }
 .brand-side { display: flex; align-items: center; gap: 8px; min-width: 0; flex-wrap: wrap; justify-content: flex-end; margin-left: auto; }
 /* pull-to-refresh: a plain small circle, its ring drawn by the pull, spinning while it refreshes */
-/* no rubber-band bounce either: it would pull the page away from the bar fixed at the foot */
-.own-ptr, .own-ptr body { overscroll-behavior-y: none; }
+/* the app's own pull-to-refresh: the scrolling area does not bounce, so the pull is drawn only by the circle */
+.own-ptr #scroller { overscroll-behavior-y: none; }
 .ptr { position: fixed; top: env(safe-area-inset-top, 0px); left: 50%; z-index: 40; width: 48px; height: 48px; margin-left: -24px; display: grid; place-items: center;
   background: rgb(255 255 255 / .55); -webkit-backdrop-filter: blur(10px) saturate(1.4); backdrop-filter: blur(10px) saturate(1.4);
   border: 1px solid rgb(255 255 255 / .85); border-radius: 50%; box-shadow: 0 4px 16px rgb(0 0 0 / .12);
@@ -745,6 +751,7 @@ body.gate .wrap { padding-bottom: 120px; }
 /* …and the screen stays put: it does not scroll */
 html:has(body.gate), body.gate { overflow: hidden; overscroll-behavior: none; height: 100%; }
 body.gate { position: fixed; inset: 0; touch-action: none; }
+body.gate #scroller { overflow: hidden; }
 .install-go { font: inherit; font-size: 15px; font-weight: 700; color: #fff; background: var(--accent); border: 0; border-radius: 12px; padding: 12px;
   box-shadow: 0 3px 0 rgb(0 0 0 / .15); cursor: pointer; position: relative; z-index: 1; }
 .install-go:active { transform: translateY(1px); box-shadow: 0 2px 0 rgb(0 0 0 / .15); }
@@ -1211,6 +1218,8 @@ button.pcal-c { cursor: pointer; }
 </style>
 </head>
 <body>
+<!-- the page itself never scrolls (an iPhone would move bars fixed to the screen along with it); this area does -->
+<div id="scroller">
 <div class="wrap">
   <header class="brand">
     <div class="brand-mark"><img class="logo" alt="Themis" src="data:image/png;base64,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"><span class="brand-name">Themis Portal</span></div>
@@ -1558,12 +1567,15 @@ button.pcal-c { cursor: pointer; }
     <div class="menu-list">
       <button type="button" class="menu-item" id="tab-inv"><b>請求書</b><small>毎月の請求書を作って提出</small></button>
       <button type="button" class="menu-item" id="tab-pay" hidden><b>給与明細</b><small>毎月の給与明細を見る</small></button>
-      <button type="button" class="menu-item" id="m-admin" hidden><b>管理画面</b><small>全員の勤怠・シフトを見る</small></button>
       <button type="button" class="menu-item" id="m-ask"><b>お問い合わせ</b><small>Themisに質問・連絡する</small></button>
     </div>
     <div class="menu-list">
       <button type="button" class="menu-item" id="m-pass"><b>パスワード変更</b></button>
       <button type="button" class="menu-item danger" id="m-logout"><b>ログアウト</b></button>
+    </div>
+    <!-- 管理者以上: the way into the admin screen, in a box of its own at the foot -->
+    <div class="menu-list">
+      <button type="button" class="menu-item danger" id="m-admin" hidden><b>管理画面</b><small>全員の勤怠・シフトを見る</small></button>
     </div>
   </section>
 
@@ -1572,16 +1584,18 @@ button.pcal-c { cursor: pointer; }
     <div id="nt-body"></div>
   </section>
 
-  <div class="toast" id="toast" role="status" aria-live="polite" hidden></div>
-  <nav class="bnav" aria-label="画面の切り替え">
-    <div class="bnav-in">
-      <button type="button" data-g="home" aria-current="page"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M3 10.5 12 3l9 7.5V20a1 1 0 0 1-1 1h-5v-6h-6v6H4a1 1 0 0 1-1-1z"/></svg><span>ホーム</span></button>
-      <button type="button" data-g="shift"><svg viewBox="0 0 24 24" aria-hidden="true"><rect x="3" y="5" width="18" height="16" rx="2"/><path d="M3 10h18M8 3v4M16 3v4"/></svg><span>シフト</span></button>
-      <button type="button" data-g="menu"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 6h16M4 12h16M4 18h16"/></svg><span>メニュー</span></button>
-    </div>
-  </nav>
   </div>
 </div>
+</div>
+<!-- the bar at the foot and its messages sit outside the scrolling area, so scrolling never moves them -->
+<div class="toast" id="toast" role="status" aria-live="polite" hidden></div>
+<nav class="bnav" aria-label="画面の切り替え">
+  <div class="bnav-in">
+    <button type="button" data-g="home" aria-current="page"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M3 10.5 12 3l9 7.5V20a1 1 0 0 1-1 1h-5v-6h-6v6H4a1 1 0 0 1-1-1z"/></svg><span>ホーム</span></button>
+    <button type="button" data-g="shift"><svg viewBox="0 0 24 24" aria-hidden="true"><rect x="3" y="5" width="18" height="16" rx="2"/><path d="M3 10h18M8 3v4M16 3v4"/></svg><span>シフト</span></button>
+    <button type="button" data-g="menu"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 6h16M4 12h16M4 18h16"/></svg><span>メニュー</span></button>
+  </div>
+</nav>
 
 <!-- a second look before ログアウト / パスワード変更 / 管理画面 -->
 <div class="modal-bg" id="ask-sheet" hidden>
@@ -1882,6 +1896,8 @@ window.addEventListener("error", function (e) {
 (() => {
   const WD = ["日", "月", "火", "水", "木", "金", "土"];
   const $ = (id) => document.getElementById(id);
+  // the page scrolls inside #scroller, never the window itself
+  const SC = $("scroller"), scrollToY = (y) => SC.scrollTo(0, y || 0);
   const pad = (n) => String(n).padStart(2, "0");
   const dayKey = (d) => `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}`;
   const ymOf = (key) => key.slice(0, 7);
@@ -2089,13 +2105,13 @@ window.addEventListener("error", function (e) {
   }
   for (const b of document.querySelectorAll(".bnav button")) b.onclick = () => {
     pickTab({ home: "home", shift: tabOk(shiftTab) ? shiftTab : "card", menu: "menu" }[b.dataset.g]);
-    window.scrollTo(0, 0);
+    scrollToY(0);
   };
   // 戻る: from 請求書 / 給与明細 to メニュー; inside お知らせ back to its list, then to where it was opened from
   $("back-menu").onclick = () => {
     if (tab === "notice" && nt.view !== "list" && nt.fromList) showNotice("list");
     else pickTab(tab === "notice" ? nt.from : "menu");
-    window.scrollTo(0, 0);
+    scrollToY(0);
   };
 
   // ---- お知らせ・お問い合わせ ----
@@ -2130,7 +2146,7 @@ window.addEventListener("error", function (e) {
     nt = { view, id: id || null, from: from || (tab === "notice" ? nt.from : "home"), fromList: view !== "list" && (fromList || nt.fromList && tab === "notice") };
     GROUP.notice = nt.from;
     if (tab !== "notice") pickTab("notice"); else { setTab("notice"); }
-    window.scrollTo(0, 0);
+    scrollToY(0);
   }
   $("bell").onclick = () => showNotice("list", null, "home");
   $("m-ask").onclick = () => showNotice("new", null, "menu");
@@ -2666,18 +2682,10 @@ window.addEventListener("error", function (e) {
   $("v-close").onclick = closeViewer;
   document.addEventListener("keydown", (e) => { if (e.key === "Escape" && !$("inv-view").hidden) closeViewer(); });
 
-  // while any sheet is open the page behind is pinned in place, so a swipe can't scroll the calendar
+  // while any sheet is open the page behind stays still, so a swipe can't scroll the calendar
   const sheets = [...document.querySelectorAll(".modal-bg")];
-  let pinnedY = null;
   new MutationObserver(() => {
-    const open = sheets.some((s) => !s.hidden), bs = document.body.style;
-    if (open && pinnedY == null) {
-      pinnedY = scrollY;
-      Object.assign(bs, { position: "fixed", top: `-${pinnedY}px`, left: "0", right: "0" });
-    } else if (!open && pinnedY != null) {
-      Object.assign(bs, { position: "", top: "", left: "", right: "" });
-      scrollTo(0, pinnedY); pinnedY = null;
-    }
+    SC.style.overflowY = sheets.some((s) => !s.hidden) ? "hidden" : "";
   }).observe(document.body, { subtree: true, attributes: true, attributeFilter: ["hidden"] });
 
   // the transport proofs go to Themis with each day's record, not with the invoice
@@ -3555,7 +3563,7 @@ ${v.addr}`;
     if (!CRED || !(viewReady && backend) && !viewPicked) return;
     const ym = (d) => `${d.getFullYear()}-${pad(d.getMonth() + 1)}`;
     const months = Object.fromEntries(Object.entries({ ...tabView, [tab]: view }).map(([k, d]) => [k, ym(d)]));
-    const s = JSON.stringify({ at: Date.now(), mode, tab, months, y: window.scrollY, adTab, adMonth, adPerson, adListY });
+    const s = JSON.stringify({ at: Date.now(), mode, tab, months, y: SC.scrollTop, adTab, adMonth, adPerson, adListY });
     for (const st of [localStorage, sessionStorage]) try { st.setItem(VIEW_KEY, s); } catch (e) {}
   }
   addEventListener("pagehide", saveView);
@@ -3568,7 +3576,7 @@ ${v.addr}`;
     if (mode === "admin" && hiddenAt && Date.now() - hiddenAt > 60000 && $("ad-dlg").hidden && backend) adLoad(true);
   });
   let scrollSave = null;
-  addEventListener("scroll", () => { clearTimeout(scrollSave); scrollSave = setTimeout(saveView, 300); }, { passive: true });
+  SC.addEventListener("scroll", () => { clearTimeout(scrollSave); scrollSave = setTimeout(saveView, 300); }, { passive: true });
   // opening the app starts on ホーム; only a reload (pull to refresh and the like) puts back the screen it left
   const reloaded = (() => { try { return performance.getEntriesByType("navigation")[0]?.type === "reload"; } catch (e) { return false; } })();
   function savedView() {
@@ -3595,7 +3603,7 @@ ${v.addr}`;
   function showSavedAdmin(v) {
     if (!v || v.mode !== "admin" || !window.TC_ADMIN) return;
     adoptAdminView(v);
-    $("member-ui").hidden = true; $("admin").hidden = false; $("adminbtn").textContent = "通常画面";
+    $("member-ui").hidden = true; $("admin").hidden = false; $("adminbtn").textContent = "‹ 通常画面に戻る";
     paintAdTabs();
     adMsg("読み込んでいます…");
     adPrefetch();
@@ -3603,7 +3611,7 @@ ${v.addr}`;
   // the screen that `mode` says (the admin screen shown above is only a look until restoreView opens it)
   function showMode() {
     const ad = mode === "admin";
-    $("admin").hidden = !ad; $("member-ui").hidden = ad; $("adminbtn").textContent = ad ? "通常画面" : "管理画面";
+    $("admin").hidden = !ad; $("member-ui").hidden = ad; $("adminbtn").textContent = ad ? "‹ 通常画面に戻る" : "管理画面";
   }
   function restoreView() {
     const v = savedView();
@@ -3615,8 +3623,8 @@ ${v.addr}`;
       adoptAdminView(v);
       adPerson = v.adPerson || null; adListY = v.adListY || 0;
       switchMode();
-      adReady.then(() => window.scrollTo(0, v.y || 0));
-    } else requestAnimationFrame(() => window.scrollTo(0, v.y || 0));
+      adReady.then(() => scrollToY(v.y));
+    } else requestAnimationFrame(() => scrollToY(v.y));
   }
 
   // ---- boot ----
@@ -3872,12 +3880,12 @@ ${v.addr}`;
     const blocked = (t) => [...document.querySelectorAll(".modal-bg")].some((m) => !m.hidden) || t.closest("canvas, input, textarea, select");
     let y0 = null, dy = 0;
     addEventListener("touchstart", (e) => {
-      y0 = window.scrollY <= 0 && e.touches.length === 1 && !blocked(e.target) && !bar.classList.contains("busy") ? e.touches[0].clientY : null;
+      y0 = SC.scrollTop <= 0 && e.touches.length === 1 && !blocked(e.target) && !bar.classList.contains("busy") ? e.touches[0].clientY : null;
       dy = 0;
     }, { passive: true });
     addEventListener("touchmove", (e) => {
       if (y0 == null) return;
-      if (window.scrollY > 0) { y0 = null; bar.classList.remove("drag", "ready"); bar.style.transform = ""; return; }
+      if (SC.scrollTop > 0) { y0 = null; bar.classList.remove("drag", "ready"); bar.style.transform = ""; return; }
       dy = Math.max(0, e.touches[0].clientY - y0);
       bar.classList.add("drag"); bar.classList.toggle("ready", dy > PULL);
       bar.style.transform = `translateY(${Math.min(dy, PULL * 1.5) * 0.6 - 60}px) rotate(${Math.min(dy, PULL) * 3}deg)`;
@@ -3905,7 +3913,7 @@ ${v.addr}`;
   // opening the admin screen asks first; going back to the normal screen (and a reload putting the admin screen back) does not
   $("adminbtn").onclick = async () => {
     // still showing last time's copy because the server could not be reached: say so instead of doing nothing
-    if (mode === "member" && !backend) { msg("サーバーから記録を読み込めていないため、管理画面を開けません。通信状況を確認して、画面を更新してください。"); window.scrollTo(0, 0); return; }
+    if (mode === "member" && !backend) { msg("サーバーから記録を読み込めていないため、管理画面を開けません。通信状況を確認して、画面を更新してください。"); scrollToY(0); return; }
     if (mode === "member" && backend && !needsSetup() &&
       !await ask("管理画面を開きますか？", window.TC_OWNER ? "全員の勤怠・シフト・請求書を見ます。" : "全員の勤怠・シフトを見ます。", "開く")) return;   // invoices are 運営's only
     switchMode();
@@ -3917,8 +3925,8 @@ ${v.addr}`;
     viewPicked = true;   // chosen by hand: kept over a reload, like a tab
     mode = toAdmin ? "admin" : "member";
     $("admin").hidden = !toAdmin; $("member-ui").hidden = toAdmin;
-    $("adminbtn").textContent = toAdmin ? "通常画面" : "管理画面";
-    window.scrollTo(0, 0);
+    $("adminbtn").textContent = toAdmin ? "‹ 通常画面に戻る" : "管理画面";
+    scrollToY(0);
     if (toAdmin) { if (!adStarted) { adStarted = true; adReady = startAdmin(); } else adReady = adLoad(); }
     else { setTab("card"); render(); }   // back from the admin screen: always the シフト表
     saveView();
@@ -4016,7 +4024,7 @@ ${v.addr}`;
     for (const b of $("ad-space").querySelectorAll("button")) b.onclick = () => {
       if (spaceOf(adTab) === b.dataset.s) return;
       viewPicked = true;
-      adTab = adLast[b.dataset.s]; adPerson = null; window.scrollTo(0, 0); adLoad();
+      adTab = adLast[b.dataset.s]; adPerson = null; scrollToY(0); adLoad();
     };
     $("ad-prev").onclick = () => adShift(-1);
     $("ad-next").onclick = () => adShift(1);
@@ -4213,7 +4221,7 @@ ${v.addr}`;
   // one person's month: 勤怠 shows each day's store and times (tap a day for every item); シフト shows their marks
   let adPerson = null;   // { id, day }
   let adListY = 0;       // where the list was scrolled, so 一覧に戻る lands back on the same person
-  function adOpenPerson(id) { adListY = window.scrollY; adPerson = { id, day: "" }; window.scrollTo(0, 0); adLoad(); }
+  function adOpenPerson(id) { adListY = SC.scrollTop; adPerson = { id, day: "" }; scrollToY(0); adLoad(); }
   function adPersonView() {
     const m = adData.members.find((x) => x.id === adPerson.id);
     if (!m) { adPerson = null; adLoad(); return; }
@@ -4254,7 +4262,7 @@ ${v.addr}`;
         $("pcal-detail").innerHTML = dayDetail(b.dataset.day, rows[b.dataset.day]);
       };
     }
-    $("ad-back").onclick = async () => { adPerson = null; await adLoad(); window.scrollTo(0, adListY); };
+    $("ad-back").onclick = async () => { adPerson = null; await adLoad(); scrollToY(adListY); };
   }
   // every item recorded for one day, only the ones that have a value
   function dayDetail(key, r) {
