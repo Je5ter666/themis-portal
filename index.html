@@ -3480,7 +3480,7 @@ ${v.addr}`;
     $("adminbtn").textContent = toAdmin ? "通常画面" : "管理画面";
     window.scrollTo(0, 0);
     if (toAdmin) { if (!adStarted) { adStarted = true; adReady = startAdmin(); } else adReady = adLoad(); }
-    else render();
+    else { setTab("card"); render(); }   // back from the admin screen: always the シフト表
     saveView();
   }
   // after a session ran out mid-use, a fresh page is the only safe way to switch person (no records left in memory)
@@ -3861,7 +3861,7 @@ ${v.addr}`;
               : `<div class="ad-amount"><input type="number" min="0" step="1" inputmode="numeric" placeholder="例：200000" value="${esc(r?.[10] || "")}" aria-label="${esc(m.name)}さんの請求金額（税込）">` +
                 `<span>円（税込）</span><button type="button" class="tool" data-amount>金額を確定</button></div>`)
             : `<div class="ad-acts">${r[7] ? `<button type="button" class="tool" data-pdf>請求書PDFを見る</button><button type="button" class="tool" data-dl>ダウンロード</button>` : ""}` +
-            (k === "sent" ? `<button type="button" class="btn primary sm" data-paid>入金完了</button>` : `<span class="hint">入金 ${esc(r[6])}${r[9] ? `・確認 ${esc(r[9].slice(0, 10))}` : ""}</span><button type="button" class="tool" data-unpaid>取り消す</button>`) + `</div>`) +
+            (k === "sent" ? `<button type="button" class="tool" data-unsubmit>提出を取り消す</button><button type="button" class="btn primary sm" data-paid>入金完了</button>` : `<span class="hint">入金 ${esc(r[6])}${r[9] ? `・確認 ${esc(r[9].slice(0, 10))}` : ""}</span><button type="button" class="tool" data-unpaid>取り消す</button>`) + `</div>`) +
           `</div>`;
       }).join("") + `</div>`).join("");
     const card = (b) => b.closest(".ad-card");
@@ -3879,6 +3879,18 @@ ${v.addr}`;
           const r = byName[name];
           r[4] = paid ? "入金済み" : "提出済み"; r[6] = paid ? dayKey(new Date()) : ""; r[9] = "";
           $("ad-dlg").hidden = true; adChanged(); adMsg(paid ? `${name}さんを入金完了にしました。` : `${name}さんの入金完了を取り消しました。`);
+        });
+    };
+    // sent back to the member: a draft again, so they can correct it and submit once more
+    for (const b of $("ad-body").querySelectorAll("[data-unsubmit]")) b.onclick = () => {
+      const c = card(b), name = c.dataset.name;
+      adDialog("提出の取り消し",
+        `<p>${esc(name)}さんの${esc(ymLabel(ym))}分の請求書の提出を取り消して、「未提出」に戻します。<br>${esc(name)}さんは、直してからもう一度提出できます。</p><p class="hint">届いたメールとPDFは消えません。</p>`,
+        "提出を取り消す", async () => {
+          await call("api_adminUnsubmit", c.dataset.id, ym);
+          const r = byName[name];
+          r[2] = ""; r[3] = ""; r[4] = "下書き"; r[5] = ""; r[6] = ""; r[7] = ""; r[9] = "";
+          $("ad-dlg").hidden = true; adChanged(); adMsg(`${name}さんの提出を取り消しました。`);
         });
     };
     for (const b of $("ad-body").querySelectorAll("[data-fix]")) b.onclick = () => {
