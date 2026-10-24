@@ -788,6 +788,7 @@ fieldset:disabled .f input, fieldset:disabled .f textarea, fieldset:disabled .f 
 .ad-card-h > .st { flex: none; }
 .ad-amount { display: flex; flex-wrap: wrap; align-items: center; gap: 8px; font-size: 12px; color: var(--ink-soft); }
 .ad-amount > span, .ad-amount > button { flex: none; white-space: nowrap; }
+.ad-amount .ad-fixed { font-size: 17px; color: var(--ink); }
 .ad-amount input { flex: 1 1 7em; min-width: 6em; font: inherit; font-family: var(--f-num); font-size: 15px; padding: 6px 8px; border: 1px solid var(--rule); border-radius: 8px; background: var(--paper); color: var(--ink); }
 /* a person card that opens their calendar */
 button.ad-card.ad-link { font: inherit; color: inherit; text-align: left; cursor: pointer; width: 100%; }
@@ -3646,7 +3647,24 @@ ${v.addr}`;
   }
 
   // the owner's list: each person's PDF, and 入金完了 once paid; the member then confirms the money arrived
-  // columns of 請求書一覧: 0 氏名 · 4 状態 · 6 入金日 · 7 PDF · 9 本人の入金確認
+  // columns of 請求書一覧: 0 氏名 · 4 状態 · 6 入金日 · 7 PDF · 9 本人の入金確認 · 10 Themisが設定した金額 · 11 税抜金額
+  // A confirmed amount shows as text with 修正; the ids being corrected are kept here until 金額を確定 is pressed again
+  const adAmtEdit = new Set();
+  // the month's 利益: 他社請求 of that work month − what Themis pays its members for it, both 税抜 as in 売上
+  // (a member's amount is entered tax-inclusive, so its 10% is backed out, as the server does)
+  function invProfit(ym) {
+    const pay = adData.invs.filter((r) => r[1] === ym).reduce((s, r) => {
+      const fixed = num(r[10]);
+      return s + (r[11] ? num(r[11]) : fixed - Math.floor(fixed * 10 / 110));
+    }, 0);
+    const sales = blData.bills.filter((b) => workYm(b.date) === ym).reduce((s, b) => s + b.total - (b.taxAmount ?? billTotals(b).tax), 0);
+    const profit = sales - pay, warn = sales < pay ? " warn" : "";
+    return `<h4 class="bl-h">${esc(ymLabel(ym))}分の利益</h4><div class="ad-stats bl-stats">` +
+      [["他社請求", yen(sales), ""], ["払う金額", yen(pay), ""], ["利益", `${profit < 0 ? "−" : ""}${yen(Math.abs(profit))}`, warn],
+        ["利益率", sales ? `${(profit / sales * 100).toFixed(1)}%` : "—", warn]]
+        .map(([t, v, w]) => `<div class="ad-stat${w}"><span>${t}</span><b class="num">${v}</b></div>`).join("") + `</div>` +
+      `<p class="hint">他社請求は、この月の仕事の分として作った他社への請求書の合計です。払う金額は、下で確定した金額の合計です。どちらも税抜です。</p>`;
+  }
   function adInv() {
     const ym = adMonth.inv, byName = Object.fromEntries(adData.invs.map((r) => [r[0], r]));
     const live = adData.members.filter((m) => m.active || byName[m.name]);
@@ -3662,14 +3680,17 @@ ${v.addr}`;
     $("ad-body").innerHTML =
       `<div class="ad-stats">` + [["未提出", "none"], ["提出済み", "sent"], ["確認待ち", "paid"], ["確認済み", "ok"]]
         .map(([t, k]) => `<div class="ad-stat${k === "sent" && cnt(k) ? " warn" : ""}"><span>${t}</span><b class="num">${cnt(k)}</b></div>`).join("") + `</div>` +
-      `<p class="hint">請求金額は全員分ここで入れます。「金額を設定」を押すと本人の請求書にその金額が入り（本人は変えられません）、本人が金額に間違いがないことを確かめて提出します。「入金完了」を押すと本人に知らせが届き、本人が金額を確かめて「入金を確認しました」を押します。その月に稼働がなく金額も設定していない人は「請求なし」です。</p>` +
+      `<div id="inv-profit">${blData ? invProfit(ym) : ""}</div>` +
+      `<p class="hint">請求金額は全員分ここで入れます。「金額を確定」を押すと本人の請求書にその金額が入り（本人は変えられません）、本人が金額に間違いがないことを確かめて提出します。確定した金額は「修正」で直せます。「入金完了」を押すと本人に知らせが届き、本人が金額を確かめて「入金を確認しました」を押します。その月に稼働がなく金額も設定していない人は「請求なし」です。</p>` +
       byWork(live).map(([t, g]) => `<h3 class="ad-grp">${esc(groupName(t))}（${g.length}人）</h3><div class="ad-cards">` + g.map((m, i) => {
         const r = byName[m.name], k = stOf(m);
         return `<div class="ad-card${k === "nobill" ? " dim" : ""}" data-id="${esc(m.id)}" data-name="${esc(m.name)}">` +
           `<div class="ad-card-h"><span>${numName(i, m.name)}</span><span class="st st-${{ nobill: "none", none: "late", sent: "work", paid: "late", ok: "done" }[k]}">${label[k]}</span></div>` +
           (k === "none" || k === "nobill"
-            ? `<div class="ad-amount"><input type="number" min="0" step="1" inputmode="numeric" placeholder="例：200000" value="${esc(r?.[10] || "")}" aria-label="${esc(m.name)}さんの請求金額（税込）">` +
-              `<span>円（税込）</span><button type="button" class="tool" data-amount>金額を設定</button></div>`
+            ? (r?.[10] && !adAmtEdit.has(m.id)
+              ? `<div class="ad-amount"><b class="num ad-fixed">${yen(num(r[10]))}</b><span>（税込）で確定</span><button type="button" class="tool" data-fix>修正</button></div>`
+              : `<div class="ad-amount"><input type="number" min="0" step="1" inputmode="numeric" placeholder="例：200000" value="${esc(r?.[10] || "")}" aria-label="${esc(m.name)}さんの請求金額（税込）">` +
+                `<span>円（税込）</span><button type="button" class="tool" data-amount>金額を確定</button></div>`)
             : `<div class="ad-acts">${r[7] ? `<button type="button" class="tool" data-pdf>請求書PDFを見る</button><button type="button" class="tool" data-dl>ダウンロード</button>` : ""}` +
             (k === "sent" ? `<button type="button" class="btn primary sm" data-paid>入金完了</button>` : `<span class="hint">入金 ${esc(r[6])}${r[9] ? `・確認 ${esc(r[9].slice(0, 10))}` : ""}</span><button type="button" class="tool" data-unpaid>取り消す</button>`) + `</div>`) +
           `</div>`;
@@ -3690,17 +3711,25 @@ ${v.addr}`;
           $("ad-dlg").hidden = true; adChanged(); adMsg(paid ? `${name}さんを入金完了にしました。` : `${name}さんの入金完了を取り消しました。`);
         });
     };
+    for (const b of $("ad-body").querySelectorAll("[data-fix]")) b.onclick = () => {
+      adAmtEdit.add(card(b).dataset.id); adInv();
+      document.querySelector(`.ad-card[data-id="${CSS.escape(card(b).dataset.id)}"] .ad-amount input`)?.focus();
+    };
     for (const b of $("ad-body").querySelectorAll("[data-amount]")) b.onclick = () => busyBtn(b, async () => {
       const c = card(b), name = c.dataset.name, v = c.querySelector(".ad-amount input").value.trim();
-      adMsg(`${name}さんの金額を設定しています…`);
+      adMsg(`${name}さんの金額を確定しています…`);
       try {
         await call("api_adminSetAmount", c.dataset.id, ym, v);
         // keep the copy on screen in step: a row now exists for this person as a 下書き with the amount
-        const r = byName[name] || (adData.invs[adData.invs.push([name, ym, "", "", "下書き", "", "", "", "", "", ""]) - 1]);
-        r[10] = v;
-        adChanged(); adMsg(v ? `${name}さんの${ymLabel(ym)}分の請求金額を ${Number(v).toLocaleString("ja-JP")}円 にしました。` : `${name}さんの設定金額を消しました（本人が入力できます）。`);
+        const r = byName[name] || (adData.invs[adData.invs.push([name, ym, "", "", "下書き", "", "", "", "", "", "", ""]) - 1]);
+        r[10] = v; r[11] = "";
+        adAmtEdit.delete(c.dataset.id);
+        adChanged(); adMsg(v ? `${name}さんの${ymLabel(ym)}分の請求金額を ${Number(v).toLocaleString("ja-JP")}円 で確定しました。` : `${name}さんの設定金額を消しました。`);
       } catch (e) { adMsg(errText(e)); }
     });
+    // the 他社請求 come from their own read, the first time the tab opens
+    if (!blData) blFetch().then(() => { if (adTab === "inv" && $("inv-profit")) $("inv-profit").innerHTML = invProfit(ym); })
+      .catch(() => { if ($("inv-profit")) $("inv-profit").innerHTML = `<p class="hint">他社請求を読み込めなかったため、利益を出せませんでした。画面を更新してください。</p>`; });
   }
 
   // PDFs from the owner's Drive are drawn inside the app (pdf.js), so any admin's phone can show them
@@ -4012,16 +4041,13 @@ ${v.addr}`;
     if (adTab === "sales") { adSales(); return; }
     if (adTab !== "bills") return;
     const c = blData.company, bills = blData.bills.slice().sort((a, b) => b.date.localeCompare(a.date) || b.no.localeCompare(a.no));
-    const open = bills.filter((b) => !b.paidOn), cnt = (s) => bills.filter((b) => billState(b) === s).length, money = salesMonths();
+    const open = bills.filter((b) => !b.paidOn), cnt = (s) => bills.filter((b) => billState(b) === s).length;
     $("ad-body").innerHTML =
       `<div class="bl-top"><button type="button" class="btn primary" id="bl-new">＋ 新しい請求書</button><button type="button" class="tool" id="bl-co">自社情報</button></div>` +
       (coReady(c) ? "" : `<p class="hint bl-warn">先に「自社情報」で会社名・住所・振込先を登録してください。請求書に載ります。</p>`) +
       (coReady(c) && !blData.seal ? `<p class="hint">「自社情報」で印鑑の画像を登録すると、請求書に押印されます。</p>` : "") +
       `<div class="ad-stats bl-stats">` + [["未入金", `${open.length}件`], ["未入金の合計", yen(open.reduce((s, b) => s + b.total, 0))], ["期限切れ", `${cnt("late")}件`], ["入金済み", `${cnt("paid")}件`]]
         .map(([t, v], i) => `<div class="ad-stat${i === 2 && cnt("late") ? " warn" : ""}"><span>${t}</span><b class="num">${v}</b></div>`).join("") + `</div>` +
-      `<h4 class="bl-h">今月（${workMonth()}月分）の利益</h4>` + salesBox(money.now) +
-      `<h4 class="bl-h">全体の利益</h4>` + salesBox(money.all) +
-      `<p class="hint">利益と利益率は「売上」タブと同じ計算です（税抜）。月ごとの表は「売上」タブで見られます。</p>` +
       `<p class="hint">他社に出す請求書を作ってPDFで保存し、メールなどで送ってください。入金されたら「入金済みにする」を押します。一覧はスプレッドシートの「他社請求書一覧」にも出ます。</p>` +
       (bills.length ? `<div class="ad-cards">` + bills.map((b) => {
         const [label, cls] = BILL_STATE[billState(b)];
