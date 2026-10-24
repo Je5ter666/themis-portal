@@ -3650,20 +3650,17 @@ ${v.addr}`;
   // columns of 請求書一覧: 0 氏名 · 4 状態 · 6 入金日 · 7 PDF · 9 本人の入金確認 · 10 Themisが設定した金額 · 11 税抜金額
   // A confirmed amount shows as text with 修正; the ids being corrected are kept here until 金額を確定 is pressed again
   const adAmtEdit = new Set();
-  // the month's 利益: 他社請求 of that work month − what Themis pays its members for it, both 税抜 as in 売上
-  // (a member's amount is entered tax-inclusive, so its 10% is backed out, as the server does)
+  // the month's 利益: 他社請求 of that work month (税抜) − the members' 報酬 for it, before 源泉徴収, as the server counts it:
+  // the sent invoice's amount before 源泉徴収, or the amount Themis entered
   function invProfit(ym) {
-    const pay = adData.invs.filter((r) => r[1] === ym).reduce((s, r) => {
-      const fixed = num(r[10]);
-      return s + (r[11] ? num(r[11]) : fixed - Math.floor(fixed * 10 / 110));
-    }, 0);
+    const pay = adData.invs.filter((r) => r[1] === ym).reduce((s, r) => s + num(r[11] || r[10]), 0);
     const sales = blData.bills.filter((b) => workYm(b.date) === ym).reduce((s, b) => s + b.total - (b.taxAmount ?? billTotals(b).tax), 0);
     const profit = sales - pay, warn = sales < pay ? " warn" : "";
     return `<h4 class="bl-h">${esc(ymLabel(ym))}分の利益</h4><div class="ad-stats bl-stats">` +
-      [["他社請求", yen(sales), ""], ["払う金額", yen(pay), ""], ["利益", `${profit < 0 ? "−" : ""}${yen(Math.abs(profit))}`, warn],
+      [["他社請求", yen(sales), ""], ["報酬", yen(pay), ""], ["利益", `${profit < 0 ? "−" : ""}${yen(Math.abs(profit))}`, warn],
         ["利益率", sales ? `${(profit / sales * 100).toFixed(1)}%` : "—", warn]]
         .map(([t, v, w]) => `<div class="ad-stat${w}"><span>${t}</span><b class="num">${v}</b></div>`).join("") + `</div>` +
-      `<p class="hint">他社請求は、この月の仕事の分として作った他社への請求書の合計です。払う金額は、下で確定した金額の合計です。どちらも税抜です。</p>`;
+      `<p class="hint">他社請求は、この月の仕事の分として作った他社への請求書の合計（税抜）です。報酬は、下で確定した金額の合計（源泉徴収を引く前）です。</p>`;
   }
   function adInv() {
     const ym = adMonth.inv, byName = Object.fromEntries(adData.invs.map((r) => [r[0], r]));
@@ -3996,7 +3993,7 @@ ${v.addr}`;
   // Themis, matched by the month the work was done: this month's invoices (dated October) are for September, as are
   // the members' September invoices. All 税抜 (交通費 included). The months before the app (past, from the work sheets in
   // 「稼働」) show only those figures, so an invoice also made in the app for such a month is not counted twice
-  // 売上 and 経費 by work month, this month's and the whole; also shown at the top of 他社請求
+  // 売上 and 報酬 (cost) by work month, this month's and the whole
   function salesMonths() {
     const costs = blData.costs || {}, past = blData.past || {}, months = {};
     const at = (ym) => (months[ym] ||= { sales: 0, cost: 0 });
@@ -4020,11 +4017,11 @@ ${v.addr}`;
     $("ad-body").innerHTML =
       `<h4 class="bl-h">今月（${workMonth()}月分）</h4>` + salesBox(now) +
       `<h4 class="bl-h">全体</h4>` + salesBox(all) +
-      (rows.length ? `<h4 class="bl-h">月ごと</h4><div class="sl-wrap"><table class="sl-tbl num"><thead><tr><th>月</th><th>売上</th><th>経費</th><th>利益</th><th>利益率</th></tr></thead>` +
+      (rows.length ? `<h4 class="bl-h">月ごと</h4><div class="sl-wrap"><table class="sl-tbl num"><thead><tr><th>月</th><th>売上</th><th>報酬</th><th>利益</th><th>利益率</th></tr></thead>` +
         `<tbody>${rows.join("")}</tbody></table></div>` : "") +
-      `<p class="hint">金額は税抜（消費税を除く。交通費は含む）です。売上は他社請求の合計、利益は売上からメンバーへの支払い（メンバーの請求書の金額。源泉徴収を引く前）を引いたもの、利益率は利益÷売上です。` +
+      `<p class="hint">売上は他社請求の合計（税抜。交通費は含む）、報酬はメンバーへの報酬（源泉徴収を引く前）、利益は売上から報酬を引いたもの、利益率は利益÷売上です。` +
       `今月は、今月の請求日の他社請求と、メンバーの${workMonth()}月分の請求書で計算します。` +
-      `アプリを使う前の月（${Object.keys(past).sort().map((ym) => `${Number(ym.slice(5))}月`).join("・")}）は、「稼働」の表の売上・利益です（税抜。先方からもらう交通費は売上に含みます。経費は売上−利益）。</p>`;
+      `アプリを使う前の月（${Object.keys(past).sort().map((ym) => `${Number(ym.slice(5))}月`).join("・")}）は、「稼働」の表の売上・利益です（税抜。先方からもらう交通費は売上に含みます。報酬は売上−利益）。</p>`;
   }
   async function adBills() {
     // only a first read clears the message line, so 「保存しました」 and the like stay after a redraw
