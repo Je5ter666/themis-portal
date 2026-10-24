@@ -702,23 +702,28 @@ fieldset:disabled .f input, fieldset:disabled .f textarea, fieldset:disabled .f 
 .bill-doc .bd-to { display: flex; justify-content: space-between; align-items: baseline; gap: 8px; font-size: 16px; font-weight: 700; border-bottom: 1.5px solid #111; padding: 8px 2px 4px; }
 .bill-doc .bd-honor { font-size: 14px; flex: none; }
 .bill-doc .bd-lead { margin: 0; }
-.bill-doc .bd-t { width: 100%; border-collapse: collapse; table-layout: fixed; }
-.bill-doc .bd-t th, .bill-doc .bd-t td { border: 1px solid #333; padding: 4px 8px; height: 25px; text-align: left; font-weight: 400; vertical-align: middle; }
-.bill-doc .bd-t th { background: #eceef1; font-weight: 700; width: 38%; white-space: nowrap; }
-.bill-doc .bd-t .r { text-align: right; font-family: var(--f-num); }
+.bill-doc .bd-t { width: 100%; border-collapse: collapse; table-layout: fixed; border: 2px solid #1a1a1a; }
+/* inside a box the lines are thin and pale; the box itself has the dark 2px outline (the wider border wins) */
+.bill-doc .bd-t th, .bill-doc .bd-t td { border: 1px solid #c9ccd2; padding: 4px 9px; height: 26px; text-align: left; font-weight: 400; vertical-align: middle; }
+.bill-doc .bd-t th { background: #f1f2f4; font-weight: 700; width: 38%; white-space: nowrap; }
+.bill-doc .bd-t .r { text-align: right; font-family: var(--f-num); font-variant-numeric: tabular-nums; }
+/* the amount: label and figure on one centred line, the figure right-aligned with the yen sign held to it */
 .bill-doc .bd-amt th { width: 46%; }
-.bill-doc .bd-amt tr.big td { font-family: var(--f-num); font-size: 19px; font-weight: 700; text-align: right; }
-.bill-doc .bd-from { position: relative; border: 1px solid #333; padding: 8px 10px 10px; min-height: 128px; padding-right: 96px; }
+.bill-doc .bd-amt tr.big th, .bill-doc .bd-amt tr.big td { height: 40px; line-height: 1; }
+.bill-doc .bd-amt tr.big th { font-size: 13px; }
+.bill-doc .bd-amt tr.big td { font-family: var(--f-num); font-variant-numeric: proportional-nums; font-size: 20px; font-weight: 700; text-align: right; white-space: nowrap; letter-spacing: .01em; }
+.bill-doc .bd-from { position: relative; border: 2px solid #1a1a1a; padding: 8px 10px 10px; min-height: 128px; padding-right: 96px; }
 .bill-doc .bd-name { font-size: 14px; font-weight: 700; margin-bottom: 2px; }
 .bill-doc .bd-seal { position: absolute; right: 10px; top: 10px; width: 80px; height: auto; }
-.bill-doc .bd-items thead th { width: auto; text-align: left; }
+.bill-doc .bd-items thead th { width: auto; text-align: left; border-bottom-color: #1a1a1a; }
 .bill-doc .bd-items thead th.r { text-align: right; }
 .bill-doc .bd-items tbody td { height: 27px; }
-.bill-doc .bd-items td.bd-gap { border: 0; background: #fff; }
-.bill-doc .bd-items .bd-sum th { width: auto; }
-.bill-doc .bd-items .tot th, .bill-doc .bd-items .tot td:not(.bd-gap) { font-weight: 700; font-size: 14px; background: #e2e5ea; }
+/* the totals: a box of their own under the 単価・金額 columns */
+.bill-doc .bd-sums { width: 42%; margin: -16px 0 0 auto; border-top-width: 0; }
+.bill-doc .bd-sums th { width: auto; }
+.bill-doc .bd-sums .tot th, .bill-doc .bd-sums .tot td { font-weight: 700; font-size: 14px; background: #e6e8ec; border-top: 2px solid #1a1a1a; }
 .bill-doc .bd-bottom { display: grid; grid-template-columns: minmax(0, 1.2fr) minmax(0, 1fr); gap: 18px; align-items: stretch; }
-.bill-doc .bd-cap { text-align: left; width: auto !important; }
+.bill-doc .bd-cap { text-align: left; width: auto !important; border-bottom-color: #1a1a1a !important; }
 .bill-doc .bd-bank th:not(.bd-cap) { width: 27%; }
 .bill-doc .bd-note { height: 100%; }
 .bill-doc .bd-note td { vertical-align: top; height: auto; padding: 8px; }
@@ -1029,10 +1034,9 @@ button.pcal-c { cursor: pointer; }
       <div class="fields">
         <label class="f wide">請求先（会社名）<span class="sfx-in"><input id="bl-to" type="text" maxlength="80" autocomplete="off" placeholder="例：株式会社〇〇">
           <select id="bl-honor" class="bl-honor" aria-label="敬称"><option>御中</option><option>様</option></select></span></label>
-        <label class="f wide">件名<input id="bl-subject" type="text" maxlength="80" autocomplete="off" placeholder="例：2026年10月分 販売支援業務"></label>
         <label class="f">請求日<input id="bl-date" type="date"></label>
         <label class="f">お支払期限<input id="bl-due" type="date"></label>
-        <label class="f wide">請求番号<input id="bl-no" type="text" maxlength="30" autocomplete="off" placeholder="空欄なら自動で付きます（例：2026-0007）"></label>
+        <label class="f wide">請求番号<input id="bl-no" type="text" maxlength="30" autocomplete="off" placeholder="空欄なら自動で付きます（例：202609-0001）"></label>
       </div>
       <div class="bl-items-h"><b>明細</b><select id="bl-tax" aria-label="単価の消費税">
         <option value="ex">単価は税抜（消費税10%を加える）</option><option value="in">単価は税込</option><option value="none">消費税なし</option></select></div>
@@ -3896,16 +3900,17 @@ ${v.addr}`;
   const coReady = (c) => !!(c.name && c.address && c.bankName && c.acctNo);
   const billState = (b) => (b.paidOn ? "paid" : b.due && b.due < dayKey(new Date()) ? "late" : "open");
   const BILL_STATE = { open: ["未入金", "plan"], late: ["期限切れ", "late"], paid: ["入金済み", "done"] };
-  const billFile = (b) => `請求書_${b.no}_${b.to}.pdf`.replace(/[\\/:*?"<>|]/g, "");
+  // 「9月 請求書 株式会社〇〇 御中.pdf」: the work month first, as the files are kept in order
+  const billFile = (b) => `${workMonth(b.date)}月 請求書 ${b.to} ${b.honor}.pdf`.replace(/[\\/:*?"<>|]/g, "");
   const n0 = (v) => Math.round(v).toLocaleString("ja-JP");
-  // laid out like an Excel sheet: every part in a ruled box, packed into two columns so the page reads top to
-  // bottom without gaps — 請求先 and the amount on the left, 発行日・番号 and 請求元 (with the seal) on the right,
+  // laid out like an Excel sheet: every part in its own box (dark outline, pale lines inside), packed into two
+  // columns so the page reads top to bottom without gaps — 請求先 and the amount on the left, 発行日・番号 and 請求元 (with the seal) on the right,
   // then the lines across, then 振込先 beside 備考
   function billHTML(b, c, seal) {
     const t = billTotals(b), row = (k, v, cls = "") => `<tr class="${cls}"><th>${k}</th><td>${v}</td></tr>`;
     const items = b.items.map((i) => `<tr><td>${esc(i.name)}</td><td class="r">${esc(String(i.qty))}</td><td class="r">${n0(num(i.price))}</td><td class="r">${n0(lineAmount(i))}</td></tr>`);
     while (items.length < 8) items.push(`<tr><td></td><td></td><td></td><td></td></tr>`);
-    const sum = (k, v, cls = "") => `<tr class="bd-sum ${cls}"><td class="bd-gap" colspan="2"></td><th>${k}</th><td class="r">${v}</td></tr>`;
+    const sum = (k, v, cls = "") => `<tr class="${cls}"><th>${k}</th><td class="r">${v}</td></tr>`;
     const taxRows = b.tax === "ex" ? sum("小計", n0(t.subtotal)) + sum("消費税(10%)", n0(t.tax))
       : b.tax === "in" ? sum("小計(税込)", n0(t.subtotal)) + sum("内消費税(10%)", n0(t.tax)) : sum("小計", n0(t.subtotal));
     const line = (v, pre = "") => (v ? `<div>${pre}${esc(v)}</div>` : "");
@@ -3915,7 +3920,7 @@ ${v.addr}`;
       <div class="bd-top">
         <div class="bd-col">
           <div class="bd-to"><span>${esc(b.to)}</span><span class="bd-honor">${esc(b.honor)}</span></div>
-          <p class="bd-lead">下記のとおりご請求申し上げます。</p><table class="bd-t bd-amt">${b.subject ? row("件名", esc(b.subject)) : ""}${row("ご請求金額（税込）", `¥${n0(t.total)}`, "big")}${b.due ? row("お支払期限", jDate(b.due)) : ""}</table>
+          <p class="bd-lead">下記のとおりご請求申し上げます。</p><table class="bd-t bd-amt">${row("ご請求金額（税込）", `¥${n0(t.total)}`, "big")}${b.due ? row("お支払期限", jDate(b.due)) : ""}</table>
         </div>
         <div class="bd-col">
           <table class="bd-t">${row("発行日", jDate(b.date))}${row("請求書番号", esc(b.no))}</table>
@@ -3927,7 +3932,8 @@ ${v.addr}`;
       </div>
       <table class="bd-t bd-items"><colgroup><col style="width:46%"><col style="width:12%"><col style="width:19%"><col style="width:23%"></colgroup>
         <thead><tr><th>内容</th><th class="r">数量</th><th class="r">単価</th><th class="r">金額</th></tr></thead>
-        <tbody>${items.join("")}${taxRows}${sum("交通費", b.transport ? n0(num(b.transport)) : "")}${sum("合計請求額", n0(t.total), "tot")}</tbody></table>
+        <tbody>${items.join("")}</tbody></table>
+      <table class="bd-t bd-sums"><colgroup><col style="width:45%"><col style="width:55%"></colgroup>${taxRows}${sum("交通費", b.transport ? n0(num(b.transport)) : "")}${sum("合計請求額", n0(t.total), "tot")}</table>
       <div class="bd-bottom">
         <table class="bd-t bd-bank"><tr><th colspan="2" class="bd-cap">お振込先</th></tr>${row("銀行名", esc(c.bankName))}${row("支店名", esc(c.branch))}${row("口座種別", esc(c.acctType))}${row("口座番号", esc(c.acctNo))}${row("口座名義", esc(c.acctName))}</table>
         <table class="bd-t bd-note"><tr><th class="bd-cap">備考</th></tr><tr><td>${note}</td></tr></table>
@@ -3960,7 +3966,7 @@ ${v.addr}`;
         const [label, cls] = BILL_STATE[billState(b)];
         return `<div class="ad-card bl-card" data-id="${esc(b.id)}">` +
           `<div class="ad-card-h"><span>${esc(b.to)} ${esc(b.honor)}</span><span class="st st-${cls}">${label}</span></div>` +
-          `<div class="bl-line"><span>${esc(b.subject || b.items[0]?.name || "")}</span><b class="num">${yen(b.total)}</b></div>` +
+          `<div class="bl-line"><span>${esc(b.items[0]?.name || "")}</span><b class="num">${yen(b.total)}</b></div>` +
           `<div class="bl-meta">No.${esc(b.no)}　請求日 ${jDate(b.date)}${b.due ? `　期限 ${jDate(b.due)}` : ""}${b.paidOn ? `　入金 ${jDate(b.paidOn)}` : ""}</div>` +
           `<div class="ad-acts"><button type="button" class="tool" data-view>PDFを見る</button><button type="button" class="tool" data-dl>ダウンロード</button>` +
           `<button type="button" class="tool" data-edit>編集</button><button type="button" class="tool" data-paid>${b.paidOn ? "未入金に戻す" : "入金済みにする"}</button>` +
@@ -3997,13 +4003,16 @@ ${v.addr}`;
   // the editor: one form for a new invoice or changes to one
   let blEdit = null, dueTouched = false;
   const nextMonthEnd = (iso) => { const [y, m] = iso.split("-").map(Number); return dayKey(new Date(y, m + 1, 0)); };
-  const BILL_FIELDS = ["to", "honor", "subject", "date", "due", "no", "tax", "transport", "note"];
+  const BILL_FIELDS = ["to", "honor", "date", "due", "no", "tax", "transport", "note"];
   const BILL_NOTE = "・お振込手数料は貴社ご負担にてお願いいたします。\n・請求内容にご不明な点がございましたらご連絡ください。";
   const blankLine = () => ({ name: "", qty: 1, price: "" });
+  // the month the work was done: the one before the 請求日 (an invoice in October is for September)
+  const workMonth = (iso) => { const [y, m] = String(iso || dayKey(new Date())).split("-").map(Number); return new Date(y, m - 2, 1).getMonth() + 1; };
   function openBill(b) {
     const today = dayKey(new Date());
     blEdit = b ? JSON.parse(JSON.stringify(b))
-      : { id: "", no: "", to: "", honor: "御中", subject: "", date: today, due: nextMonthEnd(today), tax: "ex", transport: "", note: BILL_NOTE, items: [blankLine()] };
+      : { id: "", no: "", to: "", honor: "御中", date: today, due: nextMonthEnd(today), tax: "ex", transport: "", note: BILL_NOTE,
+        items: [{ ...blankLine(), name: `${workMonth(today)}月業務委託費` }] };
     dueTouched = !!b;
     $("bl-h").textContent = b ? `請求書を編集（${b.no}）` : "新しい請求書";
     for (const k of BILL_FIELDS) $("bl-" + k).value = blEdit[k] || "";
