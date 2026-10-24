@@ -327,12 +327,11 @@ button.hc:not(:disabled):hover { filter: brightness(.97); }
   #p-inv { grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); align-items: start; }
   #p-inv > .forms { display: contents; }
   #p-inv > .inv-head { grid-area: 1 / 1 / 2 / 3; }
-  #p-inv > .steps { grid-area: 2 / 1 / 3 / 3; }
-  #fs-bill { grid-area: 3 / 1 / 6 / 2; }
-  #fs-set { grid-area: 3 / 2 / 4 / 3; }
-  #p-inv > .sheet-scroll { grid-area: 4 / 2 / 5 / 3; }
-  #p-inv > .inv-actions { grid-area: 5 / 2 / 6 / 3; }
-  #p-inv > .hint { grid-area: 6 / 1 / 7 / 3; }
+  #fs-bill { grid-area: 2 / 1 / 5 / 2; }
+  #fs-set { grid-area: 2 / 2 / 3 / 3; }
+  #p-inv > .sheet-scroll { grid-area: 3 / 2 / 4 / 3; }
+  #p-inv > .inv-actions { grid-area: 4 / 2 / 5 / 3; }
+  #p-inv > .hint { grid-area: 5 / 1 / 6 / 3; }
 }
 /* fieldset only groups the boxes (so a sent invoice can lock them all at once) and draws nothing: iPhone paints a
    styled fieldset's top dark. The card look is on .fs-card inside it */
@@ -373,12 +372,20 @@ label.check { -webkit-tap-highlight-color: transparent; }
 .who-tag.role { color: var(--ink-soft); }
 /* 代表 stands out from 運営 and 管理者: gold */
 .who-tag.rep, .st.st-rep { color: color-mix(in srgb, var(--break) 80%, var(--ink)); border-color: var(--break); background: color-mix(in srgb, var(--break) 14%, transparent); }
+/* the signed-in name: a pill with a coloured ring, its first letter in a filled circle */
+.who-name { display: inline-flex; align-items: center; gap: 8px; max-width: 100%; vertical-align: middle; padding: 3px 14px 3px 3px; border-radius: 999px;
+  background: var(--card); background-image: linear-gradient(180deg, rgb(255 255 255 / .5), transparent); border: 1.5px solid color-mix(in srgb, var(--accent) 55%, var(--rule));
+  box-shadow: 0 2px 0 color-mix(in srgb, var(--accent) 22%, transparent), 0 4px 10px -6px rgb(31 42 58 / .35); letter-spacing: .04em; line-height: 1.3; }
+.who-av { flex: none; width: 28px; height: 28px; border-radius: 50%; display: grid; place-items: center; font-style: normal; font-size: 14px; font-weight: 700; color: #fff; letter-spacing: 0;
+  background: var(--accent); background-image: linear-gradient(180deg, rgb(255 255 255 / .25), rgb(0 0 0 / .08)); box-shadow: inset 0 1px 0 rgb(255 255 255 / .3); }
+.who-nm { min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 /* on a phone the role and 勤務形態 sit on their own line above the name, both shown as on a computer */
 @media (max-width: 560px) {
-  .brand-who { display: flex; flex-direction: column; align-items: flex-end; gap: 3px; }
+  .brand-who { display: flex; flex-direction: column; align-items: flex-end; gap: 5px; }
   .who-tags { order: -1; display: flex; gap: 4px; }
   .who-tags .who-tag { margin-left: 0; font-size: 10px; padding: 0 7px; }
-  .who-name { max-width: 100%; overflow: hidden; text-overflow: ellipsis; }
+  .who-name { padding-right: 12px; gap: 7px; }
+  .who-av { width: 24px; height: 24px; font-size: 12px; }
 }
 /* address and bank details are split into one field each, grouped under a heading */
 .grp { display: grid; gap: 8px; border-top: 1px dashed var(--rule); padding-top: 10px; }
@@ -424,11 +431,49 @@ fieldset:disabled .f input, fieldset:disabled .f textarea, fieldset:disabled .f 
 @media (max-width: 560px) { .bar-tabs .tabs button { padding: 7px 2px; font-size: 13px; letter-spacing: 0; } }
 /* ホーム: the day's plan and the clock; シフト: シフト表 / シフト希望 picked at the top (no choice when only one is shown);
    メニュー: its list, and 請求書 / 給与明細 under a way back to it; the month bar wherever there is a month */
-#member-ui:not([data-tab="home"]) > :is(.shifts, .clock) { display: none; }
+#member-ui:not([data-tab="home"]) > :is(.shifts, .clock, .bell-row) { display: none; }
 #member-ui:not([data-tab="card"]):not([data-tab="hope"]) > #shift-seg, #shift-seg:not(:has(#tab-hope:not([hidden]))) { display: none; }
-#member-ui:is([data-tab="home"], [data-tab="menu"]) > .bar-month { display: none; }
-#member-ui:not([data-tab="inv"]):not([data-tab="pay"]) > .sub-back { display: none; }
-.sub-back { margin-bottom: -12px; }
+#member-ui:is([data-tab="home"], [data-tab="menu"], [data-tab="notice"]) > .bar-month { display: none; }
+#member-ui:not([data-tab="inv"]):not([data-tab="pay"]):not([data-tab="notice"]) > .sub-back { display: none; }
+/* the bell, small at the top left of ホーム; its count in a red circle as on LINE */
+.bell-row { margin-bottom: -14px; }
+.bell { position: relative; width: 40px; height: 40px; display: grid; place-items: center; border-radius: 50%; border: 1px solid var(--rule); background: var(--card); color: var(--ink); padding: 0;
+  box-shadow: 0 2px 0 rgb(31 42 58 / .08), 0 4px 10px -6px rgb(31 42 58 / .3); }
+.bell svg { width: 22px; height: 22px; fill: none; stroke: currentColor; stroke-width: 1.8; stroke-linecap: round; stroke-linejoin: round; }
+.bell-n { position: absolute; top: -7px; left: 26px; min-width: 20px; height: 20px; padding: 0 6px; border-radius: 999px; background: #e5373d; color: #fff;
+  font-family: var(--f-num); font-size: 12px; font-weight: 700; line-height: 20px; text-align: center; border: 2px solid var(--paper); box-sizing: content-box; }
+/* お知らせ: rows like a chat list; a new one has a red dot, a 重要 one a red tag */
+.nt-tools { display: flex; flex-wrap: wrap; gap: 8px; justify-content: flex-end; }
+.nt-list { display: grid; background: var(--card); border: 1px solid var(--rule); border-radius: var(--r); overflow: hidden; }
+.nt-item { display: grid; grid-template-columns: minmax(0, 1fr) auto; gap: 2px 10px; text-align: left; background: transparent; border: 0; padding: 12px 16px; color: var(--ink); position: relative; }
+.nt-item + .nt-item { border-top: 1px solid var(--rule); }
+.nt-item b { font-size: 15px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.nt-item .nt-at { font-size: 11px; color: var(--ink-soft); font-family: var(--f-num); align-self: center; }
+.nt-item .nt-sub { grid-column: 1 / -1; font-size: 12.5px; color: var(--ink-soft); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.nt-item.unread b::before { content: ""; display: inline-block; width: 8px; height: 8px; border-radius: 50%; background: #e5373d; margin-right: 6px; vertical-align: .15em; }
+.nt-tag { display: inline-block; font-size: 10.5px; font-weight: 700; padding: 0 6px; border-radius: 4px; margin-right: 6px; vertical-align: .1em; border: 1px solid currentColor; }
+.nt-tag.imp { color: #fff; background: #e5373d; border-color: #e5373d; }
+.nt-tag.ask { color: var(--accent); }
+.nt-empty { padding: 20px 16px; text-align: center; color: var(--ink-soft); font-size: 14px; }
+.nt-doc { background: var(--card); border: 1px solid var(--rule); border-radius: var(--r); padding: 16px; display: grid; gap: 10px; }
+.nt-doc h3 { margin: 0; font-size: 18px; }
+.nt-doc .nt-meta { font-size: 12px; color: var(--ink-soft); }
+.nt-doc .nt-text { white-space: pre-wrap; overflow-wrap: anywhere; font-size: 15px; line-height: 1.7; }
+.nt-doc.imp { border-color: #e5373d; box-shadow: inset 4px 0 0 #e5373d; }
+/* an お問い合わせ as a chat: the person's own messages on the right */
+.nt-chat { display: grid; gap: 10px; }
+.nt-msg { max-width: 85%; justify-self: start; display: grid; gap: 2px; }
+.nt-msg.me { justify-self: end; }
+.nt-msg .nt-who { font-size: 11px; color: var(--ink-soft); }
+.nt-msg.me .nt-who { text-align: right; }
+.nt-msg p { margin: 0; padding: 9px 13px; border-radius: 16px; background: var(--card); border: 1px solid var(--rule); white-space: pre-wrap; overflow-wrap: anywhere; font-size: 14.5px; line-height: 1.6; }
+.nt-msg.me p { background: color-mix(in srgb, var(--accent) 16%, var(--card)); border-color: color-mix(in srgb, var(--accent) 35%, var(--rule)); }
+.nt-form { display: grid; gap: 10px; }
+.nt-form .btn { justify-self: end; }
+/* 戻る on 請求書 / 給与明細 stays at the top of the screen while the page scrolls under it */
+.sub-back { position: sticky; top: calc(8px + env(safe-area-inset-top, 0px)); z-index: 14; margin-bottom: -12px; justify-self: start; }
+.sub-back .tool { font-size: 14px; font-weight: 700; padding: 8px 16px 8px 12px; border-radius: 999px; background: var(--card);
+  box-shadow: 0 2px 0 rgb(31 42 58 / .12), 0 6px 16px -6px rgb(31 42 58 / .45); }
 .menu-list { display: grid; background: var(--card); border: 1px solid var(--rule); border-radius: var(--r); overflow: hidden; }
 .menu-item { display: grid; gap: 2px; text-align: left; background: transparent; border: 0; padding: 14px 40px 14px 16px; position: relative; color: var(--ink); }
 .menu-item:not([hidden]) ~ .menu-item { border-top: 1px solid var(--rule); }
@@ -537,7 +582,12 @@ body:has(#member-ui:not([hidden])) .hope-submit { bottom: calc(90px + env(safe-a
 .fields .folded, .fields .past-off { display: none !important; }
 .foldsum { margin: -4px 0 0; font-family: var(--f-num); font-size: 14px; color: var(--ink); font-variant-numeric: tabular-nums; overflow-wrap: anywhere; }
 .foldsum:empty { display: none; }
-/* beside 出勤 / 退勤: whether the time is the plan or the punch */
+/* the heading of a folding section reads as one tap target; its arrow points down while shut, up while open */
+.sec-row:has(.fold-btn), .sec-row:has(.fold-btn) + * + .foldsum, .sec-row:has(.fold-btn) + .foldsum { cursor: pointer; }
+.fold-btn { width: 34px; height: 30px; padding: 0; display: grid; place-items: center; }
+.fold-btn::before { content: ""; width: 8px; height: 8px; border-right: 2px solid currentColor; border-bottom: 2px solid currentColor; transform: translateY(-2px) rotate(45deg); transition: transform .15s; }
+.fold-btn[aria-expanded="true"]::before { transform: translateY(2px) rotate(-135deg); }
+/* beside 退勤: a past day whose 退勤 was never punched */
 .tsrc { font-size: 11px; font-weight: 400; color: var(--ink-soft); letter-spacing: 0; }
 .foldsum .muted { color: var(--ink-soft); font-size: 13px; }
 .chip-x { display: inline-flex; align-items: center; padding: 0; overflow: hidden; }
@@ -613,7 +663,8 @@ body:has(#member-ui:not([hidden])) .hope-submit { bottom: calc(90px + env(safe-a
 .member-ui { display: contents; }
 .brand-side { display: flex; align-items: center; gap: 8px; min-width: 0; flex-wrap: wrap; justify-content: flex-end; margin-left: auto; }
 /* pull-to-refresh: a plain small circle, its ring drawn by the pull, spinning while it refreshes */
-.own-ptr, .own-ptr body { overscroll-behavior-y: contain; }
+/* no rubber-band bounce either: it would pull the page away from the bar fixed at the foot */
+.own-ptr, .own-ptr body { overscroll-behavior-y: none; }
 .ptr { position: fixed; top: env(safe-area-inset-top, 0px); left: 50%; z-index: 40; width: 48px; height: 48px; margin-left: -24px; display: grid; place-items: center;
   background: rgb(255 255 255 / .55); -webkit-backdrop-filter: blur(10px) saturate(1.4); backdrop-filter: blur(10px) saturate(1.4);
   border: 1px solid rgb(255 255 255 / .85); border-radius: 50%; box-shadow: 0 4px 16px rgb(0 0 0 / .12);
@@ -730,8 +781,9 @@ body.gate { position: fixed; inset: 0; touch-action: none; }
   .brand { display: grid; grid-template-columns: auto minmax(0, 1fr); grid-template-areas: "mark who" "btns btns"; align-items: end; row-gap: 12px; column-gap: 10px; }
   .brand-mark { grid-area: mark; }
   .brand-side { display: contents; }
-  .brand-side .brand-who { grid-area: who; justify-self: end; text-align: right; font-size: 15px; padding-bottom: 1px; transform: translateY(3px);
-    white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: 100%; }
+  /* a long name is cut short inside its badge (.who-nm), so the badge's ring and shadow are never clipped here */
+  .brand-side .brand-who { grid-area: who; justify-self: end; text-align: right; font-size: 15px; padding-bottom: 3px; transform: translateY(3px);
+    white-space: nowrap; max-width: 100%; min-width: 0; }
   .brand-btns { grid-area: btns; width: 100%; }
 }
 /* while today's plan shows from the copy on this device, the punch keys wait for the server */
@@ -1319,7 +1371,9 @@ button.pcal-c { cursor: pointer; }
       <button type="button" role="tab" id="tab-hope" aria-selected="false" aria-controls="p-hope">シフト希望</button>
     </div>
   </div>
-  <div class="sub-back" id="sub-back"><button type="button" class="tool" id="back-menu">‹ メニュー</button></div>
+  <div class="sub-back" id="sub-back"><button type="button" class="tool" id="back-menu">‹ 戻る</button></div>
+  <!-- ホーム: the bell, with the number of お知らせ not yet seen -->
+  <div class="bell-row"><button type="button" class="bell" id="bell" aria-label="お知らせ"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6 16V11a6 6 0 0 1 12 0v5l1.5 2h-15z"/><path d="M10 20.5a2 2 0 0 0 4 0"/></svg><span class="bell-n" id="bell-n" hidden></span></button></div>
   <section class="shifts" aria-label="予定">
     <div class="shift-today big" id="shift-today">
       <span class="st-label">今日の予定</span>
@@ -1378,26 +1432,23 @@ button.pcal-c { cursor: pointer; }
       <div class="cal-wd" aria-hidden="true"><div>日</div><div>月</div><div>火</div><div>水</div><div>木</div><div>金</div><div>土</div></div>
       <div class="cal-grid" id="rows"></div>
     </div>
-    <div class="legend"><span class="lg worked">出勤済み</span><span class="lg planned">予定</span><span class="lg absent">欠勤</span><span class="lg hol">土日祝</span><span>予定の時間を過ぎた日は、打刻がなくても出勤として数えます。日付を押すと、予定や実際の時間を入力できます。</span></div>
-    <div class="foot">
-      <span id="where">記録を読み込んでいます…</span>
-    </div>
+    <div class="legend"><span class="lg worked">出勤済み</span><span class="lg planned">予定</span><span class="lg absent">欠勤</span><span class="lg hol">土日祝</span></div>
   </section>
 
   <section class="panel" id="p-hope" role="tabpanel" aria-label="シフト希望" hidden>
     <div class="hope-head">
       <div class="hope-stat">
         <span class="hope-due" id="h-due">締切 —</span>
-        <span><i class="hm-ok">○</i> <b class="num" id="h-count">0</b>日</span>
         <span><i class="hm-far">🚄</i> <b class="num" id="h-far-n">0</b>日</span>
+        <span><i class="hm-ok">○</i> <b class="num" id="h-count">0</b>日</span>
         <span><i class="hm-maybe">△</i> <b class="num" id="h-maybe">0</b>日</span>
         <span class="hope-sent" id="h-sent"></span>
       </div>
       <p class="hope-how">下で印を選んでから、カレンダーの日付を押してください。同じ印の日をもう一度押すと消えます。<b>何も付いていない日は「稼働不可」</b>として出します。</p>
       <!-- 🚄 is 稼働できる with 遠方 too (stored as "○遠") -->
       <div class="hope-brush" id="h-brush" role="radiogroup" aria-label="付ける印">
+        <button type="button" role="radio" data-b="○遠" aria-checked="false"><span class="hb">🚄</span>遠方可</button>
         <button type="button" role="radio" data-b="○" aria-checked="true"><span class="hb">○</span>稼働できる</button>
-        <button type="button" role="radio" data-b="○遠" aria-checked="false"><span class="hb">🚄</span>遠方も可</button>
         <button type="button" role="radio" data-b="△" aria-checked="false"><span class="hb">△</span>要相談</button>
       </div>
       <p class="hope-far-note">交通費・宿泊費は、遠方も含めThemisが負担します。</p>
@@ -1421,14 +1472,6 @@ button.pcal-c { cursor: pointer; }
     <div class="inv-head">
       <h2 id="inv-title">—</h2>
       <span class="pill" id="inv-status" data-s="draft" hidden></span>
-    </div>
-
-    <div class="steps">
-      <ol id="inv-steps">
-        <li id="st-1">Themisが入力した請求金額を確かめる（交通費などがあれば明細に追加）</li>
-        <li id="st-2">下の見本で金額と内容を確認する</li>
-        <li id="st-4">「内容を確認して提出」を押し、金額に間違いがなければ提出する（請求書PDFがメールでThemisに届きます）</li>
-      </ol>
     </div>
 
     <div class="forms">
@@ -1513,11 +1556,17 @@ button.pcal-c { cursor: pointer; }
       <button type="button" class="menu-item" id="tab-inv"><b>請求書</b><small>毎月の請求書を作って提出</small></button>
       <button type="button" class="menu-item" id="tab-pay" hidden><b>給与明細</b><small>毎月の給与明細を見る</small></button>
       <button type="button" class="menu-item" id="m-admin" hidden><b>管理画面</b><small>全員の勤怠・シフトを見る</small></button>
+      <button type="button" class="menu-item" id="m-ask"><b>お問い合わせ</b><small>Themisに質問・連絡する</small></button>
     </div>
     <div class="menu-list">
       <button type="button" class="menu-item" id="m-pass"><b>パスワード変更</b></button>
       <button type="button" class="menu-item danger" id="m-logout"><b>ログアウト</b></button>
     </div>
+  </section>
+
+  <!-- お知らせ: the list, one お知らせ or お問い合わせ opened, a new お問い合わせ, a new お知らせ (管理者以上) -->
+  <section class="panel notice" id="p-notice" aria-label="お知らせ" hidden>
+    <div id="nt-body"></div>
   </section>
 
   <div class="toast" id="toast" role="status" aria-live="polite" hidden></div>
@@ -1547,7 +1596,7 @@ button.pcal-c { cursor: pointer; }
     <div class="modal-head"><h3 id="e-title">記録を修正</h3><button type="button" class="tool" id="e-back">‹ 戻る</button></div>
     <div class="fields">
       <!-- one 出勤 / 退勤 pair: the planned times until a time is punched, then the punched time in its place -->
-      <div class="sec wide first sec-row"><span>稼働店舗</span><button type="button" class="tool" id="f-plantoggle" aria-expanded="false">開く</button></div>
+      <div class="sec wide first sec-row"><span>稼働店舗</span><button type="button" class="tool fold-btn" id="f-plantoggle" aria-expanded="false" aria-label="開く"></button></div>
       <p class="abs-note wide" id="f-absnote" hidden></p>
       <p class="foldsum wide" id="f-plansum"></p>
       <label class="f wide pl-f">店舗名<input type="text" id="f-store" maxlength="60" placeholder="例：〇〇電機 新宿西口店"></label>
@@ -1559,7 +1608,7 @@ button.pcal-c { cursor: pointer; }
       <div class="work-now wide pl-f" id="f-work" aria-live="polite"></div>
       <label class="check wide pl-f" id="f-early-box"><input type="checkbox" id="f-early"> 早退</label>
       <label class="f wide pl-f" id="f-early-wrap" hidden>早退理由<input type="text" id="f-early-reason" maxlength="100" placeholder="例：体調不良のため"></label>
-      <div class="sec wide sec-row"><span>交通機関</span><button type="button" class="tool" id="f-trtoggle" aria-expanded="false">開く</button></div>
+      <div class="sec wide sec-row"><span>交通機関</span><button type="button" class="tool fold-btn" id="f-trtoggle" aria-expanded="false" aria-label="開く"></button></div>
       <p class="foldsum wide" id="f-trsum"></p>
       <div class="f wide tr-f">交通機関（複数選べます）<div class="chips" id="f-transport" role="group" aria-label="交通機関"></div></div>
       <label class="f wide tr-f" id="f-ride-wrap" hidden>誰の車に同乗しましたか<input type="text" id="f-ride" maxlength="40" placeholder="例：山田 太郎"></label>
@@ -1823,7 +1872,7 @@ if ("serviceWorker" in navigator) navigator.serviceWorker.register("sw.js").catc
 window.addEventListener("error", function (e) {
   var t = "画面の読み込みでエラーが起きました：" + e.message + "（" + e.lineno + "行目）";
   // shown wherever the person is looking: the clock, the login card or the admin screen
-  ["msg", "where", "l-msg", "ad-msg"].forEach(function (id) { var el = document.getElementById(id); if (el) el.textContent = t; });
+  ["msg", "l-msg", "ad-msg"].forEach(function (id) { var el = document.getElementById(id); if (el) el.textContent = t; });
 });
 </script>
 <script>
@@ -2016,7 +2065,8 @@ window.addEventListener("error", function (e) {
   // ---- tabs + month ----
   // the page opens on ホーム; the bar at the foot picks ホーム, シフト (シフト表 / シフト希望) or メニュー (請求書 / 給与明細 in it)
   let tab = "home", shiftTab = "card";
-  const GROUP = { home: "home", card: "shift", hope: "shift", menu: "menu", inv: "menu", pay: "menu" };
+  // お知らせ belongs to wherever it was opened from: ホーム (the bell) or メニュー (お問い合わせ)
+  const GROUP = { home: "home", card: "shift", hope: "shift", menu: "menu", inv: "menu", pay: "menu", notice: "home" };
   function setTab(t) {
     // each tab keeps its own month: the shift calendar opens on this month, invoices on last month
     if (t !== tab) { tabView[tab] = view; tab = t; }
@@ -2024,7 +2074,8 @@ window.addEventListener("error", function (e) {
     view = tabView[t]; clampView(); watchView(); fillForms(true);
     $("m-now").textContent = { inv: "先月分", pay: "先月分", hope: "来月" }[t] || "今月";
     for (const k of ["card", "hope"]) $("tab-" + k).setAttribute("aria-selected", t === k);
-    for (const k of ["card", "hope", "inv", "pay", "menu"]) $("p-" + k).hidden = t !== k;
+    for (const k of ["card", "hope", "inv", "pay", "menu", "notice"]) $("p-" + k).hidden = t !== k;
+    if (t === "notice") renderNotice();
     for (const b of document.querySelectorAll(".bnav button")) {
       if (b.dataset.g === GROUP[t]) b.setAttribute("aria-current", "page"); else b.removeAttribute("aria-current");
     }
@@ -2037,7 +2088,144 @@ window.addEventListener("error", function (e) {
     pickTab({ home: "home", shift: tabOk(shiftTab) ? shiftTab : "card", menu: "menu" }[b.dataset.g]);
     window.scrollTo(0, 0);
   };
-  $("back-menu").onclick = () => pickTab("menu");
+  // 戻る: from 請求書 / 給与明細 to メニュー; inside お知らせ back to its list, then to where it was opened from
+  $("back-menu").onclick = () => {
+    if (tab === "notice" && nt.view !== "list" && nt.fromList) showNotice("list");
+    else pickTab(tab === "notice" ? nt.from : "menu");
+    window.scrollTo(0, 0);
+  };
+
+  // ---- お知らせ・お問い合わせ ----
+  // the bell on ホーム counts what is not yet seen; opening the list clears all of it except a 重要 お知らせ,
+  // which clears only once it is opened. 管理者以上 see every お問い合わせ and answer them here, and post お知らせ
+  let inbox = { items: [], admin: false, topics: [] };
+  let nt = { view: "list", id: null, from: "home", fromList: false };
+  const ntAt = (s) => { const m = /^\d{4}-(\d{2})-(\d{2}) (\d{2}:\d{2})$/.exec(s || ""); return m ? `${Number(m[1])}/${Number(m[2])} ${m[3]}` : ""; };
+  function paintBell() {
+    const n = inbox.items.filter((x) => x.unread).length;
+    $("bell-n").hidden = !n; $("bell-n").textContent = n > 99 ? "99+" : String(n);
+    $("bell").setAttribute("aria-label", n ? `お知らせ（新着${n}件）` : "お知らせ");
+  }
+  async function loadInbox() {
+    if (!backend || mode === "login") return;
+    try { inbox = JSON.parse(await call("api_inbox")); } catch (e) { return; }
+    paintBell();
+    // what is on screen is drawn again, unless something is being typed there
+    if (tab === "notice" && ![...$("nt-body").querySelectorAll("textarea, input[type=text]")].some((el) => el.value.trim())) renderNotice();
+  }
+  setInterval(() => { if (document.visibilityState === "visible") loadInbox(); }, 120000);
+  document.addEventListener("visibilitychange", () => { if (document.visibilityState === "visible") loadInbox(); });
+  function markSeen(ids) {
+    const want = ids.filter((id) => inbox.items.some((x) => x.id === id && x.unread));
+    if (!want.length) return;
+    for (const x of inbox.items) if (want.includes(x.id)) x.unread = false;
+    paintBell();
+    call("api_inboxSeen", want).catch(() => {});
+  }
+  function showNotice(view, id, from) {
+    const fromList = nt.view === "list" && tab === "notice";
+    nt = { view, id: id || null, from: from || (tab === "notice" ? nt.from : "home"), fromList: view !== "list" && (fromList || nt.fromList && tab === "notice") };
+    GROUP.notice = nt.from;
+    if (tab !== "notice") pickTab("notice"); else { setTab("notice"); }
+    window.scrollTo(0, 0);
+  }
+  $("bell").onclick = () => showNotice("list", null, "home");
+  $("m-ask").onclick = () => showNotice("new", null, "menu");
+  function renderNotice() {
+    const box = $("nt-body"), items = inbox.items, it = items.find((x) => x.id === nt.id);
+    if (nt.view === "list") {
+      // opening the list clears every new mark but a 重要 お知らせ's
+      markSeen(items.filter((x) => x.unread && !(x.kind === "n" && x.important)).map((x) => x.id));
+      box.innerHTML = `<div class="nt-tools">` + (inbox.admin ? `<button type="button" class="tool" data-nt="post">＋ お知らせを出す</button>` : "") +
+        `<button type="button" class="tool" data-nt="new">＋ お問い合わせ</button></div>` +
+        `<div class="nt-list">` + (items.length ? items.map((x) => {
+          const imp = x.kind === "n" && x.important, last = x.kind === "q" ? x.msgs[x.msgs.length - 1] : null;
+          const title = x.kind === "n" ? x.title : `${inbox.admin && !x.mine ? x.name + "さん：" : ""}${x.topic}`;
+          const sub = x.kind === "n" ? x.text : `${last.admin ? "Themis" : last.by}：${last.text}`;
+          // a 重要 one shown as new keeps its dot until it is opened; others were just marked seen above
+          const isNew = imp && x.unread;
+          return `<button type="button" class="nt-item${isNew ? " unread" : ""}" data-open="${esc(x.id)}">` +
+            `<b>${imp ? `<span class="nt-tag imp">重要</span>` : x.kind === "q" ? `<span class="nt-tag ask">お問い合わせ</span>` : ""}${esc(title)}</b>` +
+            `<span class="nt-at">${esc(ntAt(x.last || x.at))}</span><span class="nt-sub">${esc(sub)}</span></button>`;
+        }).join("") : `<p class="nt-empty">お知らせはまだありません。</p>`) + `</div>`;
+      for (const b of box.querySelectorAll("[data-open]")) b.onclick = () => { const x = items.find((y) => y.id === b.dataset.open); showNotice(x.kind, x.id); };
+      for (const b of box.querySelectorAll("[data-nt]")) b.onclick = () => showNotice(b.dataset.nt);
+      return;
+    }
+    if ((nt.view === "n" || nt.view === "q") && !it) { box.innerHTML = `<p class="nt-empty">読み込んでいます…</p>`; return; }
+    if (nt.view === "n") {
+      markSeen([it.id]);
+      box.innerHTML = `<article class="nt-doc${it.important ? " imp" : ""}">${it.important ? `<span><span class="nt-tag imp">重要</span></span>` : ""}<h3>${esc(it.title)}</h3>` +
+        `<span class="nt-meta">${esc(ntAt(it.at))}　${esc(it.by)}</span><div class="nt-text">${esc(it.text)}</div>` +
+        (inbox.admin ? `<div class="nt-tools"><button type="button" class="tool danger" id="nt-del">このお知らせを消す</button></div>` : "") + `</article>`;
+      if (inbox.admin) {
+        let armed = false;
+        $("nt-del").onclick = async () => {
+          if (!armed) { armed = true; $("nt-del").textContent = "もう一度押して消す"; return; }
+          try { await call("api_noticeDelete", it.id); inbox.items = inbox.items.filter((x) => x.id !== it.id); msg("お知らせを消しました。"); showNotice("list"); }
+          catch (e) { msg(errText(e)); }
+        };
+      }
+      return;
+    }
+    if (nt.view === "q") {
+      markSeen([it.id]);
+      box.innerHTML = `<div class="nt-doc"><h3>${esc(it.topic)}</h3><span class="nt-meta">${esc(inbox.admin && !it.mine ? it.name + "さんから　" : "")}${esc(ntAt(it.at))}</span></div>` +
+        `<div class="nt-chat">` + it.msgs.map((x) => {
+          // the person's own side on the right: for 管理者以上 answering, Themis's side
+          const me = inbox.admin && !it.mine ? x.admin : !x.admin;
+          return `<div class="nt-msg${me ? " me" : ""}"><span class="nt-who">${esc(x.admin ? `Themis（${x.by}）` : x.by)}　${esc(ntAt(x.at))}</span><p>${esc(x.text)}</p></div>`;
+        }).join("") + `</div>` +
+        `<form class="nt-form" id="nt-reply"><label class="f">返信<textarea id="nt-text" rows="3" maxlength="1000" placeholder="返信を入力"></textarea></label>` +
+        `<button type="submit" class="btn primary">送信</button></form>`;
+      $("nt-reply").onsubmit = async (e) => {
+        e.preventDefault();
+        const text = $("nt-text").value.trim();
+        if (!text) { $("nt-text").focus(); return; }
+        e.submitter && (e.submitter.disabled = true);
+        try { await call("api_askReply", it.id, text); $("nt-text").value = ""; msg("返信を送りました。"); await loadInbox(); renderNotice(); }
+        catch (err) { msg(errText(err)); if (e.submitter) e.submitter.disabled = false; }
+      };
+      return;
+    }
+    if (nt.view === "new") {
+      box.innerHTML = `<form class="nt-form nt-doc" id="nt-ask"><h3>お問い合わせ</h3><p class="hint">Themisの担当者に届きます。返事はホームのベル（お知らせ）に届きます。</p>` +
+        `<label class="f">種類<select id="nt-topic">${(inbox.topics.length ? inbox.topics : ["勤怠・シフト", "請求書・給与", "アプリの使い方", "その他"]).map((t) => `<option>${esc(t)}</option>`).join("")}</select></label>` +
+        `<label class="f">内容<textarea id="nt-text" rows="6" maxlength="1000" placeholder="質問や連絡したいことを書いてください"></textarea></label>` +
+        `<button type="submit" class="btn primary">送信</button></form>`;
+      $("nt-ask").onsubmit = async (e) => {
+        e.preventDefault();
+        const text = $("nt-text").value.trim();
+        if (!text) { $("nt-text").focus(); msg("内容を入力してください。"); return; }
+        if (e.submitter) e.submitter.disabled = true;
+        try {
+          const id = await call("api_askSend", $("nt-topic").value, text);
+          $("nt-text").value = ""; msg("お問い合わせを送りました。返事はベルに届きます。");
+          await loadInbox(); showNotice("q", id);
+        } catch (err) { msg(errText(err)); if (e.submitter) e.submitter.disabled = false; }
+      };
+      return;
+    }
+    if (nt.view === "post") {
+      box.innerHTML = `<form class="nt-form nt-doc" id="nt-post"><h3>お知らせを出す</h3><p class="hint">全員のベルに届きます。</p>` +
+        `<label class="f">題名<input type="text" id="nt-title" maxlength="60" placeholder="例：年末年始の稼働について"></label>` +
+        `<label class="f">内容<textarea id="nt-text" rows="6" maxlength="2000"></textarea></label>` +
+        `<label class="check"><input type="checkbox" id="nt-imp"> 重要（開いて読むまでベルの数字が消えません）</label>` +
+        `<button type="submit" class="btn primary">お知らせを出す</button></form>`;
+      $("nt-post").onsubmit = async (e) => {
+        e.preventDefault();
+        const title = $("nt-title").value.trim(), text = $("nt-text").value.trim();
+        if (!title) { $("nt-title").focus(); msg("題名を入力してください。"); return; }
+        if (!text) { $("nt-text").focus(); msg("内容を入力してください。"); return; }
+        if (e.submitter) e.submitter.disabled = true;
+        try {
+          await call("api_noticePost", title, text, $("nt-imp").checked);
+          $("nt-title").value = ""; $("nt-text").value = ""; msg("お知らせを出しました。");
+          await loadInbox(); showNotice("list");
+        } catch (err) { msg(errText(err)); if (e.submitter) e.submitter.disabled = false; }
+      };
+    }
+  }
   // the account's buttons live in the header on the admin screen; on the normal screen メニュー has the same ones
   $("m-admin").onclick = () => $("adminbtn").click();
   $("m-pass").onclick = () => $("chpass").click();
@@ -2050,7 +2238,7 @@ window.addEventListener("error", function (e) {
   // 常勤 staff hand in no shift wishes, so they never see that tab; 社員 send no invoice and hand in no wishes:
   // they get their 給与明細 instead
   // 代表 has no 勤務形態 and sees every tab
-  const tabOk = (t) => t === "card" || t === "home" || t === "menu" || !!window.TC_REP || (window.TC_WORK === "社員" ? t === "pay" : t === "inv" || (t === "hope" && window.TC_WORK !== "常勤"));
+  const tabOk = (t) => t === "card" || t === "home" || t === "menu" || t === "notice" || !!window.TC_REP || (window.TC_WORK === "社員" ? t === "pay" : t === "inv" || (t === "hope" && window.TC_WORK !== "常勤"));
   function applyWork() {
     $("tab-hope").hidden = !tabOk("hope"); $("tab-inv").hidden = !tabOk("inv"); $("tab-pay").hidden = !tabOk("pay");
     if (!tabOk(tab)) setTab("card");
@@ -2059,7 +2247,7 @@ window.addEventListener("error", function (e) {
   $("tab-pay").onclick = () => pickTab("pay");
 
   let view = new Date(); view = new Date(view.getFullYear(), view.getMonth(), 1);
-  const tabView = { home: view, menu: view, card: view, inv: new Date(view.getFullYear(), view.getMonth() - 1, 1), pay: new Date(view.getFullYear(), view.getMonth() - 1, 1), hope: new Date(view.getFullYear(), view.getMonth() + 1, 1) };
+  const tabView = { home: view, menu: view, notice: view, card: view, inv: new Date(view.getFullYear(), view.getMonth() - 1, 1), pay: new Date(view.getFullYear(), view.getMonth() - 1, 1), hope: new Date(view.getFullYear(), view.getMonth() + 1, 1) };
   const viewYm = () => `${view.getFullYear()}-${pad(view.getMonth() + 1)}`;
   function watchView() {
     if (!backend) return;
@@ -2357,7 +2545,7 @@ window.addEventListener("error", function (e) {
       cell.innerHTML = `<span class="dn">${d}</span>` + (hol ? `<span class="hn">${esc(hol)}</span>` : "") +
         (v ? `<span class="mk">${{ "△": "△", "○遠": "🚄" }[v] || "○"}</span>` : "");
       cell.setAttribute("aria-label", `${mo}月${d}日（${WD[date.getDay()]}）${hol ? " " + hol : ""} ` +
-        ({ "○": "稼働できる", "○遠": "稼働できる・遠方も可", "△": "要相談" }[v] || "稼働不可"));
+        ({ "○": "稼働できる", "○遠": "遠方可", "△": "要相談" }[v] || "稼働不可"));
       frag.appendChild(cell);
     }
     for (let i = (lead + n) % 7; i && i < 7; i++) frag.appendChild(Object.assign(document.createElement("div"), { className: "hc blank" }));
@@ -2922,8 +3110,9 @@ ${v.addr}`;
     filledBy = src.store || null;
     $("f-pin").value = actual.in ? hm(r.in) : src.planIn || "";
     $("f-pout").value = r?.out ? hm(r.out) : src.planOut || "";
-    $("f-insrc").textContent = actual.in ? "打刻" : src.planIn ? "予定" : "";
-    $("f-outsrc").textContent = r?.out ? "打刻" : actual.out ? "打刻なし・時間を確かめてください" : src.planOut ? "予定" : "";
+    // the labels stay plain 出勤 / 退勤; only a past day missing its 退勤 punch gets a note
+    $("f-insrc").textContent = "";
+    $("f-outsrc").textContent = !r?.out && actual.out ? "打刻なし・時間を確かめてください" : "";
     $("f-ride").value = src.rideWith || "";
     setTransport(src.transport);
     $("f-perr").textContent = "";
@@ -2985,20 +3174,20 @@ ${v.addr}`;
     $("f-pin").nextElementSibling.disabled = actual.in && !actAllowed;
     $("f-lockn").hidden = !(actual.in && !actAllowed);
     updateWork();
-    // a day already recorded opens folded, each section showing a one-line summary; 交通機関 always starts folded
-    setPlanOpen(!r);
+    // every day opens folded, each section showing a one-line summary
+    setPlanOpen(false);
     setTrOpen(false);
     setResOpen(false);
     // the sheet is reused for every day: start each one at the top, not where the last one was scrolled to
     $("edit-form").scrollTop = 0;
-    if (!r) focusIfMouse($("f-store"));
   }
   const fold = (sel, open) => { for (const el of $("edit-form").querySelectorAll(sel)) el.classList.toggle("folded", !open); };
-  const setToggle = (id, open, shut) => { $(id).textContent = open ? "閉じる" : shut; $(id).setAttribute("aria-expanded", String(open)); };
+  // the fold buttons are an arrow (down: open it, up: close it); the label says it for screen readers
+  const setToggle = (id, open) => { $(id).setAttribute("aria-label", open ? "閉じる" : "開く"); $(id).setAttribute("aria-expanded", String(open)); };
   const isOpen = (id) => $(id).getAttribute("aria-expanded") === "true";
   const muted = (t) => `<span class="muted">${esc(t)}</span>`;
   function setPlanOpen(open) {
-    fold(".pl-f", open); setToggle("f-plantoggle", open, "開く");
+    fold(".pl-f", open); setToggle("f-plantoggle", open);
     const store = $("f-store").value.trim(), a = $("f-pin").value, z = $("f-pout").value, w = $("f-work").textContent;
     const times = a || z ? esc(`出勤 ${a || "--:--"}　退勤 ${z || "--:--"}`) : "";
     $("f-plansum").innerHTML = open ? "" : [store ? esc(store) : muted("店舗なし"), times, w ? esc(w) : ""].filter(Boolean).join("　");
@@ -3009,9 +3198,12 @@ ${v.addr}`;
       : [esc(t + (t.split("・").includes("同乗") && ride ? `（${ride}）` : "")), far && km !== "" ? esc(km + "km") : "",
         far && editProofs.length ? `画像${editProofs.length}枚` : far ? muted("画像未添付") : ""].filter(Boolean).join("　");
   }
-  function setTrOpen(open) { fold(".tr-f", open); setToggle("f-trtoggle", open, "開く"); trSum(); }
+  function setTrOpen(open) { fold(".tr-f", open); setToggle("f-trtoggle", open); trSum(); }
   $("f-plantoggle").onclick = () => setPlanOpen(!isOpen("f-plantoggle"));
   $("f-trtoggle").onclick = () => setTrOpen(!isOpen("f-trtoggle"));
+  // the heading and the summary under it open and close the section too
+  for (const [sec, sum, id] of [[$("f-plantoggle").parentElement, $("f-plansum"), "f-plantoggle"], [$("f-trtoggle").parentElement, $("f-trsum"), "f-trtoggle"]])
+    for (const el of [sec, sum]) el.addEventListener("click", (e) => { if (e.target.closest("button") !== $(id)) $(id).click(); });
   const closeSheet = () => { $("sheet").hidden = true; editKey = null; };
   $("e-cancel").onclick = closeSheet;
   $("e-back").onclick = closeSheet;
@@ -3374,7 +3566,10 @@ ${v.addr}`;
   });
   let scrollSave = null;
   addEventListener("scroll", () => { clearTimeout(scrollSave); scrollSave = setTimeout(saveView, 300); }, { passive: true });
+  // opening the app starts on ホーム; only a reload (pull to refresh and the like) puts back the screen it left
+  const reloaded = (() => { try { return performance.getEntriesByType("navigation")[0]?.type === "reload"; } catch (e) { return false; } })();
   function savedView() {
+    if (!reloaded) return null;
     const read = (st) => { try { return JSON.parse(st.getItem(VIEW_KEY) || "null"); } catch (e) { return null; } };
     const a = read(sessionStorage), b = read(localStorage);
     const v = a && (!b || a.at >= b.at) ? a : b;
@@ -3471,7 +3666,8 @@ ${v.addr}`;
     const tag = (t, cls) => `<span class="who-tag ${cls}">${t}</span>`;
     const tags = (window.TC_ADMIN ? tag(window.TC_REP ? "代表" : window.TC_OWNER ? "運営" : "管理者", window.TC_REP ? "role rep" : "role") : "") +
       (window.TC_WORK ? tag(esc(window.TC_WORK), { 常勤: "full", 週末: "wkend" }[window.TC_WORK] || "staff") : "");
-    $("who").innerHTML = name ? `<span class="who-name">${esc(name)}</span>` + (tags ? `<span class="who-tags">${tags}</span>` : "") : "";
+    // the name in a round badge, its first letter in a circle at the front
+    $("who").innerHTML = name ? `<span class="who-name"><i class="who-av" aria-hidden="true">${esc([...name.trim()][0] || "")}</i><span class="who-nm">${esc(name)}</span></span>` + (tags ? `<span class="who-tags">${tags}</span>` : "") : "";
   }
   function showPerson(me) {
     window.TC_NAME = me.name; window.TC_WORK = me.workType || "";
@@ -3972,7 +4168,7 @@ ${v.addr}`;
       const [y, mo, d] = key.split("-").map(Number), wd = new Date(y, mo - 1, d).getDay();
       const part = (t, list, cls) => `<div class="hope-who ${cls}"><b>${t}（${list.length}人）</b><span>${list.length ? list.map((m) => esc(m.name)).join("、") : "—"}</span></div>`;
       return `<h3 class="ad-h3">${mo}月${d}日（${WD[wd]}）${holidayName(key) ? `<small>${esc(holidayName(key))}</small>` : ""}</h3>` +
-        part("○ 稼働できる", who(key, "○"), "v-ok") + part("🚄 遠方も可", who(key, "○遠方可"), "v-far") + part("△ 要相談", who(key, "△"), "v-maybe");
+        part("🚄 遠方可", who(key, "○遠方可"), "v-far") + part("○ 稼働できる", who(key, "○"), "v-ok") + part("△ 要相談", who(key, "△"), "v-maybe");
     };
     $("ad-body").innerHTML =
       `<div class="ad-stats"><div class="ad-stat"><span>提出済み</span><b class="num">${sent} / ${live.length}</b></div>` +
@@ -4023,8 +4219,9 @@ ${v.addr}`;
     if (adTab === "hope") {
       const ym = adMonth.hope, r = adData.hopes.find((x) => x[0] === m.name);
       $("ad-body").innerHTML = head + (r
-        ? `<div class="ad-stats row5"><div class="ad-stat"><span>○</span><b class="num">${esc(r[3])}</b></div><div class="ad-stat"><span>うち遠方可</span><b class="num">${esc(r[4])}</b></div>` +
-          `<div class="ad-stat"><span>△</span><b class="num">${esc(r[5])}</b></div></div><p class="hint">提出 ${esc(r[2])}　<i class="hm-ok">○</i> 稼働できる　<b class="far-tag">🚄</b> 遠方も可　<i class="hm-maybe">△</i> 要相談　空欄は稼働不可</p>`
+        // the sheet's ○ count includes the 遠方可 days; here each mark is counted on its own, as on the member's screen
+        ? `<div class="ad-stats row5"><div class="ad-stat"><span>🚄 遠方可</span><b class="num">${esc(r[4])}</b></div><div class="ad-stat"><span>○</span><b class="num">${Math.max(0, (Number(r[3]) || 0) - (Number(r[4]) || 0))}</b></div>` +
+          `<div class="ad-stat"><span>△</span><b class="num">${esc(r[5])}</b></div></div><p class="hint">提出 ${esc(r[2])}　<b class="far-tag">🚄</b> 遠方可　<i class="hm-ok">○</i> 稼働できる　<i class="hm-maybe">△</i> 要相談　空欄は稼働不可</p>`
         : `<p class="hint">${esc(ymLabel(ym))}のシフト希望はまだ提出されていません。</p>`) +
         monthCal(ym, (key) => {
           const v = r?.[5 + Number(key.slice(8))] || "";
@@ -4893,7 +5090,6 @@ ${v.addr}`;
     backend = b;
     document.body.classList.remove("preview");
     if (/確認しています/.test($("msg").textContent)) msg("");
-    $("where").textContent = `${window.TC_NAME || ""}さんの記録です。記録と画像はThemisの勤怠シートに保存され、Themisの担当者が確認できます。`;
     watchView(); applyWork();
     fillForms(true); render();
     showMode();   // restoreView below switches straight back to the admin screen in the same step, so nothing flashes
@@ -4904,6 +5100,7 @@ ${v.addr}`;
     }
     if (window.TC_ADMIN) adPrefetch();
     cacheSoon();
+    loadInbox();
   }
   // first the name, address and 勤務形態, then the contract; both block the app (admins too) until done
   function needsSetup() {
