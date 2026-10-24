@@ -3967,25 +3967,30 @@ ${v.addr}`;
   // Themis, matched by the month the work was done: this month's invoices (dated October) are for September, as are
   // the members' September invoices. All 税抜 (交通費 included). The months before the app (past, from the work sheets in
   // 「稼働」) show only those figures, so an invoice also made in the app for such a month is not counted twice
-  function adSales() {
-    const costs = blData.costs || {}, past = blData.past || {}, now = workYm(dayKey(new Date())), months = {};
+  // 売上 and 経費 by work month, this month's and the whole; also shown at the top of 他社請求
+  function salesMonths() {
+    const costs = blData.costs || {}, past = blData.past || {}, months = {};
     const at = (ym) => (months[ym] ||= { sales: 0, cost: 0 });
     for (const b of blData.bills) if (!past[workYm(b.date)]) at(workYm(b.date)).sales += b.total - (b.taxAmount ?? billTotals(b).tax);
     for (const [ym, v] of Object.entries(costs)) if (!past[ym]) at(ym).cost += v;
     for (const [ym, v] of Object.entries(past)) { at(ym).sales += v.sales || 0; at(ym).cost += v.cost || 0; }
     const all = Object.values(months).reduce((s, m) => ({ sales: s.sales + m.sales, cost: s.cost + m.cost }), { sales: 0, cost: 0 });
-    const signed = (v) => `${v < 0 ? "−" : ""}${yen(Math.abs(v))}`;
-    const rate = (m) => (m.sales ? `${((m.sales - m.cost) / m.sales * 100).toFixed(1)}%` : "—");
-    const box = (m) => `<div class="ad-stats bl-stats">` +
-      [["売上", yen(m.sales)], ["利益", signed(m.sales - m.cost), m.sales < m.cost], ["利益率", rate(m), m.sales < m.cost]].map(([t, v, warn]) =>
-        `<div class="ad-stat${warn ? " warn" : ""}"><span>${t}</span><b class="num">${v}</b></div>`).join("") + `</div>`;
+    return { months, all, now: months[workYm(dayKey(new Date()))] || { sales: 0, cost: 0 } };
+  }
+  const signed = (v) => `${v < 0 ? "−" : ""}${yen(Math.abs(v))}`;
+  const profitRate = (m) => (m.sales ? `${((m.sales - m.cost) / m.sales * 100).toFixed(1)}%` : "—");
+  const salesBox = (m) => `<div class="ad-stats bl-stats">` +
+    [["売上", yen(m.sales)], ["利益", signed(m.sales - m.cost), m.sales < m.cost], ["利益率", profitRate(m), m.sales < m.cost]].map(([t, v, warn]) =>
+      `<div class="ad-stat${warn ? " warn" : ""}"><span>${t}</span><b class="num">${v}</b></div>`).join("") + `</div>`;
+  function adSales() {
+    const { months, all, now } = salesMonths(), past = blData.past || {};
     const rows = Object.keys(months).sort().reverse().map((ym) => {
       const m = months[ym], [y, mo] = ym.split("-").map(Number);
-      return `<tr${m.sales < m.cost ? ` class="warn"` : ""}><th>${y}年${mo}月</th><td>${yen(m.sales)}</td><td>${yen(m.cost)}</td><td>${signed(m.sales - m.cost)}</td><td>${rate(m)}</td></tr>`;
+      return `<tr${m.sales < m.cost ? ` class="warn"` : ""}><th>${y}年${mo}月</th><td>${yen(m.sales)}</td><td>${yen(m.cost)}</td><td>${signed(m.sales - m.cost)}</td><td>${profitRate(m)}</td></tr>`;
     });
     $("ad-body").innerHTML =
-      `<h4 class="bl-h">今月（${workMonth()}月分）</h4>` + box(months[now] || { sales: 0, cost: 0 }) +
-      `<h4 class="bl-h">全体</h4>` + box(all) +
+      `<h4 class="bl-h">今月（${workMonth()}月分）</h4>` + salesBox(now) +
+      `<h4 class="bl-h">全体</h4>` + salesBox(all) +
       (rows.length ? `<h4 class="bl-h">月ごと</h4><div class="sl-wrap"><table class="sl-tbl num"><thead><tr><th>月</th><th>売上</th><th>経費</th><th>利益</th><th>利益率</th></tr></thead>` +
         `<tbody>${rows.join("")}</tbody></table></div>` : "") +
       `<p class="hint">金額は税抜（消費税を除く。交通費は含む）です。売上は他社請求の合計、利益は売上からメンバーへの支払い（メンバーの請求書の金額。源泉徴収を引く前）を引いたもの、利益率は利益÷売上です。` +
@@ -4007,13 +4012,16 @@ ${v.addr}`;
     if (adTab === "sales") { adSales(); return; }
     if (adTab !== "bills") return;
     const c = blData.company, bills = blData.bills.slice().sort((a, b) => b.date.localeCompare(a.date) || b.no.localeCompare(a.no));
-    const open = bills.filter((b) => !b.paidOn), cnt = (s) => bills.filter((b) => billState(b) === s).length;
+    const open = bills.filter((b) => !b.paidOn), cnt = (s) => bills.filter((b) => billState(b) === s).length, money = salesMonths();
     $("ad-body").innerHTML =
       `<div class="bl-top"><button type="button" class="btn primary" id="bl-new">＋ 新しい請求書</button><button type="button" class="tool" id="bl-co">自社情報</button></div>` +
       (coReady(c) ? "" : `<p class="hint bl-warn">先に「自社情報」で会社名・住所・振込先を登録してください。請求書に載ります。</p>`) +
       (coReady(c) && !blData.seal ? `<p class="hint">「自社情報」で印鑑の画像を登録すると、請求書に押印されます。</p>` : "") +
       `<div class="ad-stats bl-stats">` + [["未入金", `${open.length}件`], ["未入金の合計", yen(open.reduce((s, b) => s + b.total, 0))], ["期限切れ", `${cnt("late")}件`], ["入金済み", `${cnt("paid")}件`]]
         .map(([t, v], i) => `<div class="ad-stat${i === 2 && cnt("late") ? " warn" : ""}"><span>${t}</span><b class="num">${v}</b></div>`).join("") + `</div>` +
+      `<h4 class="bl-h">今月（${workMonth()}月分）の利益</h4>` + salesBox(money.now) +
+      `<h4 class="bl-h">全体の利益</h4>` + salesBox(money.all) +
+      `<p class="hint">利益と利益率は「売上」タブと同じ計算です（税抜）。月ごとの表は「売上」タブで見られます。</p>` +
       `<p class="hint">他社に出す請求書を作ってPDFで保存し、メールなどで送ってください。入金されたら「入金済みにする」を押します。一覧はスプレッドシートの「他社請求書一覧」にも出ます。</p>` +
       (bills.length ? `<div class="ad-cards">` + bills.map((b) => {
         const [label, cls] = BILL_STATE[billState(b)];
