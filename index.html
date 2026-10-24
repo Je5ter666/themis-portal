@@ -689,22 +689,39 @@ fieldset:disabled .f input, fieldset:disabled .f textarea, fieldset:disabled .f 
 .co-seal-box img { max-width: 88px; max-height: 88px; }
 .co-seal-btns { display: grid; gap: 6px; justify-items: start; }
 .co-seal-pick { cursor: pointer; }
-/* Themis's invoice to another company, drawn at A4 like the Excel sheet it replaces: gothic, ruled table, seal over 請求元 */
-.bill-doc { width: 720px; min-height: 1018px; background: #fff; color: #111; padding: 64px 60px 48px; font-family: var(--f-body); font-size: 13.5px; line-height: 1.6; letter-spacing: 0; }
-.bill-doc .bd-ttl { text-align: center; font-size: 20px; font-weight: 700; letter-spacing: .4em; margin-bottom: 30px; }
-.bill-doc .bd-grid { display: grid; grid-template-columns: 290px 1fr; margin-bottom: 18px; }
-.bill-doc .bd-to { font-size: 15px; font-weight: 700; margin-top: 2px; }
-.bill-doc .bd-from { position: relative; }
-/* beside the company name, clear of the address lines (the longest, 〒 and 住所, end well before it) */
-.bill-doc .bd-seal { position: absolute; left: 205px; top: 14px; width: 88px; height: auto; }
-.bill-doc .bd-amt { font-family: var(--f-num); font-size: 17px; }
-.bill-doc .bd-h { margin-bottom: 2px; }
-.bill-doc .bd-items { width: 100%; border-collapse: collapse; margin-top: 8px; table-layout: fixed; }
-.bill-doc .bd-items th, .bill-doc .bd-items td { border: 1px solid #333; padding: 3px 8px; height: 26px; text-align: left; font-weight: 400; }
-.bill-doc .bd-items th { background: #e4e4e4; font-weight: 700; }
-.bill-doc .bd-items .r { text-align: right; font-family: var(--f-num); }
-.bill-doc .bd-items .tot td { font-weight: 700; }
-.bill-doc .bd-note { margin-top: 30px; }
+/* Themis's invoice to another company, drawn at A4 like the Excel sheet it replaces: gothic, every part in a ruled
+   box, two columns on top so the page is filled evenly; the seal sits on the 請求元 box */
+.bill-doc { width: 720px; min-height: 1018px; background: #fff; color: #111; padding: 52px 48px 40px; font-family: var(--f-body); font-size: 12.5px; line-height: 1.55; letter-spacing: 0; display: flex; flex-direction: column; gap: 16px; }
+.bill-doc .bd-ttl { text-align: center; font-size: 22px; font-weight: 700; letter-spacing: .6em; padding-left: .6em; border-bottom: 2px solid #111; width: 200px; margin: 0 auto 6px; }
+.bill-doc .bd-top { display: grid; grid-template-columns: minmax(0, 1.15fr) minmax(0, 1fr); gap: 18px; align-items: stretch; }
+/* both columns end on the same line: the amount box drops to the bottom, the 請求元 box grows to fill */
+.bill-doc .bd-col { display: flex; flex-direction: column; gap: 10px; }
+.bill-doc .bd-col .bd-lead { margin-top: auto; }
+.bill-doc .bd-col .bd-lead + .bd-amt { margin-top: -4px; }
+.bill-doc .bd-col .bd-from { flex: 1; }
+.bill-doc .bd-to { display: flex; justify-content: space-between; align-items: baseline; gap: 8px; font-size: 16px; font-weight: 700; border-bottom: 1.5px solid #111; padding: 8px 2px 4px; }
+.bill-doc .bd-honor { font-size: 14px; flex: none; }
+.bill-doc .bd-lead { margin: 0; }
+.bill-doc .bd-t { width: 100%; border-collapse: collapse; table-layout: fixed; }
+.bill-doc .bd-t th, .bill-doc .bd-t td { border: 1px solid #333; padding: 4px 8px; height: 25px; text-align: left; font-weight: 400; vertical-align: middle; }
+.bill-doc .bd-t th { background: #eceef1; font-weight: 700; width: 38%; white-space: nowrap; }
+.bill-doc .bd-t .r { text-align: right; font-family: var(--f-num); }
+.bill-doc .bd-amt th { width: 46%; }
+.bill-doc .bd-amt tr.big td { font-family: var(--f-num); font-size: 19px; font-weight: 700; text-align: right; }
+.bill-doc .bd-from { position: relative; border: 1px solid #333; padding: 8px 10px 10px; min-height: 128px; padding-right: 96px; }
+.bill-doc .bd-name { font-size: 14px; font-weight: 700; margin-bottom: 2px; }
+.bill-doc .bd-seal { position: absolute; right: 10px; top: 10px; width: 80px; height: auto; }
+.bill-doc .bd-items thead th { width: auto; text-align: left; }
+.bill-doc .bd-items thead th.r { text-align: right; }
+.bill-doc .bd-items tbody td { height: 27px; }
+.bill-doc .bd-items td.bd-gap { border: 0; background: #fff; }
+.bill-doc .bd-items .bd-sum th { width: auto; }
+.bill-doc .bd-items .tot th, .bill-doc .bd-items .tot td:not(.bd-gap) { font-weight: 700; font-size: 14px; background: #e2e5ea; }
+.bill-doc .bd-bottom { display: grid; grid-template-columns: minmax(0, 1.2fr) minmax(0, 1fr); gap: 18px; align-items: stretch; }
+.bill-doc .bd-cap { text-align: left; width: auto !important; }
+.bill-doc .bd-bank th:not(.bd-cap) { width: 27%; }
+.bill-doc .bd-note { height: 100%; }
+.bill-doc .bd-note td { vertical-align: top; height: auto; padding: 8px; }
 .bl-item .bl-qty, .bl-item .bl-price { font-family: var(--f-num); text-align: right; }
 .bl-x { padding: 6px 0; }
 .bl-add { justify-self: start; }
@@ -732,6 +749,10 @@ fieldset:disabled .f input, fieldset:disabled .f textarea, fieldset:disabled .f 
 .tabs.ad-tabs { display: grid; grid-auto-flow: column; grid-auto-columns: 1fr; width: 100%; }
 .tabs.ad-tabs button { padding: 8px 2px; white-space: nowrap; text-align: center; }
 .tabs.ad-tabs button[hidden] { display: none; }
+/* 管理画面 | 運営画面: a plain two-way switch above the tabs, ink-coloured so it reads as a level above them */
+.ad-space { display: grid; grid-template-columns: 1fr 1fr; gap: 4px; padding: 4px; margin-bottom: 10px; border-radius: 12px; background: var(--paper); border: 1px solid var(--rule); box-shadow: var(--sink); }
+.ad-space button { border: 0; border-radius: 9px; background: transparent; padding: 9px 4px; font-size: 14px; font-weight: 700; color: var(--ink-soft); letter-spacing: .04em; }
+.ad-space button[aria-selected="true"] { background: var(--ink); color: var(--card); box-shadow: 0 2px 0 color-mix(in srgb, var(--ink) 60%, #000); }
 @media (max-width: 560px) { .tabs.ad-tabs button { font-size: 12.5px; letter-spacing: 0; } }
 /* people as cards: name and badge on top, then label / value lines; no sideways scrolling */
 .ad-cards { display: grid; grid-template-columns: repeat(auto-fill, minmax(min(330px, 100%), 1fr)); gap: 10px; }
@@ -947,6 +968,11 @@ button.pcal-c { cursor: pointer; }
   </section>
 
   <section class="admin" id="admin" hidden aria-label="管理画面">
+    <!-- 運営 only: the admin screen in two parts, 管理画面 (everyone's days, shifts, members) and 運営画面 (money) -->
+    <div class="ad-space" id="ad-space" role="tablist" aria-label="画面の切り替え" hidden>
+      <button type="button" role="tab" data-s="kanri" aria-selected="true">管理画面</button>
+      <button type="button" role="tab" data-s="unei" aria-selected="false">運営画面</button>
+    </div>
     <div class="bar">
       <div class="tabs ad-tabs" role="tablist" id="ad-tabs">
         <button type="button" role="tab" data-t="today" aria-selected="true">今日</button>
@@ -3039,7 +3065,7 @@ ${v.addr}`;
     if (!v || v.mode !== "admin" || !window.TC_ADMIN) return;
     adoptAdminView(v);
     $("member-ui").hidden = true; $("admin").hidden = false; $("adminbtn").textContent = "通常画面";
-    for (const b of $("ad-tabs").querySelectorAll("button")) b.setAttribute("aria-selected", b.dataset.t === adTab);
+    paintAdTabs();
     adMsg("読み込んでいます…");
     adPrefetch();
   }
@@ -3121,7 +3147,8 @@ ${v.addr}`;
     // admins use the normal site too; the header button switches to the admin screen and back
     $("adminbtn").hidden = !me.admin;
     paintWho();
-    for (const t of ["inv", "bills"]) $("ad-tabs").querySelector(`[data-t="${t}"]`).hidden = !me.owner;
+    $("ad-space").hidden = !me.owner;
+    paintAdTabs();
     applyWork();
   }
 
@@ -3334,8 +3361,27 @@ ${v.addr}`;
   const ymLabel = (ym) => { const [y, m] = ym.split("-").map(Number); return `${y}年${m}月`; };
   const link = (url, text) => (url ? `<a href="${esc(url)}" target="_blank" rel="noopener">${esc(text)}</a>` : "");
 
+  // the money tabs make up the 運営画面 (運営 only); the rest is the 管理画面. Which one shows follows the open tab
+  const UNEI_TABS = ["inv", "bills"];
+  const spaceOf = (t) => (UNEI_TABS.includes(t) ? "unei" : "kanri");
+  const adLast = { kanri: "today", unei: "inv" };
+  function paintAdTabs() {
+    const sp = spaceOf(adTab);
+    adLast[sp] = adTab;
+    for (const b of $("ad-tabs").querySelectorAll("button")) {
+      b.hidden = spaceOf(b.dataset.t) !== sp || (sp === "unei" && !window.TC_OWNER);
+      b.setAttribute("aria-selected", b.dataset.t === adTab);
+    }
+    for (const b of $("ad-space").querySelectorAll("button")) b.setAttribute("aria-selected", b.dataset.s === sp);
+    $("admin").setAttribute("aria-label", sp === "unei" ? "運営画面" : "管理画面");
+  }
   function startAdmin() {
     for (const b of $("ad-tabs").querySelectorAll("button")) b.onclick = () => { adTab = b.dataset.t; adPerson = null; adLoad(); };
+    // 管理画面 ⇄ 運営画面: back to the tab last open there
+    for (const b of $("ad-space").querySelectorAll("button")) b.onclick = () => {
+      if (spaceOf(adTab) === b.dataset.s) return;
+      adTab = adLast[b.dataset.s]; adPerson = null; window.scrollTo(0, 0); adLoad();
+    };
     $("ad-prev").onclick = () => adShift(-1);
     $("ad-next").onclick = () => adShift(1);
     $("ad-reload").onclick = () => adLoad(true);
@@ -3350,7 +3396,7 @@ ${v.addr}`;
     adLoad();
   }
   async function adLoad(force) {
-    for (const b of $("ad-tabs").querySelectorAll("button")) b.setAttribute("aria-selected", b.dataset.t === adTab);
+    paintAdTabs();
     const monthly = adTab === "work" || adTab === "inv" || adTab === "hope";
     $("ad-month").hidden = !monthly;
     $("ad-label").textContent = ymLabel(adMonth[adTab]);
@@ -3852,31 +3898,40 @@ ${v.addr}`;
   const BILL_STATE = { open: ["未入金", "plan"], late: ["期限切れ", "late"], paid: ["入金済み", "done"] };
   const billFile = (b) => `請求書_${b.no}_${b.to}.pdf`.replace(/[\\/:*?"<>|]/g, "");
   const n0 = (v) => Math.round(v).toLocaleString("ja-JP");
-  // labels on the left and values from one column, the 請求元 (with the seal over it) in the value column,
-  // then 振込先, the lines (at least four rows, ruled like the Excel sheet), the sums and 備考
+  // laid out like an Excel sheet: every part in a ruled box, packed into two columns so the page reads top to
+  // bottom without gaps — 請求先 and the amount on the left, 発行日・番号 and 請求元 (with the seal) on the right,
+  // then the lines across, then 振込先 beside 備考
   function billHTML(b, c, seal) {
-    const t = billTotals(b), kv = (k, v) => `<div class="bd-k">${k}</div><div class="bd-v">${v}</div>`;
-    const rows = b.items.map((i) => `<tr><td>${esc(i.name)}</td><td class="r">${esc(String(i.qty))}</td><td class="r">${n0(num(i.price))}</td><td class="r">${n0(lineAmount(i))}</td></tr>`);
-    while (rows.length < 4) rows.push(`<tr><td></td><td></td><td></td><td></td></tr>`);
-    const sum = (k, v, cls = "") => `<tr class="${cls}"><td></td><td></td><td class="k">${k}</td><td class="r">${v}</td></tr>`;
+    const t = billTotals(b), row = (k, v, cls = "") => `<tr class="${cls}"><th>${k}</th><td>${v}</td></tr>`;
+    const items = b.items.map((i) => `<tr><td>${esc(i.name)}</td><td class="r">${esc(String(i.qty))}</td><td class="r">${n0(num(i.price))}</td><td class="r">${n0(lineAmount(i))}</td></tr>`);
+    while (items.length < 8) items.push(`<tr><td></td><td></td><td></td><td></td></tr>`);
+    const sum = (k, v, cls = "") => `<tr class="bd-sum ${cls}"><td class="bd-gap" colspan="2"></td><th>${k}</th><td class="r">${v}</td></tr>`;
     const taxRows = b.tax === "ex" ? sum("小計", n0(t.subtotal)) + sum("消費税(10%)", n0(t.tax))
-      : b.tax === "in" ? sum("小計(税込)", n0(t.subtotal)) + sum("うち消費税(10%)", n0(t.tax)) : sum("小計", n0(t.subtotal));
+      : b.tax === "in" ? sum("小計(税込)", n0(t.subtotal)) + sum("内消費税(10%)", n0(t.tax)) : sum("小計", n0(t.subtotal));
     const line = (v, pre = "") => (v ? `<div>${pre}${esc(v)}</div>` : "");
     const note = String(b.note || "").split("\n").filter((l) => l.trim()).map((l) => `<div>${esc(l)}</div>`).join("");
     return `
       <div class="bd-ttl">請求書</div>
-      <div class="bd-grid">${kv("発行日", jDate(b.date))}${kv("請求書番号", esc(b.no))}${b.subject ? kv("件名", esc(b.subject)) : ""}</div>
-      <div class="bd-grid">
-        <div class="bd-k"><div>【請求先】</div><div class="bd-to">${esc(b.to)}　${esc(b.honor)}</div></div>
-        <div class="bd-v bd-from"><div>【請求元】</div>${line(c.name)}${line(c.zip, "〒")}${line(c.address)}${line(c.tel, "TEL：")}${line(c.mail)}${line(c.person, "担当：")}${c.reg ? `<div>インボイス番号</div>${line(c.reg)}` : ""}${seal ? `<img class="bd-seal" src="${seal}" alt="">` : ""}</div>
+      <div class="bd-top">
+        <div class="bd-col">
+          <div class="bd-to"><span>${esc(b.to)}</span><span class="bd-honor">${esc(b.honor)}</span></div>
+          <p class="bd-lead">下記のとおりご請求申し上げます。</p><table class="bd-t bd-amt">${b.subject ? row("件名", esc(b.subject)) : ""}${row("ご請求金額（税込）", `¥${n0(t.total)}`, "big")}${b.due ? row("お支払期限", jDate(b.due)) : ""}</table>
+        </div>
+        <div class="bd-col">
+          <table class="bd-t">${row("発行日", jDate(b.date))}${row("請求書番号", esc(b.no))}</table>
+          <div class="bd-from">
+            <div class="bd-name">${esc(c.name)}</div>${line(c.zip, "〒")}${line(c.address)}${line(c.tel, "TEL：")}${line(c.mail)}${line(c.person, "担当：")}${line(c.reg, "登録番号：")}
+            ${seal ? `<img class="bd-seal" src="${seal}" alt="">` : ""}
+          </div>
+        </div>
       </div>
-      <div class="bd-grid">${kv("請求金額（税込）", `<b class="bd-amt">${n0(t.total)}</b>`)}${b.due ? kv("支払期限", jDate(b.due)) : ""}</div>
-      <div class="bd-h">【振込先】</div>
-      <div class="bd-grid">${kv("銀行名", esc(c.bankName))}${kv("支店名", esc(c.branch))}${kv("口座種別", esc(c.acctType))}${kv("口座番号", esc(c.acctNo))}${kv("口座名義", esc(c.acctName))}</div>
-      <table class="bd-items"><colgroup><col style="width:40%"><col style="width:16%"><col style="width:20%"><col style="width:24%"></colgroup>
-        <thead><tr><th>内容</th><th>数量</th><th>単価</th><th>金額</th></tr></thead>
-        <tbody>${rows.join("")}${taxRows}${sum("交通費", b.transport ? n0(num(b.transport)) : "")}${sum("合計請求額", n0(t.total), "tot")}</tbody></table>
-      ${note ? `<div class="bd-note"><div>備考</div>${note}</div>` : ""}`;
+      <table class="bd-t bd-items"><colgroup><col style="width:46%"><col style="width:12%"><col style="width:19%"><col style="width:23%"></colgroup>
+        <thead><tr><th>内容</th><th class="r">数量</th><th class="r">単価</th><th class="r">金額</th></tr></thead>
+        <tbody>${items.join("")}${taxRows}${sum("交通費", b.transport ? n0(num(b.transport)) : "")}${sum("合計請求額", n0(t.total), "tot")}</tbody></table>
+      <div class="bd-bottom">
+        <table class="bd-t bd-bank"><tr><th colspan="2" class="bd-cap">お振込先</th></tr>${row("銀行名", esc(c.bankName))}${row("支店名", esc(c.branch))}${row("口座種別", esc(c.acctType))}${row("口座番号", esc(c.acctNo))}${row("口座名義", esc(c.acctName))}</table>
+        <table class="bd-t bd-note"><tr><th class="bd-cap">備考</th></tr><tr><td>${note}</td></tr></table>
+      </div>`;
   }
   const billPdf = async (b) => b64Bytes(await buildPdf(null, null, billHTML(b, blData.company, blData.seal), "bill-doc"));
 
