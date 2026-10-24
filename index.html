@@ -295,7 +295,8 @@ button.day.wd-0:hover, button.day.wd-6:hover, button.day.hol:hover { background:
 .hc:disabled { cursor: default; }
 button.hc:not(:disabled):hover { filter: brightness(.97); }
 @media (max-width: 400px) { .hc { min-height: 64px; padding: 4px; } .hc .mk { font-size: 20px; } }
-.hope-submit { position: sticky; bottom: 12px; display: grid; gap: 6px; z-index: 2; }
+/* right under the calendar, where it stays (it does not float over the calendar while scrolling) */
+.hope-submit { display: grid; gap: 6px; }
 .hope-submit .msg:empty { display: none; }
 .hope-submit .msg { background: var(--card); border: 1px solid var(--rule); border-radius: 8px; padding: 8px 12px; }
 .hope-submit .btn { padding: 14px; font-size: 16px; border-radius: 12px; box-shadow: 0 6px 18px -8px rgb(31 42 58 / .45); }
@@ -485,7 +486,6 @@ fieldset:disabled .f input, fieldset:disabled .f textarea, fieldset:disabled .f 
 /* the bar at the foot, like a game's: three big buttons, the one on screen lifted and coloured */
 body:has(#member-ui:not([hidden])) { padding-bottom: calc(96px + env(safe-area-inset-bottom, 0px)); }
 body:has(#member-ui:not([hidden])) .brand-btns { display: none; }
-body:has(#member-ui:not([hidden])) .hope-submit { bottom: calc(90px + env(safe-area-inset-bottom, 0px)); }
 .bnav { position: fixed; left: 0; right: 0; bottom: 0; z-index: 15; background: var(--card); border-top: 1px solid var(--rule);
   box-shadow: 0 -6px 18px -10px rgb(31 42 58 / .3); padding: 6px max(10px, env(safe-area-inset-right, 0px)) calc(6px + env(safe-area-inset-bottom, 0px)) max(10px, env(safe-area-inset-left, 0px)); }
 .bnav-in { max-width: 520px; margin: 0 auto; display: grid; grid-template-columns: repeat(3, 1fr); gap: 6px; }
@@ -1444,14 +1444,13 @@ button.pcal-c { cursor: pointer; }
         <span><i class="hm-maybe">△</i> <b class="num" id="h-maybe">0</b>日</span>
         <span class="hope-sent" id="h-sent"></span>
       </div>
-      <p class="hope-how">下で印を選んでから、カレンダーの日付を押してください。同じ印の日をもう一度押すと消えます。<b>何も付いていない日は「稼働不可」</b>として出します。</p>
       <!-- 🚄 is 稼働できる with 遠方 too (stored as "○遠") -->
       <div class="hope-brush" id="h-brush" role="radiogroup" aria-label="付ける印">
         <button type="button" role="radio" data-b="○遠" aria-checked="false"><span class="hb">🚄</span>遠方可</button>
         <button type="button" role="radio" data-b="○" aria-checked="true"><span class="hb">○</span>稼働できる</button>
         <button type="button" role="radio" data-b="△" aria-checked="false"><span class="hb">△</span>要相談</button>
       </div>
-      <p class="hope-far-note">交通費・宿泊費は、遠方も含めThemisが負担します。</p>
+      <p class="hope-far-note">交通費・宿泊費は、Themisが負担致します。</p>
     </div>
     <div class="hope-cal">
       <div class="cal-wd" aria-hidden="true"><div>日</div><div>月</div><div>火</div><div>水</div><div>木</div><div>金</div><div>土</div></div>
