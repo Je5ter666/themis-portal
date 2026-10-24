@@ -364,8 +364,15 @@ label.check { -webkit-tap-highlight-color: transparent; }
 .who-tag.wkend { color: var(--break); }
 .who-tag.staff { color: var(--ink); }
 .who-tag.role { color: var(--ink-soft); }
-/* on a phone the 管理画面 button already says who is an admin; only 常勤 / 週末 stays beside the name */
-@media (max-width: 560px) { .who-tag.role { display: none; } }
+/* 代表 stands out from 運営 and 管理者: gold */
+.who-tag.rep, .st.st-rep { color: color-mix(in srgb, var(--break) 80%, var(--ink)); border-color: var(--break); background: color-mix(in srgb, var(--break) 14%, transparent); }
+/* on a phone the role and 勤務形態 sit on their own line above the name, both shown as on a computer */
+@media (max-width: 560px) {
+  .brand-who { display: flex; flex-direction: column; align-items: flex-end; gap: 3px; }
+  .who-tags { order: -1; display: flex; gap: 4px; }
+  .who-tags .who-tag { margin-left: 0; font-size: 10px; padding: 0 7px; }
+  .who-name { max-width: 100%; overflow: hidden; text-overflow: ellipsis; }
+}
 /* address and bank details are split into one field each, grouped under a heading */
 .grp { display: grid; gap: 8px; border-top: 1px dashed var(--rule); padding-top: 10px; }
 .grp-h { font-size: 13px; font-weight: 700; color: var(--ink); letter-spacing: .04em; }
@@ -878,9 +885,11 @@ button.pcal-c { cursor: pointer; }
 .ad-add .ad-seg { flex-wrap: nowrap; width: 100%; border-radius: 9px; }
 .ad-add .ad-seg label { flex: 1 1 0; text-align: center; }
 .ad-add .ad-seg span { border-radius: 7px; padding: 5px 4px; }
-.ad-add-go { grid-column: 1 / -1; display: flex; align-items: center; gap: 10px; flex-wrap: wrap; }
-.ad-add-go .btn { padding: 7px 22px; }
-.ad-add-go .hint { margin: 0; flex: 1 1 220px; font-size: 11px; }
+/* the note, then 追加 on its own line in the bottom-right corner */
+.ad-add-go { grid-column: 1 / -1; display: flex; flex-direction: column; gap: 6px; }
+.ad-add-go .btn { padding: 7px 26px; align-self: flex-end; }
+.ad-add-go .hint { margin: 0; font-size: 11px; }
+.ad-add-go .ad-add-err { font-size: 13px; font-weight: 700; text-align: right; }
 /* member cards: tight, one line per item */
 .ad-cards { gap: 8px; }
 .ad-card { padding: 9px 11px; gap: 6px; }
@@ -900,6 +909,35 @@ button.pcal-c { cursor: pointer; }
 .ad-signed { font-family: var(--f-num); font-size: 12px; }
 .ad-card .ad-acts { border-top: 1px dashed var(--rule); padding-top: 6px; gap: 6px; }
 .ad-card .ad-acts .danger { margin-left: auto; }
+/* 給与明細: the net pay large on top, then 支給 and 控除 side by side (stacked on a phone) */
+.payslip { display: grid; gap: 10px; }
+.ps-net { display: flex; align-items: baseline; justify-content: space-between; gap: 10px; padding: 10px 14px; border-radius: var(--r);
+  background: color-mix(in srgb, var(--accent) 10%, var(--card)); border: 1px solid color-mix(in srgb, var(--accent) 35%, var(--rule)); }
+.ps-net span { font-size: 13px; color: var(--ink-soft); font-weight: 700; }
+.ps-net b { font-size: 24px; color: var(--ink); }
+.ps-day { margin: -4px 0 0; font-size: 12px; color: var(--ink-soft); text-align: right; }
+.ps-cols { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 10px; align-items: start; }
+.ps-t { width: 100%; border-collapse: collapse; font-size: 13px; background: var(--card); border: 1px solid var(--rule); border-radius: var(--r); overflow: hidden; }
+.ps-t caption { text-align: left; font-size: 12px; font-weight: 700; color: var(--ink-soft); padding: 0 2px 4px; }
+.ps-t th, .ps-t td { padding: 5px 10px; border-top: 1px solid var(--rule); }
+.ps-t tr:first-child th, .ps-t tr:first-child td { border-top: 0; }
+.ps-t th { text-align: left; font-weight: 500; color: var(--ink-soft); }
+.ps-t td { text-align: right; color: var(--ink); }
+.ps-t .ps-sum th, .ps-t .ps-sum td { font-weight: 700; color: var(--ink); background: color-mix(in srgb, var(--rule) 35%, transparent); }
+.ps-co caption { color: var(--break); }
+.ps-note { margin: 0; font-size: 12px; color: var(--ink-soft); white-space: pre-wrap; }
+.ps-head { display: flex; align-items: center; justify-content: space-between; gap: 8px; }
+.ps-head .bl-h { margin-bottom: 6px; }
+.ps-form { display: grid; gap: 8px; }
+.ps-sec { font-size: 13px; margin-top: 4px; }
+.ps-form .f2 { gap: 8px; }
+#ps-preview { margin-top: 6px; }
+.pay-view { display: grid; gap: 10px; }
+.pay-h { margin: 0; font-size: 16px; }
+.pay-none { margin: 0; padding: 24px 0; text-align: center; color: var(--ink-soft); font-size: 14px; }
+/* while a tab's read is on its way: a quiet line with a small spinner in the tab's place */
+.ad-loading { display: flex; align-items: center; justify-content: center; gap: 8px; margin: 0; padding: 28px 0; font-size: 13px; color: var(--ink-soft); }
+.ad-loading::before { content: ""; width: 14px; height: 14px; border-radius: 50%; border: 2px solid var(--rule); border-top-color: var(--accent); animation: ptr-spin .8s linear infinite; }
 .tool.danger { color: var(--stamp-red); border-color: color-mix(in srgb, var(--stamp-red) 45%, var(--rule)); }
 .s-work { display: flex; gap: 18px; padding: 4px 0; }
 .s-work .check { font-size: 15px; color: var(--ink); }
@@ -1040,7 +1078,7 @@ button.pcal-c { cursor: pointer; }
         <button type="button" role="tab" data-t="today" aria-selected="true">今日</button>
         <button type="button" role="tab" data-t="work" aria-selected="false">勤怠</button>
         <button type="button" role="tab" data-t="hope" aria-selected="false" aria-label="シフト希望">シフト</button>
-        <button type="button" role="tab" data-t="inv" aria-selected="false">請求書</button>
+        <button type="button" role="tab" data-t="inv" aria-selected="false">報酬・給与</button>
         <button type="button" role="tab" data-t="bills" aria-selected="false" aria-label="他社への請求書">他社請求</button>
         <button type="button" role="tab" data-t="members" aria-selected="false">メンバー</button>
         <button type="button" role="tab" data-t="sales" aria-selected="false" aria-label="売上・利益">売上</button>
@@ -1151,6 +1189,7 @@ button.pcal-c { cursor: pointer; }
       <button type="button" role="tab" id="tab-card" aria-selected="true" aria-controls="p-card">シフト表</button>
       <button type="button" role="tab" id="tab-hope" aria-selected="false" aria-controls="p-hope">シフト希望</button>
       <button type="button" role="tab" id="tab-inv" aria-selected="false" aria-controls="p-inv">請求書</button>
+      <button type="button" role="tab" id="tab-pay" aria-selected="false" aria-controls="p-pay" hidden>給与明細</button>
     </div>
   </div>
   <section class="shifts" aria-label="予定">
@@ -1240,6 +1279,11 @@ button.pcal-c { cursor: pointer; }
       <div class="msg" id="h-msg" role="status" aria-live="polite"></div>
       <button type="button" class="btn primary" id="h-submit">この内容で提出する</button>
     </div>
+  </section>
+
+  <!-- 社員: the month's payslip, once Themis has published it -->
+  <section class="panel" id="p-pay" role="tabpanel" aria-label="給与明細" hidden>
+    <div class="pay-view" id="pay-view"></div>
   </section>
 
   <section class="panel" id="p-inv" role="tabpanel" aria-label="請求書" hidden>
@@ -1817,8 +1861,8 @@ window.addEventListener("error", function (e) {
     // each tab keeps its own month: the shift calendar opens on this month, invoices on last month
     if (t !== tab) { tabView[tab] = view; tab = t; }
     view = tabView[t]; clampView(); watchView(); fillForms(true);
-    $("m-now").textContent = { inv: "先月分", hope: "来月" }[t] || "今月";
-    for (const k of ["card", "hope", "inv"]) {
+    $("m-now").textContent = { inv: "先月分", pay: "先月分", hope: "来月" }[t] || "今月";
+    for (const k of ["card", "hope", "inv", "pay"]) {
       $("tab-" + k).setAttribute("aria-selected", t === k);
       $("p-" + k).hidden = t !== k;
     }
@@ -1831,34 +1875,37 @@ window.addEventListener("error", function (e) {
   const pickTab = (t) => { viewPicked = true; setTab(t); };
   $("tab-card").onclick = () => pickTab("card");
   $("tab-hope").onclick = () => pickTab("hope");
-  // 常勤 staff hand in no shift wishes, so they never see that tab; 社員 see the シフト表 only (no wishes, no invoices)
-  const tabOk = (t) => t === "card" || (window.TC_WORK !== "社員" && (t === "inv" || window.TC_WORK !== "常勤"));
+  // 常勤 staff hand in no shift wishes, so they never see that tab; 社員 send no invoice and hand in no wishes:
+  // they get their 給与明細 instead
+  const tabOk = (t) => t === "card" || (window.TC_WORK === "社員" ? t === "pay" : t === "inv" || (t === "hope" && window.TC_WORK !== "常勤"));
   function applyWork() {
-    $("tab-hope").hidden = !tabOk("hope"); $("tab-inv").hidden = !tabOk("inv");
+    $("tab-hope").hidden = !tabOk("hope"); $("tab-inv").hidden = !tabOk("inv"); $("tab-pay").hidden = !tabOk("pay");
     if (!tabOk(tab)) setTab("card");
   }
   $("tab-inv").onclick = () => pickTab("inv");
+  $("tab-pay").onclick = () => pickTab("pay");
 
   let view = new Date(); view = new Date(view.getFullYear(), view.getMonth(), 1);
-  const tabView = { card: view, inv: new Date(view.getFullYear(), view.getMonth() - 1, 1), hope: new Date(view.getFullYear(), view.getMonth() + 1, 1) };
+  const tabView = { card: view, inv: new Date(view.getFullYear(), view.getMonth() - 1, 1), pay: new Date(view.getFullYear(), view.getMonth() - 1, 1), hope: new Date(view.getFullYear(), view.getMonth() + 1, 1) };
   const viewYm = () => `${view.getFullYear()}-${pad(view.getMonth() + 1)}`;
   function watchView() {
     if (!backend) return;
     backend.watch("m-" + viewYm()); backend.watch("inv-" + viewYm());
     if (tab === "hope") backend.watch("hope-" + viewYm());
+    if (tab === "pay") backend.watch("pay-" + viewYm());
   }
   // invoices are for finished months only: the invoice tab never goes past last month
   const lastBillable = () => { const d = new Date(); return new Date(d.getFullYear(), d.getMonth() - 1, 1); };
   // wishes are for months still ahead: the wish tab never goes before next month
   const firstHope = () => { const d = new Date(); return new Date(d.getFullYear(), d.getMonth() + 1, 1); };
   const clampView = () => {
-    if (tab === "inv" && view > lastBillable()) view = lastBillable();
+    if ((tab === "inv" || tab === "pay") && view > lastBillable()) view = lastBillable();
     if (tab === "hope" && view < firstHope()) view = firstHope();
   };
   function shiftMonth(n) { view = new Date(view.getFullYear(), view.getMonth() + n, 1); clampView(); watchView(); fillForms(true); render(); }
   $("m-prev").onclick = () => { shiftMonth(-1); saveView(); };
   $("m-next").onclick = () => { shiftMonth(1); saveView(); };
-  $("m-now").onclick = () => { const d = new Date(); view = new Date(d.getFullYear(), d.getMonth() + ({ inv: -1, hope: 1 }[tab] || 0), 1); watchView(); fillForms(true); render(); saveView(); };
+  $("m-now").onclick = () => { const d = new Date(); view = new Date(d.getFullYear(), d.getMonth() + ({ inv: -1, pay: -1, hope: 1 }[tab] || 0), 1); watchView(); fillForms(true); render(); saveView(); };
 
   function monthRows(ym = viewYm()) {
     const [y, mo] = ym.split("-").map(Number);
@@ -2457,11 +2504,18 @@ ${v.addr}`;
     $("t-out").textContent = tr?.out ? hm(tr.out) : "--:--";
     $("t-work").textContent = dur(workMin(tr, now));
     $("m-label").textContent = `${view.getFullYear()}年${view.getMonth() + 1}月`;
-    $("m-next").disabled = tab === "inv" && view >= lastBillable();
+    $("m-next").disabled = (tab === "inv" || tab === "pay") && view >= lastBillable();
     $("m-prev").disabled = tab === "hope" && view <= firstHope();
     paintWho();
 
     if (tab === "inv") { renderInvoice(); return; }
+    if (tab === "pay") {
+      // shown only once Themis has published it (the server sends nothing before that)
+      const p = docs["pay-" + viewYm()], ml = `${view.getFullYear()}年${view.getMonth() + 1}月分`;
+      $("pay-view").innerHTML = `<h2 class="pay-h">${ml}の給与明細</h2>` +
+        (p?.totals ? payslipHTML(p, false) : `<p class="pay-none">${p ? "この月の給与明細は、まだありません。" : "読み込んでいます…"}</p>`);
+      return;
+    }
     if (tab === "hope") { renderHope(); return; }
 
     let days = 0, total = 0, km = 0, abs = 0;
@@ -3115,7 +3169,7 @@ ${v.addr}`;
     if (!v) return;
     for (const k of Object.keys(tabView)) if (/^\d{4}-\d{2}$/.test(v.months?.[k] || "")) { const [y, m] = v.months[k].split("-").map(Number); tabView[k] = new Date(y, m - 1, 1); }
     view = tabView[tab];
-    setTab(["inv", "hope"].includes(v.tab) && tabOk(v.tab) ? v.tab : "card");
+    setTab(["inv", "hope", "pay"].includes(v.tab) && tabOk(v.tab) ? v.tab : "card");
   }
   // the admin screen's tab (請求書 only for 運営) and months
   function adoptAdminView(v) {
@@ -3198,9 +3252,9 @@ ${v.addr}`;
   function paintWho() {
     const name = doc("billing").from || window.TC_NAME || "";
     const tag = (t, cls) => `<span class="who-tag ${cls}">${t}</span>`;
-    $("who").innerHTML = name ? esc(name) +
-      (window.TC_WORK ? tag(esc(window.TC_WORK), { 常勤: "full", 週末: "wkend" }[window.TC_WORK] || "staff") : "") +
-      (window.TC_ADMIN ? tag(window.TC_REP ? "代表" : window.TC_OWNER ? "運営" : "管理者", "role") : "") : "";
+    const tags = (window.TC_ADMIN ? tag(window.TC_REP ? "代表" : window.TC_OWNER ? "運営" : "管理者", window.TC_REP ? "role rep" : "role") : "") +
+      (window.TC_WORK ? tag(esc(window.TC_WORK), { 常勤: "full", 週末: "wkend" }[window.TC_WORK] || "staff") : "");
+    $("who").innerHTML = name ? `<span class="who-name">${esc(name)}</span>` + (tags ? `<span class="who-tags">${tags}</span>` : "") : "";
   }
   function showPerson(me) {
     window.TC_NAME = me.name; window.TC_WORK = me.workType || "";
@@ -3462,23 +3516,26 @@ ${v.addr}`;
     $("ad-month").hidden = !monthly;
     $("ad-label").textContent = ymLabel(adMonth[adTab]);
     $("ad-next").disabled = adTab === "inv" && adMonth.inv >= adLastBillable();
+    if (force) blData = blPending = null;
     // 他社請求 has its own read (not the month's members and records)
     if (adTab === "bills" || adTab === "sales") {
-      if (force) blData = null;
       try { await adBills(); } catch (e) { adMsg(`画面を作れませんでした：${e.message}`); }
       saveView(); return;
     }
     const key = adKeyNow();
     if (force || key !== adKey || !adData) {
-      if (!adCache[key] || force) $("ad-body").innerHTML = "";
-      adMsg("読み込んでいます…");
+      // the tab tapped shows at once, empty, so the tap never looks ignored while the read finishes
+      $("ad-body").innerHTML = `<p class="ad-loading">読み込んでいます…</p>`;
+      adMsg("");
       try { adData = await adFetch(key, force); adKey = key; adMsg(""); }
-      catch (e) { adMsg(errText(e)); return; }
+      catch (e) { if (key === adKeyNow()) { $("ad-body").innerHTML = ""; adMsg(errText(e)); } return; }
       if (key !== adKeyNow()) return;   // the month was changed again while this one loaded
     }
     try { (adPerson && (adTab === "work" || adTab === "hope") ? adPersonView : { today: adToday, work: adWork, hope: adHope, inv: adInv, members: adMembers }[adTab])(); }
     catch (e) { adMsg(`画面を作れませんでした：${e.message}`); }
     if (monthly) adPrefetchNear();
+    // the 運営画面's own read (他社請求・売上) starts in the background once this screen is up
+    if (window.TC_OWNER && !blData) blFetch().catch(() => {});
     saveView();
   }
   // the months either side of the one on screen are read in the background, so ‹ › shows them at once
@@ -3524,7 +3581,7 @@ ${v.addr}`;
   };
 
   // 常勤, 週末 and 社員 are always listed apart, each numbered from 001 so the head count is plain to see
-  const WORK_GROUPS = ["常勤", "週末", "社員", ""];
+  const WORK_GROUPS = ["社員", "常勤", "週末", ""];
   const groupName = (t) => t || "勤務形態が未回答";
   const byWork = (list, key = (x) => x) => WORK_GROUPS.map((t) => [t, list.filter((x) => (key(x).workType || "") === t)]).filter(([, l]) => l.length);
   const numName = (i, name) => `<span class="no">${String(i + 1).padStart(3, "0")}</span>${esc(name)}`;
@@ -3694,9 +3751,12 @@ ${v.addr}`;
   // columns of 請求書一覧: 0 氏名 · 4 状態 · 6 入金日 · 7 PDF · 9 本人の入金確認 · 10 Themisが設定した金額 · 11 本人が足した金額
   // A confirmed amount shows as text with 修正; the ids being corrected are kept here until 金額を確定 is pressed again
   const adAmtEdit = new Set();
+  // 報酬・給与: 社員 get a payslip (給与明細), everyone else sends an invoice as before
   function adInv() {
     const ym = adMonth.inv, byName = Object.fromEntries(adData.invs.map((r) => [r[0], r]));
-    const live = adData.members.filter((m) => m.active || byName[m.name]);
+    const pays = adData.pays || {};
+    const staff = adData.members.filter((m) => m.workType === "社員" && (m.active || pays[m.id]));
+    const live = adData.members.filter((m) => m.workType !== "社員" && (m.active || byName[m.name]));
     const worked = new Set(adData.worked || []);
     // nobody expects an invoice from someone who did not work that month and was given no amount
     const stOf = (m) => {
@@ -3706,7 +3766,7 @@ ${v.addr}`;
     };
     const cnt = (k) => live.filter((m) => stOf(m) === k).length;
     const label = { nobill: "請求なし", none: "未提出", sent: "提出済み", paid: "入金完了・本人の確認待ち", ok: "本人が入金を確認済み" };
-    $("ad-body").innerHTML =
+    $("ad-body").innerHTML = payCards(staff, pays) + (live.length ? `<h4 class="bl-h">業務委託の請求書</h4>` : "") +
       `<div class="ad-stats">` + [["未提出", "none"], ["提出済み", "sent"], ["確認待ち", "paid"], ["確認済み", "ok"]]
         .map(([t, k]) => `<div class="ad-stat${k === "sent" && cnt(k) ? " warn" : ""}"><span>${t}</span><b class="num">${cnt(k)}</b></div>`).join("") + `</div>` +
       byWork(live).map(([t, g]) => `<h3 class="ad-grp">${esc(groupName(t))}（${g.length}人）</h3><div class="ad-cards">` + g.map((m, i) => {
@@ -3723,6 +3783,7 @@ ${v.addr}`;
           `</div>`;
       }).join("") + `</div>`).join("");
     const card = (b) => b.closest(".ad-card");
+    payWire(ym, pays);
     const invFile = (name) => `請求書_${ym.replace("-", "")}_${name}.pdf`;
     for (const b of $("ad-body").querySelectorAll("[data-pdf]")) b.onclick = () => showPdf(`${card(b).dataset.name}さんの請求書（${ymLabel(ym)}分）`, card(b).dataset.id, "inv", ym, invFile(card(b).dataset.name));
     for (const b of $("ad-body").querySelectorAll("[data-dl]")) b.onclick = () => busyBtn(b, () => downloadPdf(card(b).dataset.id, "inv", ym, invFile(card(b).dataset.name)));
@@ -3751,10 +3812,94 @@ ${v.addr}`;
         const r = byName[name] || (adData.invs[adData.invs.push([name, ym, "", "", "下書き", "", "", "", "", "", ""]) - 1]);
         r[10] = v;
         adAmtEdit.delete(c.dataset.id);
-        blData = null;   // the 報酬 in 売上 is read again
+        blData = blPending = null;   // the 報酬 in 売上 is read again
         adChanged(); adMsg(v ? `${name}さんの${ymLabel(ym)}分の請求金額を ${Number(v).toLocaleString("ja-JP")}円 で確定しました。` : `${name}さんの設定金額を消しました。`);
       } catch (e) { adMsg(errText(e)); }
     });
+  }
+
+  // ---- 給与 (社員) ----
+  // 支給 and 控除 are typed by 運営; the company's share is worked out (the same sums as the server's payTotals_):
+  // 健康保険・介護保険・厚生年金 the same as the person's, 子ども・子育て拠出金 / 雇用保険 / 労災保険 from rates
+  const PAY_EARN = [["base", "基本給"], ["overtime", "残業手当"], ["allowance", "その他手当"], ["commute", "通勤手当（非課税）"]];
+  const PAY_DED = [["health", "健康保険"], ["care", "介護保険"], ["pension", "厚生年金"], ["employ", "雇用保険"], ["incomeTax", "所得税"], ["residentTax", "住民税"], ["otherDed", "その他控除"]];
+  const PAY_CO = [["health", "健康保険"], ["care", "介護保険"], ["pension", "厚生年金"], ["child", "子ども・子育て拠出金"], ["employ", "雇用保険"], ["rousai", "労災保険"]];
+  const PAY_RATE_LABEL = [["child", "子ども・子育て拠出金"], ["employ", "雇用保険（会社分）"], ["rousai", "労災保険"]];
+  function payTotals(items, rates) {
+    const v = (k) => Number(items[k]) || 0, sum = (l) => l.reduce((s, [k]) => s + v(k), 0);
+    const gross = sum(PAY_EARN), ded = sum(PAY_DED);
+    const company = { health: v("health"), care: v("care"), pension: v("pension"),
+      child: v("pension") ? Math.round(gross * rates.child) : 0, employ: Math.round(gross * rates.employ), rousai: Math.round(gross * rates.rousai) };
+    company.total = Object.keys(company).reduce((s, k) => s + company[k], 0);
+    return { gross, ded, net: gross - ded, company, cost: gross + company.total };
+  }
+  // the payslip itself, as the member sees it (and 運営 in the editor's preview); the company's share only for 運営
+  function payslipHTML(p, withCompany) {
+    const it = p.items || {}, t = p.totals || {};
+    const rows = (list) => list.filter(([k]) => Number(it[k])).map(([k, l]) => `<tr><th>${l}</th><td>${yen(Number(it[k]))}</td></tr>`).join("") || `<tr><th>—</th><td></td></tr>`;
+    return `<div class="payslip">` +
+      `<div class="ps-net"><span>差引支給額</span><b class="num">${yen(t.net || 0)}</b></div>` +
+      (p.payDay ? `<p class="ps-day">支給日 ${esc(p.payDay.replace(/-/g, "/"))}</p>` : "") +
+      `<div class="ps-cols"><table class="ps-t num"><caption>支給</caption>${rows(PAY_EARN)}<tr class="ps-sum"><th>総支給額</th><td>${yen(t.gross || 0)}</td></tr></table>` +
+      `<table class="ps-t num"><caption>控除</caption>${rows(PAY_DED)}<tr class="ps-sum"><th>控除合計</th><td>${yen(t.ded || 0)}</td></tr></table></div>` +
+      (withCompany && t.company ? `<table class="ps-t ps-co num"><caption>会社負担（本人には見えません）</caption>` +
+        PAY_CO.map(([k, l]) => `<tr><th>${l}</th><td>${yen(t.company[k] || 0)}</td></tr>`).join("") +
+        `<tr class="ps-sum"><th>会社負担合計</th><td>${yen(t.company.total)}</td></tr><tr class="ps-sum"><th>人件費（総支給＋会社負担）</th><td>${yen(t.cost)}</td></tr></table>` : "") +
+      (p.note ? `<p class="ps-note">${esc(p.note)}</p>` : "") + `</div>`;
+  }
+  // one card per 社員 on 報酬・給与: the month's payslip (none yet / 下書き / 公開), with 作る or 編集
+  function payCards(staff, pays) {
+    if (!staff.length) return "";
+    return `<div class="ps-head"><h4 class="bl-h">社員の給与明細</h4><button type="button" class="tool" id="pay-rates">会社負担の料率</button></div>` +
+      `<div class="ad-cards">` + staff.map((m, i) => {
+        const p = pays[m.id], t = p?.totals;
+        const st = !p ? `<span class="st st-late">未作成</span>` : p.published ? `<span class="st st-done">公開済み</span>` : `<span class="st st-work">下書き</span>`;
+        return `<div class="ad-card" data-id="${esc(m.id)}" data-name="${esc(m.name)}">` +
+          `<div class="ad-card-h"><span>${numName(i, m.name)}</span>${st}</div>` +
+          (t ? `<dl class="ad-kv"><dt>差引支給</dt><dd class="num">${yen(t.net)}</dd><dt>総支給</dt><dd class="num">${yen(t.gross)}</dd>` +
+            `<dt>会社負担</dt><dd class="num">${yen(t.company.total)}</dd><dt>人件費</dt><dd class="num"><b>${yen(t.cost)}</b></dd></dl>` : "") +
+          `<div class="ad-acts"><button type="button" class="${p ? "tool" : "btn primary sm"}" data-pay>${p ? "編集する" : "給与明細を作る"}</button></div></div>`;
+      }).join("") + `</div>`;
+  }
+  function payWire(ym, pays) {
+    const rates = adData.payRates || { child: 0.0036, employ: 0.009, rousai: 0.003 };
+    if ($("pay-rates")) $("pay-rates").onclick = () => {
+      adDialog("会社負担の料率", `<p class="hint">総支給額にかける割合です（％）。毎年4月などに変わるので、見直してください。健康保険・介護保険・厚生年金は、本人の額と同じ額を会社負担にします。</p>` +
+        PAY_RATE_LABEL.map(([k, l]) => `<label class="f">${l}（％）<input type="number" step="0.001" min="0" max="10" inputmode="decimal" data-rate="${k}" value="${+(rates[k] * 100).toFixed(4)}"></label>`).join(""),
+        "保存する", async () => {
+          const out = {};
+          for (const el of $("ad-dlg-body").querySelectorAll("[data-rate]")) out[el.dataset.rate] = Number(el.value) / 100;
+          adData.payRates = JSON.parse(await call("api_adminSavePayRates", out));
+          $("ad-dlg").hidden = true; adMsg("会社負担の料率を保存しました。これから保存する給与明細から使われます。");
+        });
+    };
+    for (const b of $("ad-body").querySelectorAll("[data-pay]")) b.onclick = () => {
+      const c = b.closest(".ad-card"), id = c.dataset.id, name = c.dataset.name, p = pays[id] || { items: {}, published: false };
+      const field = ([k, l]) => `<label class="f">${l}<input type="number" min="0" step="1" inputmode="numeric" data-pi="${k}" value="${Number(p.items[k]) || ""}" placeholder="0"></label>`;
+      adDialog(`${name}さんの給与明細（${ymLabel(ym)}分）`,
+        `<div class="ps-form"><b class="ps-sec">支給</b><div class="f2">${PAY_EARN.map(field).join("")}</div>` +
+        `<b class="ps-sec">控除</b><div class="f2">${PAY_DED.map(field).join("")}</div>` +
+        `<div class="f2"><label class="f">支給日<input type="date" id="ps-day" value="${esc(p.payDay || "")}"></label></div>` +
+        `<label class="f">備考<input id="ps-note" maxlength="200" value="${esc(p.note || "")}"></label>` +
+        `<label class="check"><input type="checkbox" id="ps-pub"${p.published ? " checked" : ""}> 本人に公開する</label>` +
+        `<div id="ps-preview"></div></div>`,
+        "保存する", async () => {
+          const pay = readPay();
+          const saved = JSON.parse(await call("api_adminSavePay", id, ym, pay));
+          pays[id] = saved; adData.pays = pays;
+          blData = blPending = null;   // 売上 is read again with this 人件費
+          $("ad-dlg").hidden = true; adChanged();
+          adMsg(`${name}さんの${ymLabel(ym)}分の給与明細を${saved.published ? "保存して本人に公開しました" : "下書きで保存しました"}。`);
+        });
+      const readPay = () => {
+        const items = {};
+        for (const el of $("ad-dlg-body").querySelectorAll("[data-pi]")) items[el.dataset.pi] = Math.max(0, Math.round(Number(el.value) || 0));
+        return { items, payDay: $("ps-day").value, note: $("ps-note").value.trim(), published: $("ps-pub").checked };
+      };
+      // the preview follows every keystroke, company's share included
+      const preview = () => { const pay = readPay(); $("ps-preview").innerHTML = payslipHTML({ ...pay, totals: payTotals(pay.items, rates) }, true); };
+      $("ad-dlg-body").oninput = preview; preview();
+    };
   }
 
   // PDFs from the owner's Drive are drawn inside the app (pdf.js), so any admin's phone can show them
@@ -3879,15 +4024,16 @@ ${v.addr}`;
     const picked = (el) => (el.querySelector("input:checked") || {}).value;
     // whether the contract is put in front of the person when they first open the app (blank on the sheet = 表示する)
     const askChk = (v, attr) => `<label class="check"><input type="checkbox" ${attr}${v === false ? "" : " checked"}> 最初に表示する</label>`;
-    const badge = (m) => m.rep ? `<span class="st st-done">代表</span>` : m.role === "運営" ? `<span class="st st-done">運営</span>` : m.role === "管理者" ? `<span class="st st-work">管理者</span>` : "";
+    const badge = (m) => m.rep ? `<span class="st st-rep">代表</span>` : m.role === "運営" ? `<span class="st st-done">運営</span>` : m.role === "管理者" ? `<span class="st st-work">管理者</span>` : "";
     $("ad-body").innerHTML =
       (owner ? `<form class="ad-add" id="ad-add" novalidate><b>メンバーを追加</b>` +
         `<label class="f ad-add-name">氏名<input id="ad-who" autocomplete="off" autocorrect="off" spellcheck="false" enterkeyhint="done"></label>` +
         `<div class="f">勤務形態${workSel("", "ad-work", 'id="ad-work"')}</div>` +
         `<div class="f">役割${roleSel("", "ad-role", 'id="ad-role"')}</div>` +
         `<div class="f">業務委託契約書${askChk(true, 'id="ad-ask"')}</div>` +
-        `<div class="ad-add-go"><button type="submit" class="btn primary" id="ad-add-btn">追加</button>` +
-        `<p class="hint">ログインIDと仮パスワードは自動で作られます。追加したあとに出る画面からコピーして、本人に伝えてください。</p></div></form>` : "") +
+        `<div class="ad-add-go"><p class="hint">ログインIDと仮パスワードは自動で作られます。追加したあとに出る画面からコピーして、本人に伝えてください。</p>` +
+        `<span class="hint perr ad-add-err" id="ad-add-err" role="alert"></span>` +
+        `<button type="submit" class="btn primary" id="ad-add-btn">追加</button></div></form>` : "") +
       byWork(list).map(([t, g]) => `<h3 class="ad-grp">${esc(groupName(t))}（${g.length}人）</h3><div class="ad-cards">` + g.map((m, i) => {
         // 運営 (and 代表) can be changed or removed by 代表 only; 出井張貴 stays 代表 and nobody changes their own role
         const self = m.id === adData.me, signed = m.contract.split("（")[0], touch = owner && !self && !m.fixed && (rep || !m.owner);
@@ -3909,11 +4055,17 @@ ${v.addr}`;
     const card = (el) => el.closest(".ad-card"), person = (c) => adData.members.find((m) => m.id === c.dataset.id);
     // the phone must not offer the contacts list (自動入力) for the new person's name
     if (owner) noAutofill($("ad-who"));
+    // the red note goes away as soon as the missing part is filled in
+    if (owner) for (const ev of ["input", "change"]) $("ad-add").addEventListener(ev, () => { $("ad-add-err").textContent = ""; });
     if (owner) $("ad-add").addEventListener("submit", (e) => {
       e.preventDefault();
       const name = $("ad-who").value.trim(), workType = picked($("ad-work")), role = picked($("ad-role")) || "", contractAsk = $("ad-ask").checked;
-      if (!name) { adMsg("氏名を入れてください。"); $("ad-who").focus(); return; }
-      if (!workType) { adMsg("勤務形態（常勤・週末・社員）を選んでください。"); $("ad-work").querySelector("input").focus(); return; }
+      // shown in red right above 追加, where the eyes are when it is pressed
+      const addErr = (t) => { $("ad-add-err").textContent = t; };
+      if (!name) { addErr("氏名を入れていません。"); $("ad-who").focus(); return; }
+      // (no focus on a pill: its ring would look as if 常勤 had been chosen)
+      if (!workType) { addErr("勤務形態を選択していません。"); return; }
+      addErr("");
       busyBtn($("ad-add-btn"), async () => {
         adMsg("追加しています…");
         try {
@@ -3931,12 +4083,16 @@ ${v.addr}`;
       const c = card(el), m = person(c), k = el.dataset.k, v = k === "contractAsk" ? el.checked : picked(el);
       el.disabled = true; adMsg(`${m.name}さんを保存しています…`);
       try {
-        await call("api_adminSaveMember", { id: m.id, [k]: v });
-        m[k] = v;
-        if (k === "role") { m.admin = !!v; m.owner = v === "運営"; }
+        // the server sends back what it saved; an older server sends nothing, and may have dropped the change
+        const r = await call("api_adminSaveMember", { id: m.id, [k]: v });
+        const saved = r ? JSON.parse(r) : null;
+        if (saved) Object.assign(m, saved); else m[k] = v;
+        m.admin = !!m.role; m.owner = m.rep || m.role === "運営";
         adChanged();
-        adMsg(k === "contractAsk" ? `${m.name}さんに、契約書を最初に${v ? "表示する" : "表示しない"}ようにしました。`
-          : `${m.name}さんの${k === "role" ? `役割を「${v || "メンバー"}」に` : "勤務形態を"}しました。`);
+        if (!saved) adMsg(`${m.name}さんを保存しましたが、サーバーが古いため反映されていないかもしれません。Code.gs を「新しいバージョン」でデプロイし直してください。`);
+        else if (saved[k] !== v) adMsg(`${m.name}さんの${{ role: "役割", workType: "勤務形態", contractAsk: "契約書の表示" }[k]}は変えられませんでした。`);
+        else adMsg(k === "contractAsk" ? `${m.name}さんに、契約書を最初に${v ? "表示する" : "表示しない"}ようにしました。`
+          : `${m.name}さんの${k === "role" ? "役割" : "勤務形態"}を「${v || "メンバー"}」にしました。`);
       } catch (err) { adMsg(errText(err)); el.disabled = false; }
     };
     const conFile = (name) => `業務委託契約書_${name}.pdf`;
@@ -3962,10 +4118,16 @@ ${v.addr}`;
   // The PDF is drawn here from the saved invoice (billHTML, laid out like Themis's own Excel invoice)
   let blData = null;
   // a reply that never comes must not leave the screen waiting, as with the month's read (adFetch)
+  // a read already on its way (the background one started with the 管理画面) is shared, not sent twice
+  let blPending = null;
   const blFetch = async () => {
     if (blData) return blData;
-    const slow = new Promise((_, rej) => setTimeout(() => rej(new Error("読み込みに時間がかかりすぎています。画面を更新してください。")), 60000));
-    return (blData = JSON.parse(await Promise.race([call("api_adminBills"), slow])));
+    if (!blPending) {
+      const slow = new Promise((_, rej) => setTimeout(() => rej(new Error("読み込みに時間がかかりすぎています。画面を更新してください。")), 60000));
+      const p = blPending = Promise.race([call("api_adminBills"), slow]).then((s) => JSON.parse(s));
+      p.then((d) => { if (blPending === p) blData = d; }, () => {}).finally(() => { if (blPending === p) blPending = null; });
+    }
+    return blPending;
   };
   const num = (s) => Number(String(s ?? "").replace(/[,，\s¥￥円]/g, "")) || 0;
   // the same sums as the server (billTotals_): each line is quantity × unit price, rounded to the yen;
@@ -4042,13 +4204,13 @@ ${v.addr}`;
     [["売上", yen(m.sales)], ["利益", signed(m.sales - m.cost), m.sales < m.cost], ["利益率", profitRate(m), m.sales < m.cost]].map(([t, v, warn]) =>
       `<div class="ad-stat${warn ? " warn" : ""}"><span>${t}</span><b class="num">${v}</b></div>`).join("") + `</div>`;
   // this calendar month's figures, from what is in the app now (the work sheets of 「稼働」 are not used):
-  // 売上見込 = the 他社請求 made this month (for last month's work, 税抜), 報酬 = what the members invoice for that work
-  // (the confirmed amount plus their own lines such as 交通費, before 源泉徴収)
+  // 売上見込 = the 他社請求 made this month (for last month's work, 税抜), 人件費 = what the members invoice for that work
+  // (the confirmed amount plus their own lines such as 交通費, before 源泉徴収) and the 社員's 総支給 + 会社負担
   function liveBox(ym) {
     const sales = blData.bills.filter((b) => workYm(b.date) === ym).reduce((s, b) => s + b.total - (b.taxAmount ?? billTotals(b).tax), 0);
     const pay = (blData.costs || {})[ym] || 0, profit = sales - pay, warn = sales < pay ? " warn" : "";
     return `<div class="ad-stats bl-stats">` +
-      [["売上見込", yen(sales), ""], ["報酬", yen(pay), ""], ["利益", signed(profit), warn], ["利益率", profitRate({ sales, cost: pay }), warn]]
+      [["売上見込", yen(sales), ""], ["人件費", yen(pay), ""], ["利益", signed(profit), warn], ["利益率", profitRate({ sales, cost: pay }), warn]]
         .map(([t, v, w]) => `<div class="ad-stat${w}"><span>${t}</span><b class="num">${v}</b></div>`).join("") + `</div>`;
   }
   function adSales() {
@@ -4060,13 +4222,13 @@ ${v.addr}`;
     $("ad-body").innerHTML =
       `<h4 class="bl-h">${new Date().getFullYear()}年${new Date().getMonth() + 1}月</h4>` + liveBox(workYm(dayKey(new Date()))) +
       `<h4 class="bl-h">全体</h4>` + salesBox(all) +
-      (rows.length ? `<h4 class="bl-h">月ごと</h4><div class="sl-wrap"><table class="sl-tbl num"><thead><tr><th>月</th><th>売上</th><th>報酬</th><th>利益</th><th>利益率</th></tr></thead>` +
+      (rows.length ? `<h4 class="bl-h">月ごと</h4><div class="sl-wrap"><table class="sl-tbl num"><thead><tr><th>月</th><th>売上</th><th>人件費</th><th>利益</th><th>利益率</th></tr></thead>` +
         `<tbody>${rows.join("")}</tbody></table></div>` : "");
   }
   async function adBills() {
     // only a first read clears the message line, so 「保存しました」 and the like stay after a redraw
     if (!blData) {
-      $("ad-body").innerHTML = ""; adMsg("読み込んでいます…");
+      $("ad-body").innerHTML = `<p class="ad-loading">読み込んでいます…</p>`; adMsg("");
       try { await blFetch(); adMsg(""); }
       catch (e) {
         // a server still on the version before 他社請求 answers 「使えない操作です」
