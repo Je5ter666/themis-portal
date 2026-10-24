@@ -502,7 +502,11 @@ fieldset:disabled .f input, fieldset:disabled .f textarea, fieldset:disabled .f 
 .fields .locked { opacity: .5; }
 .fields .locked input, .fields .locked select, .fields .locked textarea, .fields .locked button { cursor: not-allowed; border-style: dashed; background: transparent; }
 .abs-note { margin: 0; font-size: 13px; font-weight: 700; color: var(--stamp-red); white-space: pre-line; }
-.actsum { font-family: var(--f-num); font-weight: 400; font-size: 12px; letter-spacing: 0; color: var(--ink-soft); margin-left: 6px; }
+/* a folded section hides its fields; one line under its heading says what is in them */
+.fields .folded, .fields .past-off { display: none !important; }
+.foldsum { margin: -4px 0 0; font-family: var(--f-num); font-size: 14px; color: var(--ink); font-variant-numeric: tabular-nums; overflow-wrap: anywhere; }
+.foldsum:empty { display: none; }
+.foldsum .muted { color: var(--ink-soft); font-size: 13px; }
 .chip-x { display: inline-flex; align-items: center; padding: 0; overflow: hidden; }
 .chip-x button { border: 0; background: transparent; color: inherit; font: inherit; padding: 4px 4px 4px 12px; }
 .chip-x button + button { padding: 4px 10px 4px 6px; color: var(--ink-soft); }
@@ -1486,25 +1490,28 @@ button.pcal-c { cursor: pointer; }
   <form class="modal" id="edit-form" novalidate>
     <div class="modal-head"><h3 id="e-title">記録を修正</h3><button type="button" class="tool" id="e-back">‹ 戻る</button></div>
     <div class="fields">
-      <div class="sec wide first">予定</div>
+      <div class="sec wide first sec-row"><span>予定</span><button type="button" class="tool" id="f-plantoggle" aria-expanded="false">開く</button></div>
       <p class="abs-note wide" id="f-absnote" hidden></p>
-      <label class="f wide">稼働店舗<input type="text" id="f-store" maxlength="60" placeholder="例：〇〇電機 新宿西口店"></label>
-      <div class="chips wide" id="store-chips" role="group" aria-label="前に入れた店舗"></div>
-      <label class="f">開始<input type="time" id="f-pin" step="300"></label>
-      <label class="f">終了<input type="time" id="f-pout" step="300"></label>
-      <div class="chips wide" id="plan-chips" role="group" aria-label="よく使う予定時間"></div>
-      <div class="sec wide sec-row"><span>稼働 <span class="actsum" id="f-actsum"></span></span><button type="button" class="tool" id="f-acttoggle" aria-expanded="false">修正</button></div>
-      <div class="wide act"><button type="button" class="tool" id="f-copyplan">予定の時間を出勤・退勤に入れる</button></div>
+      <p class="foldsum wide" id="f-plansum"></p>
+      <label class="f wide pl-f">稼働店舗<input type="text" id="f-store" maxlength="60" placeholder="例：〇〇電機 新宿西口店"></label>
+      <div class="chips wide pl-f" id="store-chips" role="group" aria-label="前に入れた店舗"></div>
+      <label class="f pl-f pl-t">出勤<input type="time" id="f-pin" step="300"></label>
+      <label class="f pl-f pl-t">退勤<input type="time" id="f-pout" step="300"></label>
+      <div class="chips wide pl-f pl-t" id="plan-chips" role="group" aria-label="よく使う予定時間"></div>
+      <div class="sec wide sec-row"><span>稼働</span><button type="button" class="tool" id="f-acttoggle" aria-expanded="false">修正</button></div>
+      <p class="foldsum wide" id="f-actsum"></p>
+      <div class="wide act"><button type="button" class="tool" id="f-copyplan">自動入力</button></div>
       <label class="f act">出勤<input type="time" id="f-in" step="300"></label>
       <label class="f act">退勤<input type="time" id="f-out" step="300"></label>
       <div class="work-now wide act" id="f-work" aria-live="polite"></div>
       <label class="check wide act"><input type="checkbox" id="f-early"> 早退</label>
       <label class="f wide act" id="f-early-wrap" hidden>早退理由<input type="text" id="f-early-reason" maxlength="100" placeholder="例：体調不良のため"></label>
-      <div class="sec wide">交通機関</div>
-      <div class="f wide">交通機関（複数選べます）<div class="chips" id="f-transport" role="group" aria-label="交通機関"></div></div>
-      <label class="f wide" id="f-ride-wrap" hidden>誰の車に同乗しましたか<input type="text" id="f-ride" maxlength="40" placeholder="例：山田 太郎"></label>
-      <label class="f wide" id="f-km-wrap">距離（km）<input type="number" id="f-km" min="0" step="0.1" inputmode="decimal" placeholder="12.4"></label>
-      <div class="f wide" id="f-proof-wrap">交通費の証明画像
+      <div class="sec wide sec-row"><span>交通機関</span><button type="button" class="tool" id="f-trtoggle" aria-expanded="false">開く</button></div>
+      <p class="foldsum wide" id="f-trsum"></p>
+      <div class="f wide tr-f">交通機関（複数選べます）<div class="chips" id="f-transport" role="group" aria-label="交通機関"></div></div>
+      <label class="f wide tr-f" id="f-ride-wrap" hidden>誰の車に同乗しましたか<input type="text" id="f-ride" maxlength="40" placeholder="例：山田 太郎"></label>
+      <label class="f wide tr-f" id="f-km-wrap">距離（km）<input type="number" id="f-km" min="0" step="0.1" inputmode="decimal" placeholder="12.4"></label>
+      <div class="f wide tr-f" id="f-proof-wrap">交通費の証明画像
         <div class="proofs" id="f-proofs" hidden></div>
         <label class="tool upl" for="f-file">画像を添付</label>
         <input type="file" id="f-file" accept="image/*" multiple hidden>
@@ -2640,9 +2647,10 @@ ${v.addr}`;
           (hol ? `<span class="hn">${hol}</span>` : "") +
           (r?.absent ? `<span class="ab">欠勤</span>${r.absentReason ? `<span class="tr">${esc(r.absentReason)}</span>` : ""}` : "") +
           (r?.store ? `<span class="store">${esc(r.store)}</span>` : "") +
-          (r?.in && r.planIn && !r.fromPlan ? `<span class="pl">予定 ${esc(r.planIn)}–${esc(r.planOut || "")}</span>` : "") +
+          // a day before today shows its store but not its planned times
+          (r?.in && r.planIn && !r.fromPlan && key >= today ? `<span class="pl">予定 ${esc(r.planIn)}–${esc(r.planOut || "")}</span>` : "") +
           (r?.in ? `<span class="tm">${shown}${r.out ? "" : '<span class="live">勤務中</span>'}</span>`
-            : r?.store || r?.planIn ? `<span class="plan"><span class="pw">予定</span>${r.planIn ? span(r.planIn, r.planOut) : ""}</span>` : "") +
+            : (r?.store || r?.planIn) && key >= today ? `<span class="plan"><span class="pw">予定</span>${r.planIn ? span(r.planIn, r.planOut) : ""}</span>` : "") +
           (r?.early && r?.in ? `<span class="el">早退</span>` : "") +
           (r?.transport || r?.km != null ? `<span class="tr">${esc(r.transport || "")}${r.rideWith ? `（${esc(r.rideWith)}）` : ""}${r.km != null ? ` ${r.km}km` : ""}</span>` : "") +
           (missingProof(r) ? `<span class="np"><span class="pw">画像</span>未添付</span>` : r?.proofs?.length && !r.absent ? `<span class="pf">画像${r.proofs.length}枚</span>` : "");
@@ -2664,9 +2672,8 @@ ${v.addr}`;
   const focusIfMouse = (el) => { if (matchMedia("(pointer: fine)").matches) el.focus(); };
   // time fields become one pulldown of 5-minute times, the same on every device; the original input
   // keeps a `value` of "HH:MM" (or "") so the rest of the sheet reads and writes it unchanged
-  // the list starts at 06:00 and wraps round to 05:55, so morning shifts sit at the top
-  // every time list starts at 09:00 and wraps round to 08:55
-  const LIST_START = { "f-pin": 9 * 60, "f-pout": 9 * 60, "f-in": 9 * 60, "f-out": 9 * 60 };
+  // a start time list begins at 09:00 and an end time list at 17:00, each wrapping round the day
+  const LIST_START = { "f-pin": 9 * 60, "f-pout": 17 * 60, "f-in": 9 * 60, "f-out": 17 * 60 };
   const rank = (t, start) => { const [h, m] = t.split(":").map(Number); return (h * 60 + m - start + 1440) % 1440; };
   const timesFrom = (start) => Array.from({ length: 288 }, (_, i) => {
     const min = (start + i * 5) % 1440;
@@ -2782,7 +2789,7 @@ ${v.addr}`;
     if (!t) {
       if (filledBy) {
         $("f-pin").value = ""; $("f-pout").value = ""; $("f-ride").value = ""; setTransport(""); $("f-km").value = "";
-        editProofs = []; renderProofs(); filledBy = null;
+        editProofs = []; renderProofs(); filledBy = null; trSum();
       }
       return;
     }
@@ -2794,6 +2801,7 @@ ${v.addr}`;
     editProofs = (t.proofs || []).map((id) => ({ id, data: proofCache[id] || null }));
     renderProofs();
     for (const p of editProofs) if (!p.data) loadProof(p.id).then((d) => { p.data = d; renderProofs(); });
+    trSum();
   }
   $("f-store").addEventListener("change", () => applyTravel($("f-store").value.trim()));
   const getTransport = () => [...$("f-transport").children].filter((b) => b.getAttribute("aria-pressed") === "true").map((b) => b.textContent).join("・");
@@ -2878,13 +2886,41 @@ ${v.addr}`;
     $("e-abs").disabled = !!r?.in;   // a day already clocked in can't be marked absent
     $("e-del").classList.remove("armed"); $("e-del").textContent = "削除";
     $("sheet").hidden = false;
+    // a day before today shows only its store as the plan, not the planned times
+    const past = key < dayKey(new Date());
+    for (const el of $("edit-form").querySelectorAll(".pl-t")) el.classList.toggle("past-off", past);
+    // 稼働 and 稼働実績 open only once the day is clocked out (a passed plan counts); a past day stays open
+    // so a forgotten 退勤 can still be put in
+    actAllowed = !!r?.out || !!eff?.fromPlan || past;
+    updateWork();
+    // a day already recorded opens folded, each section showing a one-line summary; a new day opens 予定 and 交通機関
+    setPlanOpen(!r);
+    setTrOpen(!r);
     setActOpen(false);
     setResOpen(false);
-    updateWork();
     // the sheet is reused for every day: start each one at the top, not where the last one was scrolled to
     $("edit-form").scrollTop = 0;
-    focusIfMouse($("f-store"));
+    if (!r) focusIfMouse($("f-store"));
   }
+  const fold = (sel, open) => { for (const el of $("edit-form").querySelectorAll(sel)) el.classList.toggle("folded", !open); };
+  const setToggle = (id, open, shut) => { $(id).textContent = open ? "閉じる" : shut; $(id).setAttribute("aria-expanded", String(open)); };
+  const isOpen = (id) => $(id).getAttribute("aria-expanded") === "true";
+  const muted = (t) => `<span class="muted">${esc(t)}</span>`;
+  function setPlanOpen(open) {
+    fold(".pl-f", open); setToggle("f-plantoggle", open, "開く");
+    const store = $("f-store").value.trim(), a = $("f-pin").value, z = $("f-pout").value;
+    const times = editKey >= dayKey(new Date()) && (a || z) ? esc(`${a || "--:--"}–${z || "--:--"}`) : "";
+    $("f-plansum").innerHTML = open ? "" : [store ? esc(store) : muted("店舗なし"), times].filter(Boolean).join("　");
+  }
+  function trSum() {
+    const t = getTransport(), ride = $("f-ride").value.trim(), km = $("f-km").value, far = t && !walkOnly(t);
+    $("f-trsum").innerHTML = isOpen("f-trtoggle") ? "" : !t ? muted("なし")
+      : [esc(t + (t.split("・").includes("同乗") && ride ? `（${ride}）` : "")), far && km !== "" ? esc(km + "km") : "",
+        far && editProofs.length ? `画像${editProofs.length}枚` : far ? muted("画像未添付") : ""].filter(Boolean).join("　");
+  }
+  function setTrOpen(open) { fold(".tr-f", open); setToggle("f-trtoggle", open, "開く"); trSum(); }
+  $("f-plantoggle").onclick = () => setPlanOpen(!isOpen("f-plantoggle"));
+  $("f-trtoggle").onclick = () => setTrOpen(!isOpen("f-trtoggle"));
   const closeSheet = () => { $("sheet").hidden = true; editKey = null; };
   $("e-cancel").onclick = closeSheet;
   $("e-back").onclick = closeSheet;
@@ -2904,14 +2940,14 @@ ${v.addr}`;
     const absent = !!month(ymOf(key)).days[key]?.absent && !inV;
     // wake-up and departure are punched only; editing a day keeps whatever was punched
     const kept = absent ? null : month(ymOf(key)).days[key];
-    if (!inV && !shift.store && !shift.planIn && !absent) { $("f-store").focus(); msg("稼働店舗か時刻を入力してください。"); return; }
+    if (!inV && !shift.store && !shift.planIn && !absent) { setPlanOpen(true); $("f-store").focus(); msg("稼働店舗か時刻を入力してください。"); return; }
     const inMs = inV && !absent ? atTime(key, inV) : null;
     let outMs = inMs != null && outV ? atTime(key, outV) : null;
     // only a strictly earlier clock-out means the next day; equal times (minutes only) are a 0-minute shift
     if (outMs != null && outMs < inMs) outMs += 86400000;
     shift.rideWith = shift.transport.split("・").includes("同乗") ? $("f-ride").value.trim() : "";
     if (shift.transport.split("・").includes("同乗") && !shift.rideWith) {
-      $("f-ride").focus(); $("f-perr").textContent = "同乗した車を運転していた人の名前を入力してください。"; return;
+      setTrOpen(true); $("f-ride").focus(); $("f-perr").textContent = "同乗した車を運転していた人の名前を入力してください。"; return;
     }
     if (!shift.transport || walkOnly(shift.transport)) { shift.km = null; editProofs = []; }
     try {
@@ -2919,7 +2955,7 @@ ${v.addr}`;
         await backend.put("p-" + p.id, { data: p.data, at: Date.now() });
         proofCache[p.id] = p.data; p.isNew = false;
       }
-    } catch { $("f-perr").textContent = "画像を保存できませんでした。通信状況を確認して、もう一度保存してください。"; return; }
+    } catch { setTrOpen(true); $("f-perr").textContent = "画像を保存できませんでした。通信状況を確認して、もう一度保存してください。"; return; }
     shift.proofs = editProofs.map((p) => p.id);
     const m = month(ymOf(key)), prev = m.days[key], stillOpen = inMs != null && !outMs && state().openDate === key;
     doc("billing").lastShift = shift;
@@ -2985,17 +3021,23 @@ ${v.addr}`;
     el.classList.toggle("locked", locked);
     for (const c of el.querySelectorAll("input, select, textarea, button")) c.disabled = locked;
   }
+  let actAllowed = true;
   function setActOpen(open) {
     for (const el of $("edit-form").querySelectorAll(".act")) lock(el, !open);
+    fold(".act", open);
     $("f-acttoggle").setAttribute("aria-expanded", String(open));
     $("f-acttoggle").textContent = open ? "修正を終える" : "修正";
-    $("f-actsum").textContent = open ? "" : $("f-in").value ? "" : "記録なし";
+    $("f-acttoggle").disabled = !actAllowed;
+    const a = $("f-in").value, z = $("f-out").value, w = $("f-work").textContent;
+    $("f-actsum").innerHTML = open ? "" : [a ? esc(`出勤 ${a}　退勤 ${z || "--:--"}${w ? "　" + w : ""}`) : muted("記録なし"),
+      actAllowed ? "" : muted("退勤すると修正できます")].filter(Boolean).join("　");
   }
   // results open locked behind 修正 (a toggle); only the sheet opened right after clocking out starts unlocked
   function setResOpen(open) {
     lock($("edit-form").querySelector(".res"), !open);
     $("f-resedit").textContent = open ? "修正を終える" : "修正";
     $("f-resedit").setAttribute("aria-expanded", String(open));
+    $("f-resedit").disabled = !actAllowed;
   }
   $("f-resedit").onclick = () => {
     const open = $("f-resedit").getAttribute("aria-expanded") !== "true";
