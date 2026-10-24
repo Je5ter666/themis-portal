@@ -676,6 +676,14 @@ fieldset:disabled .f input, fieldset:disabled .f textarea, fieldset:disabled .f 
 @media (min-width: 640px) { .ad-stats.bl-stats { grid-template-columns: repeat(4, minmax(0, 1fr)); } }
 .bl-stats .ad-stat { min-width: 0; }
 .bl-stats .ad-stat b { font-size: clamp(17px, 5vw, 22px); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+/* 売上: one row per month; on a narrow phone the table scrolls sideways inside its box, not the page */
+.sl-wrap { overflow-x: auto; background: var(--card); border: 1px solid var(--rule); border-radius: var(--r); }
+.sl-tbl { width: 100%; border-collapse: collapse; font-size: 13px; white-space: nowrap; }
+.sl-tbl th, .sl-tbl td { padding: 8px 10px; text-align: right; border-bottom: 1px solid var(--rule); }
+.sl-tbl th:first-child { text-align: left; }
+.sl-tbl thead th { font-size: 12px; font-weight: 400; color: var(--ink-soft); }
+.sl-tbl tbody tr:last-child > * { border-bottom: 0; }
+.sl-tbl tr.warn td:nth-child(n+4) { color: var(--stamp-red); }
 .bl-line { display: flex; align-items: baseline; gap: 14px; font-size: 14px; }
 .bl-line span { min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 .bl-line b { font-size: 18px; flex: none; }
@@ -990,6 +998,7 @@ button.pcal-c { cursor: pointer; }
         <button type="button" role="tab" data-t="inv" aria-selected="false">請求書</button>
         <button type="button" role="tab" data-t="bills" aria-selected="false" aria-label="他社への請求書">他社請求</button>
         <button type="button" role="tab" data-t="members" aria-selected="false">メンバー</button>
+        <button type="button" role="tab" data-t="sales" aria-selected="false" aria-label="売上・利益">売上</button>
       </div>
       <div class="month-nav">
         <span class="month-nav" id="ad-month"><button type="button" id="ad-prev" aria-label="前の月">‹</button><b id="ad-label">—</b><button type="button" id="ad-next" aria-label="次の月">›</button></span>      </div>
@@ -3363,14 +3372,14 @@ ${v.addr}`;
   const DH = { name: 0, date: 1, kind: 3, store: 4, pIn: 5, pOut: 6, in: 7, out: 8, work: 9, absWhy: 10, wake: 11, dep: 12,
     transport: 13, ride: 14, km: 15, imgs: 16, result: 17, memo: 18, early: 20, earlyWhy: 21 };
   let adTab = "today", adData = null, adKey = "";
-  const adMonth = (() => { const d = new Date(), m = (n) => ymOf(dayKey(new Date(d.getFullYear(), d.getMonth() + n, 1))); return { work: m(0), inv: m(-1), hope: m(1), today: m(0), members: m(0), bills: m(0) }; })();
+  const adMonth = (() => { const d = new Date(), m = (n) => ymOf(dayKey(new Date(d.getFullYear(), d.getMonth() + n, 1))); return { work: m(0), inv: m(-1), hope: m(1), today: m(0), members: m(0), bills: m(0), sales: m(0) }; })();
   const adMsg = (t) => { $("ad-msg").textContent = t || ""; };
   const minOf = (hm) => { const m = /^(\d+):(\d{2})$/.exec(hm || ""); return m ? Number(m[1]) * 60 + Number(m[2]) : 0; };
   const ymLabel = (ym) => { const [y, m] = ym.split("-").map(Number); return `${y}年${m}月`; };
   const link = (url, text) => (url ? `<a href="${esc(url)}" target="_blank" rel="noopener">${esc(text)}</a>` : "");
 
   // the money tabs make up the 運営画面 (運営 only); the rest is the 管理画面. Which one shows follows the open tab
-  const UNEI_TABS = ["inv", "bills", "members"];
+  const UNEI_TABS = ["inv", "bills", "members", "sales"];
   const spaceOf = (t) => (UNEI_TABS.includes(t) ? "unei" : "kanri");
   const adLast = { kanri: "today", unei: "inv" };
   function paintAdTabs() {
@@ -3409,7 +3418,7 @@ ${v.addr}`;
     $("ad-label").textContent = ymLabel(adMonth[adTab]);
     $("ad-next").disabled = adTab === "inv" && adMonth.inv >= adLastBillable();
     // 他社請求 has its own read (not the month's members and records)
-    if (adTab === "bills") {
+    if (adTab === "bills" || adTab === "sales") {
       if (force) blData = null;
       try { await adBills(); } catch (e) { adMsg(`画面を作れませんでした：${e.message}`); }
       saveView(); return;
@@ -3954,6 +3963,33 @@ ${v.addr}`;
   }
   const billPdf = async (b) => b64Bytes(await buildPdf(null, null, billHTML(b, blData.company, blData.seal), "bill-doc"));
 
+  // 売上・利益 (its own tab, from the same read as 他社請求): 売上 = the 他社請求, 利益 = 売上 − what the members invoice
+  // Themis, matched by the month the work was done: this month's invoices (dated October) are for September, as are
+  // the members' September invoices. All 税抜 (交通費 included). The months before the app (past, from the PDF invoices) are added in
+  function adSales() {
+    const costs = blData.costs || {}, past = blData.past || {}, now = workYm(dayKey(new Date())), months = {};
+    const at = (ym) => (months[ym] ||= { sales: 0, cost: 0 });
+    for (const b of blData.bills) at(workYm(b.date)).sales += b.total - (b.taxAmount ?? billTotals(b).tax);
+    for (const [ym, v] of Object.entries(costs)) at(ym).cost += v;
+    for (const [ym, v] of Object.entries(past)) { at(ym).sales += v.sales || 0; at(ym).cost += v.cost || 0; }
+    const all = Object.values(months).reduce((s, m) => ({ sales: s.sales + m.sales, cost: s.cost + m.cost }), { sales: 0, cost: 0 });
+    const signed = (v) => `${v < 0 ? "−" : ""}${yen(Math.abs(v))}`;
+    const rate = (m) => (m.sales ? `${((m.sales - m.cost) / m.sales * 100).toFixed(1)}%` : "—");
+    const box = (m) => `<div class="ad-stats bl-stats">` +
+      [["売上", yen(m.sales)], ["利益", signed(m.sales - m.cost), m.sales < m.cost], ["利益率", rate(m), m.sales < m.cost]].map(([t, v, warn]) =>
+        `<div class="ad-stat${warn ? " warn" : ""}"><span>${t}</span><b class="num">${v}</b></div>`).join("") + `</div>`;
+    const rows = Object.keys(months).sort().reverse().map((ym) => {
+      const m = months[ym], [y, mo] = ym.split("-").map(Number);
+      return `<tr${m.sales < m.cost ? ` class="warn"` : ""}><th>${y}年${mo}月</th><td>${yen(m.sales)}</td><td>${yen(m.cost)}</td><td>${signed(m.sales - m.cost)}</td><td>${rate(m)}</td></tr>`;
+    });
+    $("ad-body").innerHTML =
+      `<h4 class="bl-h">今月（${workMonth()}月分）</h4>` + box(months[now] || { sales: 0, cost: 0 }) +
+      `<h4 class="bl-h">全体</h4>` + box(all) +
+      (rows.length ? `<h4 class="bl-h">月ごと</h4><div class="sl-wrap"><table class="sl-tbl num"><thead><tr><th>月</th><th>売上</th><th>支払い</th><th>利益</th><th>利益率</th></tr></thead>` +
+        `<tbody>${rows.join("")}</tbody></table></div>` : "") +
+      `<p class="hint">金額は税抜（消費税を除く。交通費は含む）です。売上は他社請求の合計、利益は売上からメンバーへの支払い（メンバーの請求書の金額。源泉徴収を引く前）を引いたもの、利益率は利益÷売上です。` +
+      `今月は、今月の請求日の他社請求と、メンバーの${workMonth()}月分の請求書で計算します。アプリを使う前の月は、フォルダに保存した請求書PDFの金額です。</p>`;
+  }
   async function adBills() {
     // only a first read clears the message line, so 「保存しました」 and the like stay after a redraw
     if (!blData) {
@@ -3965,23 +4001,15 @@ ${v.addr}`;
         return;
       }
     }
-    if (adTab !== "bills" || mode !== "admin") return;
+    if (mode !== "admin") return;
+    if (adTab === "sales") { adSales(); return; }
+    if (adTab !== "bills") return;
     const c = blData.company, bills = blData.bills.slice().sort((a, b) => b.date.localeCompare(a.date) || b.no.localeCompare(a.no));
     const open = bills.filter((b) => !b.paidOn), cnt = (s) => bills.filter((b) => billState(b) === s).length;
-    // 売上 = these invoices, 利益 = 売上 − what the members invoice Themis, matched by the month the work was done:
-    // this month's invoices (dated October) are for September, as are the members' September invoices
-    const costs = blData.costs || {}, sum = (list) => list.reduce((s, b) => s + b.total, 0), now = workYm(dayKey(new Date()));
-    const sales = sum(bills.filter((b) => workYm(b.date) === now)), cost = costs[now] || 0;
-    const salesAll = sum(bills), costAll = Object.values(costs).reduce((s, v) => s + v, 0);
-    const money = [[`今月の売上（${workMonth()}月分）`, sales], [`今月の利益（${workMonth()}月分）`, sales - cost], ["全体の売上", salesAll], ["全体の利益", salesAll - costAll]];
     $("ad-body").innerHTML =
       `<div class="bl-top"><button type="button" class="btn primary" id="bl-new">＋ 新しい請求書</button><button type="button" class="tool" id="bl-co">自社情報</button></div>` +
       (coReady(c) ? "" : `<p class="hint bl-warn">先に「自社情報」で会社名・住所・振込先を登録してください。請求書に載ります。</p>`) +
       (coReady(c) && !blData.seal ? `<p class="hint">「自社情報」で印鑑の画像を登録すると、請求書に押印されます。</p>` : "") +
-      `<h4 class="bl-h">売上・利益（税込）</h4><div class="ad-stats bl-stats">` +
-      money.map(([t, v], i) => `<div class="ad-stat${i % 2 && v < 0 ? " warn" : ""}"><span>${t}</span><b class="num">${v < 0 ? "−" : ""}${yen(Math.abs(v))}</b></div>`).join("") + `</div>` +
-      `<p class="hint">売上は他社請求の合計、利益は売上からメンバーへの支払い（メンバーの請求書の金額）を引いたものです。今月は、今月の請求日の他社請求と、メンバーの${workMonth()}月分の請求書で計算します。</p>` +
-      `<h4 class="bl-h">入金</h4>` +
       `<div class="ad-stats bl-stats">` + [["未入金", `${open.length}件`], ["未入金の合計", yen(open.reduce((s, b) => s + b.total, 0))], ["期限切れ", `${cnt("late")}件`], ["入金済み", `${cnt("paid")}件`]]
         .map(([t, v], i) => `<div class="ad-stat${i === 2 && cnt("late") ? " warn" : ""}"><span>${t}</span><b class="num">${v}</b></div>`).join("") + `</div>` +
       `<p class="hint">他社に出す請求書を作ってPDFで保存し、メールなどで送ってください。入金されたら「入金済みにする」を押します。一覧はスプレッドシートの「他社請求書一覧」にも出ます。</p>` +
