@@ -857,6 +857,20 @@ button.pcal-c { cursor: pointer; }
 .no { font-family: var(--f-num); font-weight: 500; color: var(--ink-soft); font-size: .85em; margin-right: 8px; letter-spacing: .04em; }
 .ad-id { display: flex; align-items: center; gap: 6px; font-family: var(--f-num); font-weight: 700; font-size: 14px; letter-spacing: .06em; }
 .ad-sel { font: inherit; font-size: 13px; padding: 4px 6px; border: 1px solid var(--rule); border-radius: 6px; background: var(--paper); color: var(--ink); }
+/* 勤務形態 and 役割 on the member cards: one tap on a pill instead of a dropdown */
+.ad-seg { display: inline-flex; flex-wrap: wrap; gap: 2px; margin: 0; padding: 3px; min-width: 0; border: 1px solid var(--rule); border-radius: 999px; background: var(--paper); width: fit-content; }
+.ad-seg label { position: relative; cursor: pointer; -webkit-tap-highlight-color: transparent; }
+.ad-seg input { position: absolute; inset: 0; margin: 0; opacity: 0; cursor: pointer; }
+.ad-seg span { display: block; padding: 5px 13px; border-radius: 999px; font-size: 13px; color: var(--ink-soft); white-space: nowrap; transition: background .15s, color .15s; }
+.ad-seg label:hover span { color: var(--ink); }
+.ad-seg input:checked + span { background: var(--stamp); color: var(--card); font-weight: 700; }
+.ad-seg input:focus-visible + span { outline: 2px solid var(--accent); outline-offset: 1px; }
+.ad-seg:disabled { opacity: .55; }
+.ad-add .ad-seg { display: flex; }
+/* a checkbox or pill inside a .f field is not a text box: no full width, padding or inset shadow */
+.f .check input, .f .ad-seg input { width: auto; padding: 0; border: 0; box-shadow: none; background: none; }
+.f .check input { width: 18px; height: 18px; flex: none; accent-color: var(--stamp); }
+.ad-add .check { min-height: 39px; font-size: 15px; color: var(--ink); letter-spacing: 0; }
 .tool.danger { color: var(--stamp-red); border-color: color-mix(in srgb, var(--stamp-red) 45%, var(--rule)); }
 .s-work { display: flex; gap: 18px; padding: 4px 0; }
 .s-work .check { font-size: 15px; color: var(--ink); }
@@ -3157,11 +3171,11 @@ ${v.addr}`;
     const tag = (t, cls) => `<span class="who-tag ${cls}">${t}</span>`;
     $("who").innerHTML = name ? esc(name) +
       (window.TC_WORK ? tag(esc(window.TC_WORK), { 常勤: "full", 週末: "wkend" }[window.TC_WORK] || "staff") : "") +
-      (window.TC_ADMIN ? tag(window.TC_OWNER ? "運営" : "管理者", "role") : "") : "";
+      (window.TC_ADMIN ? tag(window.TC_REP ? "代表" : window.TC_OWNER ? "運営" : "管理者", "role") : "") : "";
   }
   function showPerson(me) {
     window.TC_NAME = me.name; window.TC_WORK = me.workType || "";
-    window.TC_ADMIN = !!me.admin; window.TC_OWNER = !!me.owner; window.TC_CONTRACT = me.contractAsk !== false;
+    window.TC_ADMIN = !!me.admin; window.TC_OWNER = !!me.owner; window.TC_REP = !!me.rep; window.TC_CONTRACT = me.contractAsk !== false;
     $("logout").hidden = false; $("chpass").hidden = false;
     // admins use the normal site too; the header button switches to the admin screen and back
     $("adminbtn").hidden = !me.admin;
@@ -3826,35 +3840,37 @@ ${v.addr}`;
   // The owner sees every ログインID and can add, reset and remove people and give 管理者; other admins see their own ID only
   function adMembers() {
     // 未回答 is not a choice: until one is made the box only says 選んでください
-    const list = adData.members, owner = adData.owner, workSel = (v, attr) => `<select class="ad-sel" ${attr}>` +
-      (v ? "" : `<option value="" selected disabled hidden>選んでください</option>`) +
-      ["常勤", "週末", "社員"].map((k) => `<option value="${k}"${k === v ? " selected" : ""}>${k}</option>`).join("") + `</select>`;
-    // 運営 · 管理者 · メンバー (stored as 運営 / 管理者 / blank)
-    const roleSel = (v, attr) => `<select class="ad-sel" ${attr}>` +
-      [["運営", "運営"], ["管理者", "管理者"], ["", "メンバー"]].map(([k, t]) => `<option value="${k}"${k === (v || "") ? " selected" : ""}>${t}</option>`).join("") + `</select>`;
+    const list = adData.members, owner = adData.owner, rep = !!adData.rep;
+    // a row of pills (radio buttons in a fieldset, so the whole row can be disabled while it saves)
+    const seg = (name, opts, v, attr) => `<fieldset class="ad-seg" ${attr}>` +
+      opts.map(([k, t]) => `<label><input type="radio" name="${name}" value="${k}"${k === v ? " checked" : ""}><span>${t}</span></label>`).join("") + `</fieldset>`;
+    const workSel = (v, name, attr) => seg(name, ["常勤", "週末", "社員"].map((k) => [k, k]), v, attr);
+    // 運営 · 管理者 · メンバー (stored as 運営 / 管理者 / blank); only 代表 gives or takes 運営
+    const roleSel = (v, name, attr) => seg(name, (rep ? [["運営", "運営"]] : []).concat([["管理者", "管理者"], ["", "メンバー"]]), v || "", attr);
+    const picked = (el) => (el.querySelector("input:checked") || {}).value;
     // whether the contract is put in front of the person when they first open the app (blank on the sheet = 表示する)
     const askChk = (v, attr) => `<label class="check"><input type="checkbox" ${attr}${v === false ? "" : " checked"}> 最初に表示する</label>`;
-    const badge = (m) => m.role === "運営" ? `<span class="st st-done">運営</span>` : m.role === "管理者" ? `<span class="st st-work">管理者</span>` : "";
+    const badge = (m) => m.rep ? `<span class="st st-done">代表</span>` : m.role === "運営" ? `<span class="st st-done">運営</span>` : m.role === "管理者" ? `<span class="st st-work">管理者</span>` : "";
     $("ad-body").innerHTML =
       (owner ? `<form class="ad-add" id="ad-add" novalidate><b>メンバーを追加</b>` +
         `<label class="f">氏名<input id="ad-who" autocomplete="off" autocorrect="off" spellcheck="false" enterkeyhint="done"></label>` +
-        `<label class="f">勤務形態${workSel("", 'id="ad-work"')}</label>` +
-        `<label class="f">役割${roleSel("", 'id="ad-role"')}</label>` +
+        `<div class="f">勤務形態${workSel("", "ad-work", 'id="ad-work"')}</div>` +
+        `<div class="f">役割${roleSel("", "ad-role", 'id="ad-role"')}</div>` +
         `<div class="f">業務委託契約書${askChk(true, 'id="ad-ask"')}</div><button type="submit" class="btn primary" id="ad-add-btn">追加</button>` +
         `<p class="hint">ログインIDと仮パスワードは自動で作られます。追加したあとに出る画面からコピーして、本人に伝えてください。</p></form>` : "") +
       byWork(list).map(([t, g]) => `<h3 class="ad-grp">${esc(groupName(t))}（${g.length}人）</h3><div class="ad-cards">` + g.map((m, i) => {
-        const self = m.id === adData.me, signed = m.contract.split("（")[0];
+        // 運営 (and 代表) can be changed or removed by 代表 only; 出井張貴 stays 代表 and nobody changes their own role
+        const self = m.id === adData.me, signed = m.contract.split("（")[0], touch = owner && !self && !m.fixed && (rep || !m.owner);
         return `<div class="ad-card" data-id="${esc(m.id)}" data-name="${esc(m.name)}">` +
           `<div class="ad-card-h"><span>${numName(i, m.name)}</span>${badge(m)}</div>` +
           `<dl class="ad-kv">` +
           (m.loginId ? `<dt>ログインID</dt><dd><span class="ad-id">${esc(m.loginId)}<button type="button" class="tool" data-copyid="${esc(m.loginId)}">コピー</button></span></dd>` : "") +
-          `<dt>勤務形態</dt><dd>${workSel(m.workType, 'data-k="workType"')}</dd>` +
+          `<dt>勤務形態</dt><dd>${workSel(m.workType, `wt-${esc(m.id)}`, 'data-k="workType"')}</dd>` +
           `<dt>契約</dt><dd>${m.hasContract ? `<span class="num">${esc(signed)}</span><button type="button" class="tool" data-contract>契約書を見る</button><button type="button" class="tool" data-cdl>ダウンロード</button>` : `<span class="st st-late">未締結</span>`}</dd>` +
-          (owner && !m.hasContract ? `<dt>契約書</dt><dd>${askChk(m.contractAsk, 'data-k="contractAsk"')}</dd>` : "") +
-          // 運営 gives roles; 出井張貴 and 江田翔 always stay 運営, and nobody changes their own
-          (owner && !m.fixed && !self ? `<dt>役割</dt><dd>${roleSel(m.role, 'data-k="role"')}</dd>` : "") +
+          (owner && !m.hasContract && (self || rep || !m.owner) ? `<dt>契約書</dt><dd>${askChk(m.contractAsk, 'data-k="contractAsk"')}</dd>` : "") +
+          (touch ? `<dt>役割</dt><dd>${roleSel(m.role, `rl-${esc(m.id)}`, 'data-k="role"')}</dd>` : "") +
           `</dl>` +
-          (owner && !self && !m.fixed ? `<div class="ad-acts"><button type="button" class="tool" data-temp>ID・仮パスワードを発行</button><button type="button" class="tool danger" data-del>削除</button></div>` : "") +
+          (touch ? `<div class="ad-acts"><button type="button" class="tool" data-temp>ID・仮パスワードを発行</button><button type="button" class="tool danger" data-del>削除</button></div>` : "") +
           `</div>`;
       }).join("") + `</div>`).join("");
     const card = (el) => el.closest(".ad-card"), person = (c) => adData.members.find((m) => m.id === c.dataset.id);
@@ -3862,9 +3878,9 @@ ${v.addr}`;
     if (owner) noAutofill($("ad-who"));
     if (owner) $("ad-add").addEventListener("submit", (e) => {
       e.preventDefault();
-      const name = $("ad-who").value.trim(), workType = $("ad-work").value, role = $("ad-role").value, contractAsk = $("ad-ask").checked;
+      const name = $("ad-who").value.trim(), workType = picked($("ad-work")), role = picked($("ad-role")) || "", contractAsk = $("ad-ask").checked;
       if (!name) { adMsg("氏名を入れてください。"); $("ad-who").focus(); return; }
-      if (!workType) { adMsg("勤務形態（常勤・週末・社員）を選んでください。"); $("ad-work").focus(); return; }
+      if (!workType) { adMsg("勤務形態（常勤・週末・社員）を選んでください。"); $("ad-work").querySelector("input").focus(); return; }
       busyBtn($("ad-add-btn"), async () => {
         adMsg("追加しています…");
         try {
@@ -3879,7 +3895,7 @@ ${v.addr}`;
       b.textContent = ok ? "コピー済み" : "失敗"; setTimeout(() => { b.textContent = "コピー"; }, 1500);
     };
     for (const el of $("ad-body").querySelectorAll(".ad-card [data-k]")) el.onchange = async () => {
-      const c = card(el), m = person(c), k = el.dataset.k, v = k === "contractAsk" ? el.checked : el.value;
+      const c = card(el), m = person(c), k = el.dataset.k, v = k === "contractAsk" ? el.checked : picked(el);
       el.disabled = true; adMsg(`${m.name}さんを保存しています…`);
       try {
         await call("api_adminSaveMember", { id: m.id, [k]: v });
