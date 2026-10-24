@@ -596,6 +596,24 @@ fieldset:disabled .f input, fieldset:disabled .f textarea, fieldset:disabled .f 
   box-shadow: 0 14px 30px -14px color-mix(in srgb, var(--accent) 80%, #000), inset 0 1px 0 rgb(255 255 255 / .25); }
 .install::after { content: ""; position: absolute; right: -40px; top: -40px; width: 150px; height: 150px; border-radius: 50%; background: rgb(255 255 255 / .1); pointer-events: none; }
 .install[hidden] { display: none; }
+/* the steps written out on the banner, on a light card so they read as in the sheet */
+.install-inline { position: relative; z-index: 1; background: var(--card); color: var(--ink); border-radius: 12px; padding: 12px 14px; }
+.install-inline[hidden] { display: none; }
+.install-inline .im-step { padding: 9px 0; gap: 10px; }
+.install-inline .im-step:first-child { border-top: 0; padding-top: 0; }
+.install-inline .im-body b { font-size: 15px; }
+.install-inline .im-body b svg { width: 17px; height: 17px; vertical-align: -3px; }
+.im-after { margin: 6px 0 0; padding-top: 8px; border-top: 1px solid var(--rule); font-size: 12px; color: var(--ink-soft); display: flex; align-items: center; gap: 6px; flex-wrap: wrap; }
+.im-after .im-tile { display: inline-flex; vertical-align: middle; }
+.im-after .im-tile img { width: 22px; height: 22px; border-radius: 6px; }
+.im-after .im-tile span { display: none; }
+/* iPhone Safari: a bobbing arrow at the very bottom, where the share button is */
+.install-pointer { position: fixed; left: 50%; bottom: calc(10px + env(safe-area-inset-bottom, 0px)); transform: translateX(-50%); z-index: 30;
+  display: flex; align-items: center; gap: 6px; padding: 7px 14px; border-radius: 999px; background: var(--accent); color: #fff;
+  font-size: 13px; font-weight: 700; box-shadow: 0 6px 18px rgb(0 0 0 / .25); animation: ip-bob 1.2s ease-in-out infinite; pointer-events: none; white-space: nowrap; }
+.install-pointer[hidden] { display: none; }
+.install-pointer svg { width: 16px; height: 16px; }
+@keyframes ip-bob { 0%, 100% { transform: translate(-50%, 0); } 50% { transform: translate(-50%, 6px); } }
 .install-top { display: grid; grid-template-columns: auto 1fr auto; gap: 12px; align-items: center; }
 .install-icon { width: 52px; height: 52px; border-radius: 13px; background: #fff; box-shadow: 0 4px 12px rgb(0 0 0 / .25); }
 .install-text { display: grid; gap: 3px; font-size: 12.5px; line-height: 1.5; color: rgb(255 255 255 / .85); }
@@ -926,6 +944,10 @@ button.pcal-c { cursor: pointer; }
 .ps-t .ps-sum th, .ps-t .ps-sum td { font-weight: 700; color: var(--ink); background: color-mix(in srgb, var(--rule) 35%, transparent); }
 .ps-co caption { color: var(--break); }
 .ps-note { margin: 0; font-size: 12px; color: var(--ink-soft); white-space: pre-wrap; }
+.ps-work { margin: 0; font-size: 12px; color: var(--ink-soft); line-height: 1.7; }
+.ps-work b { color: var(--ink); font-family: var(--f-num); }
+.ld-tbl th:first-child { text-align: left; white-space: nowrap; }
+.ld-tbl td { white-space: nowrap; }
 .ps-head { display: flex; align-items: center; justify-content: space-between; gap: 8px; }
 .ps-head .bl-h { margin-bottom: 6px; }
 .ps-form { display: grid; gap: 8px; }
@@ -935,6 +957,22 @@ button.pcal-c { cursor: pointer; }
 .pay-view { display: grid; gap: 10px; }
 .pay-h { margin: 0; font-size: 16px; }
 .pay-none { margin: 0; padding: 24px 0; text-align: center; color: var(--ink-soft); font-size: 14px; }
+/* メンバー: folded cards (name, then ID・勤務形態・役割・契約 in one line); a tap opens the full card */
+.ad-fold { gap: 0; }
+.ad-sum { display: grid; gap: 4px; cursor: pointer; -webkit-tap-highlight-color: transparent; outline: none; border-radius: 8px; }
+.ad-sum:focus-visible { box-shadow: 0 0 0 2px var(--accent); }
+.ad-sum-r { display: flex; align-items: center; gap: 8px; flex: none; }
+.ad-chev { width: 8px; height: 8px; border-right: 2px solid var(--ink-soft); border-bottom: 2px solid var(--ink-soft); transform: rotate(45deg) translateY(-2px); transition: transform .15s; }
+.ad-fold.open .ad-chev { transform: rotate(-135deg) translateY(-2px); }
+.ad-sum-l { font-size: 12px; color: var(--ink-soft); display: flex; flex-wrap: wrap; align-items: center; min-width: 0; }
+.ad-sum-l i { font-style: normal; margin: 0 3px; opacity: .6; }
+.ad-sum-l .num { color: var(--ink); font-weight: 600; letter-spacing: .04em; }
+.ad-sum-l .sum-ok { color: var(--ok); font-weight: 700; }
+.ad-sum-l .sum-ng { color: var(--stamp-red); font-weight: 700; }
+.ad-more { display: none; gap: 6px; padding-top: 8px; margin-top: 8px; border-top: 1px dashed var(--rule); }
+.ad-fold.open .ad-more { display: grid; }
+.ad-fold.open .ad-sum-l { display: none; }
+.ad-fold:not(.open):hover { border-color: color-mix(in srgb, var(--accent) 50%, var(--rule)); }
 /* while a tab's read is on its way: a quiet line with a small spinner in the tab's place */
 .ad-loading { display: flex; align-items: center; justify-content: center; gap: 8px; margin: 0; padding: 28px 0; font-size: 13px; color: var(--ink-soft); }
 .ad-loading::before { content: ""; width: 14px; height: 14px; border-radius: 50%; border: 2px solid var(--rule); border-top-color: var(--accent); animation: ptr-spin .8s linear infinite; }
@@ -1042,8 +1080,10 @@ button.pcal-c { cursor: pointer; }
       <div class="install-text"><b>Themis Portal をアプリで使う</b><span id="install-sub">ホーム画面に追加すると、ワンタップで開けて全画面で使えます。</span></div>
       <button type="button" class="install-later" id="install-later">後で</button>
     </div>
+    <div class="install-inline" id="install-inline" hidden></div>
     <button type="button" class="install-go" id="install-go">ホーム画面に追加する</button>
   </div>
+  <div class="install-pointer" id="install-pointer" hidden aria-hidden="true"></div>
 
   <section class="login" id="login" hidden aria-label="ログイン">
     <div class="login-card">
@@ -1490,7 +1530,7 @@ button.pcal-c { cursor: pointer; }
     <label class="f">住所<input id="s-address" type="text" autocomplete="off" maxlength="100" placeholder="東京都新宿区西新宿1-2-3"></label>
     <label class="f">建物名・部屋番号（任意）<input id="s-building" type="text" autocomplete="off" maxlength="60" placeholder="〇〇マンション 101"></label>
     <label class="f">電話番号<input id="s-tel" type="tel" inputmode="tel" autocomplete="off" maxlength="15" placeholder="090-1234-5678"></label>
-    <div class="f" role="radiogroup" aria-labelledby="s-work-h"><span id="s-work-h">勤務形態</span>
+    <div class="f" role="radiogroup" aria-labelledby="s-work-h" id="s-work-box"><span id="s-work-h">勤務形態</span>
       <div class="s-work"><label class="check"><input type="radio" name="s-work" value="常勤"> 常勤</label><label class="check"><input type="radio" name="s-work" value="週末"> 週末</label><label class="check"><input type="radio" name="s-work" value="社員"> 社員</label></div>
       <span class="hint">常勤の人は、シフト希望の提出はありません。社員の人は、シフト表だけを使います。</span></div>
     <span class="hint perr" id="s-err" role="alert"></span>
@@ -1877,7 +1917,8 @@ window.addEventListener("error", function (e) {
   $("tab-hope").onclick = () => pickTab("hope");
   // 常勤 staff hand in no shift wishes, so they never see that tab; 社員 send no invoice and hand in no wishes:
   // they get their 給与明細 instead
-  const tabOk = (t) => t === "card" || (window.TC_WORK === "社員" ? t === "pay" : t === "inv" || (t === "hope" && window.TC_WORK !== "常勤"));
+  // 代表 has no 勤務形態 and sees every tab
+  const tabOk = (t) => t === "card" || !!window.TC_REP || (window.TC_WORK === "社員" ? t === "pay" : t === "inv" || (t === "hope" && window.TC_WORK !== "常勤"));
   function applyWork() {
     $("tab-hope").hidden = !tabOk("hope"); $("tab-inv").hidden = !tabOk("inv"); $("tab-pay").hidden = !tabOk("pay");
     if (!tabOk(tab)) setTab("card");
@@ -2970,6 +3011,7 @@ ${v.addr}`;
     $("s-from").value = b.from || window.TC_NAME || "";
     for (const k of ADDR) $("s-" + k).value = b[k] || "";
     for (const r of document.getElementsByName("s-work")) r.checked = r.value === window.TC_WORK;
+    $("s-work-box").hidden = !!window.TC_REP;   // 代表 has no 勤務形態
     $("s-err").textContent = "";
     $("setup-sheet").hidden = false;
     focusIfMouse($("s-from"));
@@ -2982,8 +3024,8 @@ ${v.addr}`;
     if (!val("address")) { $("s-err").textContent = "住所を入力してください。"; $("s-address").focus(); return; }
     if (!val("tel")) { $("s-err").textContent = "電話番号を入力してください。"; $("s-tel").focus(); return; }
     const work = [...document.getElementsByName("s-work")].find((r) => r.checked)?.value;
-    if (!work) { $("s-err").textContent = "勤務形態（常勤・週末・社員）を選んでください。"; return; }
-    if (work !== window.TC_WORK) {
+    if (!work && !window.TC_REP) { $("s-err").textContent = "勤務形態（常勤・週末・社員）を選んでください。"; return; }
+    if (work && !window.TC_REP && work !== window.TC_WORK) {
       const btn = e.submitter || $("setup-form").querySelector("[type=submit]");
       btn.disabled = true; $("s-err").textContent = "保存しています…";
       try { await call("api_setWorkType", work); window.TC_WORK = work; applyWork(); $("s-err").textContent = ""; }
@@ -3146,8 +3188,10 @@ ${v.addr}`;
   //   - a tab picked by hand while the page loads (viewPicked) wins over the saved one
   const VIEW_KEY = "tc_view", VIEW_TTL = 30 * 60 * 1000;
   let viewReady = false;   // no saving until the saved spot has been put back, or it would be overwritten
+  // a tab picked by hand is always kept, even while the server cannot be reached (otherwise a reload would bring
+  // back the tab saved before it)
   function saveView() {
-    if (!viewReady || !CRED || !backend) return;
+    if (!CRED || !(viewReady && backend) && !viewPicked) return;
     const ym = (d) => `${d.getFullYear()}-${pad(d.getMonth() + 1)}`;
     const months = Object.fromEntries(Object.entries({ ...tabView, [tab]: view }).map(([k, d]) => [k, ym(d)]));
     const s = JSON.stringify({ at: Date.now(), mode, tab, months, y: window.scrollY, adTab, adMonth, adPerson, adListY });
@@ -3155,6 +3199,13 @@ ${v.addr}`;
   }
   addEventListener("pagehide", saveView);
   document.addEventListener("visibilitychange", () => { if (document.visibilityState === "hidden") saveView(); });
+  // back on the admin screen after a minute or more away (another app, another tab): read it again, so what another
+  // device or the other 運営 changed meanwhile shows (not while a box is open, so nothing typed is lost)
+  let hiddenAt = 0;
+  document.addEventListener("visibilitychange", () => {
+    if (document.visibilityState === "hidden") { hiddenAt = Date.now(); return; }
+    if (mode === "admin" && hiddenAt && Date.now() - hiddenAt > 60000 && $("ad-dlg").hidden && backend) adLoad(true);
+  });
   let scrollSave = null;
   addEventListener("scroll", () => { clearTimeout(scrollSave); scrollSave = setTimeout(saveView, 300); }, { passive: true });
   function savedView() {
@@ -3272,23 +3323,45 @@ ${v.addr}`;
   // the installed app runs full screen from the home screen; people using it in a phone's browser are shown how to add it
   let installEvt = null;
   window.addEventListener("beforeinstallprompt", (e) => { e.preventDefault(); installEvt = e; });
-  window.addEventListener("appinstalled", () => { $("install").hidden = true; $("install-sheet").hidden = true; });
+  window.addEventListener("appinstalled", () => { $("install").hidden = true; $("install-pointer").hidden = true; $("install-sheet").hidden = true; });
   const UA = navigator.userAgent;
   const isIOS = /iPhone|iPad|iPod/.test(UA) || (/Macintosh/.test(UA) && navigator.maxTouchPoints > 1);
   const isAndroid = /Android/.test(UA);
   // LINE, Instagram and the like open links in their own browser, which cannot add to the home screen
   const inAppBrowser = /Line\/|Instagram|FBAN|FBAV|Twitter|MicroMessenger/i.test(UA);
+  // LINE hands a link carrying openExternalBrowser=1 to Safari / Chrome, where the app can be added to the home
+  // screen: opened inside LINE, the page sends itself there once (the param stops it going round again). In the
+  // real browser the param is taken off the address again, so it is not kept in the home-screen icon, and the steps
+  // to add it open by themselves: the page is loaded afresh there, so the steps shown inside LINE are gone
+  let fromLine = false;
+  (() => {
+    if (viaGas) return;
+    const u = new URL(location.href), sent = u.searchParams.get("openExternalBrowser") === "1";
+    if (/Line\//i.test(UA) && !sent) { u.searchParams.set("openExternalBrowser", "1"); location.replace(u.href); return; }
+    if (sent && !/Line\//i.test(UA)) {
+      fromLine = true;
+      u.searchParams.delete("openExternalBrowser"); history.replaceState(history.state, "", u.href);
+    }
+  })();
   const standalone = () => matchMedia("(display-mode: standalone)").matches || navigator.standalone === true;
   const LATER = "tc_install_later", LATER_DAYS = 7;
   function installHint(appUrl) {
     if (standalone() || !(isIOS || isAndroid) || !$("install").hidden) return;
-    try { if (Date.now() - Number(localStorage.getItem(LATER) || 0) < LATER_DAYS * 864e5) return; } catch (e) {}
+    // just sent over from LINE to add the app: shown even after 後で
+    if (!fromLine) try { if (Date.now() - Number(localStorage.getItem(LATER) || 0) < LATER_DAYS * 864e5) return; } catch (e) {}
+    fromLine = false;
     // the Apps Script page itself cannot be installed: it sends people to the app's own address instead
     if (viaGas) {
       if (!appUrl || /script\.google/.test(appUrl)) return;
       $("install").dataset.url = appUrl;
       $("install-sub").textContent = "アプリ版を開いて、そこからホーム画面に追加してください。";
       $("install-go").textContent = "アプリ版を開く";
+    } else {
+      // in a phone's browser the steps are written out on the page itself, not behind a button; the button stays
+      // only where one tap can install (Android Chrome)
+      $("install-inline").innerHTML = installSteps(); $("install-inline").hidden = false;
+      $("install-go").hidden = !(isAndroid && !inAppBrowser);
+      if (isIOS && !inAppBrowser) { $("install-pointer").innerHTML = `${ICON.share}ここ（画面の下）の共有ボタン ↓`; $("install-pointer").hidden = false; }
     }
     $("install").hidden = false;
   }
@@ -3304,38 +3377,42 @@ ${v.addr}`;
     tabs: svg(`<rect x="4" y="7" width="13" height="13" rx="2"/><path d="M8 4h10a2 2 0 0 1 2 2v10"/>`),
     globe: svg(`<circle cx="12" cy="12" r="9"/><path d="M3 12h18M12 3a14 14 0 0 1 0 18M12 3a14 14 0 0 0 0 18"/>`),
   };
-  $("install-go").onclick = async () => {
+  $("install-go").onclick = () => installGo(false);
+  // auto: opened by itself (not by a tap), when the one-tap install of Android cannot be started
+  async function installGo(auto) {
     const url = $("install").dataset.url;
     if (url) { const a = document.createElement("a"); a.href = url; a.target = "_top"; a.rel = "noopener"; document.body.appendChild(a); a.click(); a.remove(); return; }
     // Android Chrome can install in one tap
-    if (installEvt && !inAppBrowser) {
+    if (installEvt && !inAppBrowser && !auto) {
       installEvt.prompt();
       const r = await installEvt.userChoice.catch(() => null);
       installEvt = null;
       if (r?.outcome === "accepted") { $("install").hidden = true; return; }
     }
+    $("install-steps").innerHTML = installSteps();
+    $("install-sheet").hidden = false;
+  }
+  // the steps for this phone and browser
+  function installSteps() {
     // each step: a title, what to do when the button is not where expected, and a small picture of what to look for
     const step = (n, title, text, pic) => `<li class="im-step"><span class="im-n">${n}</span><div class="im-body"><b>${title}</b>${text ? `<p>${text}</p>` : ""}${pic ? `<div class="im-pic">${pic}</div>` : ""}</div></li>`;
     const chip = (icon, label, on) => `<span class="im-chip${on ? " on" : ""}">${icon}${label ? `<span>${label}</span>` : ""}</span>`;
     const tile = `<span class="im-tile"><img alt="" src="icons/apple-touch-icon.png" onerror="this.style.visibility='hidden'"><span>Themis</span></span>`;
-    $("install-steps").innerHTML = `<ol class="im-steps">` + (inAppBrowser
-      ? step(1, "ブラウザで開き直す", "LINEなどのアプリの中の画面からは追加できません。画面の右上（または右下）の「…」や共有のメニューを押します。", chip(ICON.dots, "", true)) +
-        step(2, "「ブラウザで開く」を選ぶ", "iPhoneは「Safariで開く」、Androidは「Chromeで開く」と出ることもあります。", chip(ICON.globe, "ブラウザで開く", true)) +
-        step(3, "開いた画面で、もう一度「ホーム画面に追加する」を押す", "", "")
+    // three short steps at most, each with the button to look for; one line under them for what comes after
+    const arrow = `<span class="im-arrow">→</span>`;
+    return `<ol class="im-steps">` + (inAppBrowser
+      ? step(1, "右上の「…」を押す", "", chip(ICON.dots, "", true)) +
+        step(2, "「ブラウザで開く」を押す", "", chip(ICON.globe, "ブラウザで開く", true))
       : isIOS
-      ? step(1, "画面の下のバーを出す", "バーが隠れている時は、画面を指で少し下になぞる（上に戻す）か、画面の一番下を軽くタップすると出てきます。",
-          `<span class="im-bar">${ICON.back}${ICON.fwd}${chip(ICON.share, "", true)}${ICON.book}${ICON.tabs}</span>`) +
-        step(2, `共有ボタン ${ICON.share} を押す`, "四角から上向きの矢印が出ているマークです。見つからない時は、右下（Chromeは右上）の「…」を押すと「共有」があります。",
-          chip(ICON.share, "共有", true) + `<span class="im-alt"><span class="im-or">見つからない時は</span>` + chip(ICON.dots, "") + `<span class="im-arrow">→</span>` + chip(ICON.share, "共有") + `</span>`) +
-        step(3, "「ホーム画面に追加」を押す", "出てきたメニューを上にずらすと、下の方にあります。", chip(ICON.plus, "ホーム画面に追加", true)) +
-        step(4, "右上の「追加」を押す", "", chip("", "追加", true)) +
-        step(5, "ホーム画面のアイコンから開く", "開いたら、もう一度ログインしてください（最初の1回だけです）。", tile)
-      : step(1, "Chromeの右上の「⋮」を押す", "アドレス欄の右にある、縦に点が3つ並んだボタンです。", chip(ICON.dots3, "", true)) +
-        step(2, "「アプリをインストール」または「ホーム画面に追加」を押す", "", chip(ICON.plus, "ホーム画面に追加", true)) +
-        step(3, "「インストール」を押す", "", chip("", "インストール", true)) +
-        step(4, "ホーム画面のアイコンから開く", "", tile)) + `</ol>`;
-    $("install-sheet").hidden = false;
-  };
+      ? step(1, `画面の下の ${ICON.share} を押す`, "", chip(ICON.share, "共有", true) +
+          `<span class="im-alt"><span class="im-or">ない時は</span>${chip(ICON.dots, "")}${arrow}${chip(ICON.share, "共有")}</span>`) +
+        step(2, "「ホーム画面に追加」を押す", "", chip(ICON.plus, "ホーム画面に追加", true)) +
+        step(3, "右上の「追加」を押す", "", chip("", "追加", true))
+      : step(1, "右上の「⋮」を押す", "", chip(ICON.dots3, "", true)) +
+        step(2, "「ホーム画面に追加」を押す", "", chip(ICON.plus, "ホーム画面に追加", true)) +
+        step(3, "「インストール」を押す", "", chip("", "インストール", true))) + `</ol>` +
+      `<p class="im-after">${inAppBrowser ? "開いたブラウザに、続きの手順が出ます。" : `追加したら、ホーム画面の ${tile} から開いてください。`}</p>`;
+  }
   $("install-close").onclick = () => { $("install-sheet").hidden = true; };
 
   // ---- pull down to refresh: the installed app has no browser bar to reload from ----
@@ -3377,11 +3454,11 @@ ${v.addr}`;
       if (Object.keys(saveTimers).length || Object.values(inflight).some((n) => n > 0)) { msg("保存が終わってから、もう一度引っぱってください。"); return; }
       bar.classList.add("busy"); draw(0.75);
       if (mode === "admin") adLoad(true).finally(() => { bar.classList.remove("busy"); draw(0); });
-      else location.reload();
+      else { saveView(); location.reload(); }
     }
   })();
   $("install-later").onclick = () => {
-    $("install").hidden = true;
+    $("install").hidden = true; $("install-pointer").hidden = true;
     try { localStorage.setItem(LATER, String(Date.now())); } catch (e) {}
   };
   let adStarted = false, adReady = Promise.resolve();   // adReady settles once the admin screen has drawn
@@ -3397,6 +3474,7 @@ ${v.addr}`;
     const toAdmin = mode === "member";
     // the admin screen opens only once the person's own first steps (はじめに・契約) are done
     if (toAdmin && (!backend || needsSetup())) return;
+    viewPicked = true;   // chosen by hand: kept over a reload, like a tab
     mode = toAdmin ? "admin" : "member";
     $("admin").hidden = !toAdmin; $("member-ui").hidden = toAdmin;
     $("adminbtn").textContent = toAdmin ? "通常画面" : "管理画面";
@@ -3492,10 +3570,11 @@ ${v.addr}`;
     $("admin").setAttribute("aria-label", sp === "unei" ? "運営画面" : "管理画面");
   }
   function startAdmin() {
-    for (const b of $("ad-tabs").querySelectorAll("button")) b.onclick = () => { adTab = b.dataset.t; adPerson = null; adLoad(); };
+    for (const b of $("ad-tabs").querySelectorAll("button")) b.onclick = () => { viewPicked = true; adTab = b.dataset.t; adPerson = null; adLoad(); };
     // 管理画面 ⇄ 運営画面: back to the tab last open there
     for (const b of $("ad-space").querySelectorAll("button")) b.onclick = () => {
       if (spaceOf(adTab) === b.dataset.s) return;
+      viewPicked = true;
       adTab = adLast[b.dataset.s]; adPerson = null; window.scrollTo(0, 0); adLoad();
     };
     $("ad-prev").onclick = () => adShift(-1);
@@ -3581,9 +3660,11 @@ ${v.addr}`;
   };
 
   // 常勤, 週末 and 社員 are always listed apart, each numbered from 001 so the head count is plain to see
-  const WORK_GROUPS = ["社員", "常勤", "週末", ""];
+  // 代表 has no 勤務形態 and is listed on its own, first
+  const WORK_GROUPS = ["代表", "社員", "常勤", "週末", ""];
   const groupName = (t) => t || "勤務形態が未回答";
-  const byWork = (list, key = (x) => x) => WORK_GROUPS.map((t) => [t, list.filter((x) => (key(x).workType || "") === t)]).filter(([, l]) => l.length);
+  const groupOf = (m) => (m.rep ? "代表" : m.workType || "");
+  const byWork = (list, key = (x) => x) => WORK_GROUPS.map((t) => [t, list.filter((x) => groupOf(key(x)) === t)]).filter(([, l]) => l.length);
   const numName = (i, name) => `<span class="no">${String(i + 1).padStart(3, "0")}</span>${esc(name)}`;
 
   function adToday() {
@@ -3756,7 +3837,8 @@ ${v.addr}`;
     const ym = adMonth.inv, byName = Object.fromEntries(adData.invs.map((r) => [r[0], r]));
     const pays = adData.pays || {};
     const staff = adData.members.filter((m) => m.workType === "社員" && (m.active || pays[m.id]));
-    const live = adData.members.filter((m) => m.workType !== "社員" && (m.active || byName[m.name]));
+    // 代表 neither invoices nor gets a payslip (unless an invoice of theirs is already there)
+    const live = adData.members.filter((m) => m.workType !== "社員" && (m.active && !m.rep || byName[m.name]));
     const worked = new Set(adData.worked || []);
     // nobody expects an invoice from someone who did not work that month and was given no amount
     const stOf = (m) => {
@@ -3825,6 +3907,11 @@ ${v.addr}`;
   const PAY_DED = [["health", "健康保険"], ["care", "介護保険"], ["pension", "厚生年金"], ["employ", "雇用保険"], ["incomeTax", "所得税"], ["residentTax", "住民税"], ["otherDed", "その他控除"]];
   const PAY_CO = [["health", "健康保険"], ["care", "介護保険"], ["pension", "厚生年金"], ["child", "子ども・子育て拠出金"], ["employ", "雇用保険"], ["rousai", "労災保険"]];
   const PAY_RATE_LABEL = [["child", "子ども・子育て拠出金"], ["employ", "雇用保険（会社分）"], ["rousai", "労災保険"]];
+  // the month's hours for the 賃金台帳: days, then minutes shown as H:MM
+  const PAY_WORK = [["total", "労働時間"], ["over", "時間外"], ["holiday", "休日（日曜）"], ["night", "深夜（22〜5時）"]];
+  const hmText = (min) => `${Math.floor((min || 0) / 60)}:${String((min || 0) % 60).padStart(2, "0")}`;
+  const minOfText = (s) => { const m = /^\s*(\d{1,3})(?::(\d{1,2}))?\s*$/.exec(String(s || "")); return m ? Number(m[1]) * 60 + Math.min(59, Number(m[2] || 0)) : 0; };
+  const workLine = (w) => w ? `<p class="ps-work">労働日数 <b>${w.days || 0}日</b>` + PAY_WORK.map(([k, l]) => `・${l.replace(/（.*）/, "")} <b>${hmText(w[k])}</b>`).join("") + `</p>` : "";
   function payTotals(items, rates) {
     const v = (k) => Number(items[k]) || 0, sum = (l) => l.reduce((s, [k]) => s + v(k), 0);
     const gross = sum(PAY_EARN), ded = sum(PAY_DED);
@@ -3839,7 +3926,7 @@ ${v.addr}`;
     const rows = (list) => list.filter(([k]) => Number(it[k])).map(([k, l]) => `<tr><th>${l}</th><td>${yen(Number(it[k]))}</td></tr>`).join("") || `<tr><th>—</th><td></td></tr>`;
     return `<div class="payslip">` +
       `<div class="ps-net"><span>差引支給額</span><b class="num">${yen(t.net || 0)}</b></div>` +
-      (p.payDay ? `<p class="ps-day">支給日 ${esc(p.payDay.replace(/-/g, "/"))}</p>` : "") +
+      (p.payDay ? `<p class="ps-day">支給日 ${esc(p.payDay.replace(/-/g, "/"))}</p>` : "") + workLine(p.work) +
       `<div class="ps-cols"><table class="ps-t num"><caption>支給</caption>${rows(PAY_EARN)}<tr class="ps-sum"><th>総支給額</th><td>${yen(t.gross || 0)}</td></tr></table>` +
       `<table class="ps-t num"><caption>控除</caption>${rows(PAY_DED)}<tr class="ps-sum"><th>控除合計</th><td>${yen(t.ded || 0)}</td></tr></table></div>` +
       (withCompany && t.company ? `<table class="ps-t ps-co num"><caption>会社負担（本人には見えません）</caption>` +
@@ -3858,7 +3945,8 @@ ${v.addr}`;
           `<div class="ad-card-h"><span>${numName(i, m.name)}</span>${st}</div>` +
           (t ? `<dl class="ad-kv"><dt>差引支給</dt><dd class="num">${yen(t.net)}</dd><dt>総支給</dt><dd class="num">${yen(t.gross)}</dd>` +
             `<dt>会社負担</dt><dd class="num">${yen(t.company.total)}</dd><dt>人件費</dt><dd class="num"><b>${yen(t.cost)}</b></dd></dl>` : "") +
-          `<div class="ad-acts"><button type="button" class="${p ? "tool" : "btn primary sm"}" data-pay>${p ? "編集する" : "給与明細を作る"}</button></div></div>`;
+          `<div class="ad-acts"><button type="button" class="${p ? "tool" : "btn primary sm"}" data-pay>${p ? "編集する" : "給与明細を作る"}</button>` +
+          `<button type="button" class="tool" data-ledger>賃金台帳</button></div></div>`;
       }).join("") + `</div>`;
   }
   function payWire(ym, pays) {
@@ -3873,18 +3961,37 @@ ${v.addr}`;
           $("ad-dlg").hidden = true; adMsg("会社負担の料率を保存しました。これから保存する給与明細から使われます。");
         });
     };
-    for (const b of $("ad-body").querySelectorAll("[data-pay]")) b.onclick = () => {
-      const c = b.closest(".ad-card"), id = c.dataset.id, name = c.dataset.name, p = pays[id] || { items: {}, published: false };
+    // the editor opens on the payslip as it is on the server now: another screen (another device, or the other 運営)
+    // may have saved one since this list was loaded, and it must not be overwritten with an empty form
+    for (const b of $("ad-body").querySelectorAll("[data-pay]")) b.onclick = () => busyBtn(b, async () => {
+      const c = b.closest(".ad-card"), id = c.dataset.id;
+      adMsg("最新の給与明細を読み込んでいます…");
+      try {
+        const fresh = JSON.parse(await call("api_adminGetPay", id, ym));
+        if (fresh) pays[id] = fresh; else delete pays[id];
+        adMsg("");
+      } catch (e) { adMsg(errText(e)); return; }
+      openPay(c);
+    });
+    function openPay(c) {
+      const id = c.dataset.id, name = c.dataset.name, p = pays[id] || { items: {}, published: false };
       const field = ([k, l]) => `<label class="f">${l}<input type="number" min="0" step="1" inputmode="numeric" data-pi="${k}" value="${Number(p.items[k]) || ""}" placeholder="0"></label>`;
+      // hours: those saved with the payslip, or for a new one those counted from the month's records
+      const w = p.work || (adData.payWork || {})[id] || {};
       adDialog(`${name}さんの給与明細（${ymLabel(ym)}分）`,
-        `<div class="ps-form"><b class="ps-sec">支給</b><div class="f2">${PAY_EARN.map(field).join("")}</div>` +
+        `<div class="ps-form"><b class="ps-sec">勤怠（賃金台帳に載ります）</b>` +
+        `<p class="hint">勤怠の記録から数えた値です。休憩は記録されていないので、休憩を引いた時間に直してください。時間は「8:30」のように入れます。</p>` +
+        `<div class="f2"><label class="f">労働日数<input type="number" min="0" max="31" step="1" inputmode="numeric" data-pw="days" value="${w.days || 0}"></label>` +
+        PAY_WORK.map(([k, l]) => `<label class="f">${l}<input inputmode="numeric" data-pw="${k}" value="${hmText(w[k])}" placeholder="0:00"></label>`).join("") + `</div>` +
+        `<b class="ps-sec">支給</b><div class="f2">${PAY_EARN.map(field).join("")}</div>` +
         `<b class="ps-sec">控除</b><div class="f2">${PAY_DED.map(field).join("")}</div>` +
         `<div class="f2"><label class="f">支給日<input type="date" id="ps-day" value="${esc(p.payDay || "")}"></label></div>` +
         `<label class="f">備考<input id="ps-note" maxlength="200" value="${esc(p.note || "")}"></label>` +
         `<label class="check"><input type="checkbox" id="ps-pub"${p.published ? " checked" : ""}> 本人に公開する</label>` +
         `<div id="ps-preview"></div></div>`,
         "保存する", async () => {
-          const pay = readPay();
+          // base: the version this form was opened on (0 = none yet), so a newer one saved elsewhere is not overwritten
+          const pay = { ...readPay(), base: pays[id] ? pays[id].rev || 1 : 0 };
           const saved = JSON.parse(await call("api_adminSavePay", id, ym, pay));
           pays[id] = saved; adData.pays = pays;
           blData = blPending = null;   // 売上 is read again with this 人件費
@@ -3894,12 +4001,32 @@ ${v.addr}`;
       const readPay = () => {
         const items = {};
         for (const el of $("ad-dlg-body").querySelectorAll("[data-pi]")) items[el.dataset.pi] = Math.max(0, Math.round(Number(el.value) || 0));
-        return { items, payDay: $("ps-day").value, note: $("ps-note").value.trim(), published: $("ps-pub").checked };
+        const work = {};
+        for (const el of $("ad-dlg-body").querySelectorAll("[data-pw]")) work[el.dataset.pw] = el.dataset.pw === "days" ? Math.max(0, Math.round(Number(el.value) || 0)) : minOfText(el.value);
+        return { items, work, payDay: $("ps-day").value, note: $("ps-note").value.trim(), published: $("ps-pub").checked };
       };
       // the preview follows every keystroke, company's share included
       const preview = () => { const pay = readPay(); $("ps-preview").innerHTML = payslipHTML({ ...pay, totals: payTotals(pay.items, rates) }, true); };
       $("ad-dlg-body").oninput = preview; preview();
-    };
+    }
+    // 賃金台帳: one 社員's year, laid out as the ledger is kept (items down, months across)
+    for (const b of $("ad-body").querySelectorAll("[data-ledger]")) b.onclick = () => busyBtn(b, async () => {
+      const c = b.closest(".ad-card"), name = c.dataset.name, year = ym.slice(0, 4);
+      adMsg("賃金台帳を読み込んでいます…");
+      try {
+        const r = JSON.parse(await call("api_adminLedger", c.dataset.id, year)); adMsg("");
+        const H = r.headers, months = r.rows.sort((a, z) => a[2].localeCompare(z[2]));
+        const skip = new Set(["氏名", "性別", "対象月", "更新日時"]);
+        const body = months.length
+          ? `<p class="hint">氏名：${esc(name)}　性別：${esc(r.gender || "未入力（メンバータブで入れてください）")}</p>` +
+            `<div class="sl-wrap"><table class="sl-tbl ld-tbl num"><thead><tr><th></th>${months.map((x) => `<th>${Number(x[2].slice(5))}月</th>`).join("")}</tr></thead><tbody>` +
+            H.map((h, i) => skip.has(h) ? "" : `<tr><th>${esc(h)}</th>${months.map((x) => `<td>${/^\d+$/.test(x[i]) && i > 4 ? yen(Number(x[i])) : esc(x[i])}</td>`).join("")}</tr>`).join("") +
+            `</tbody></table></div><p class="hint">スプレッドシートの「賃金台帳」シートにも、同じ内容が残っています。</p>`
+          : `<p>${esc(year)}年の給与明細がまだないため、賃金台帳はありません。給与明細を保存すると、自動で記録されます。</p>`;
+        adDialog(`${name}さんの賃金台帳（${year}年）`, body, "閉じる", async () => { $("ad-dlg").hidden = true; });
+        $("ad-dlg-close").textContent = "閉じる"; $("ad-dlg-ok").hidden = true;
+      } catch (e) { adMsg(errText(e)); }
+    });
   }
 
   // PDFs from the owner's Drive are drawn inside the app (pdf.js), so any admin's phone can show them
@@ -4012,6 +4139,7 @@ ${v.addr}`;
 
   // one card per person instead of a wide table; a change of 勤務形態 or 管理者 is saved the moment it is made.
   // The owner sees every ログインID and can add, reset and remove people and give 管理者; other admins see their own ID only
+  const adOpenCards = new Set();
   function adMembers() {
     // 未回答 is not a choice: until one is made the box only says 選んでください
     const list = adData.members, owner = adData.owner, rep = !!adData.rep;
@@ -4038,21 +4166,40 @@ ${v.addr}`;
         // 運営 (and 代表) can be changed or removed by 代表 only; 出井張貴 stays 代表 and nobody changes their own role
         const self = m.id === adData.me, signed = m.contract.split("（")[0], touch = owner && !self && !m.fixed && (rep || !m.owner);
         const askable = owner && !m.hasContract && (self || rep || !m.owner);
-        // name and ログインID on top, then one line each for 勤務形態 · 役割 · 契約, and the account buttons last
-        return `<div class="ad-card" data-id="${esc(m.id)}" data-name="${esc(m.name)}">` +
-          `<div class="ad-card-h"><span>${numName(i, m.name)}</span>${badge(m)}</div>` +
+        // folded: the name with ID · 勤務形態 · 役割 · 契約 in one line; a tap opens it to change things
+        // (name and ログインID on top, then one line each for 勤務形態 · 役割 · 契約, and the account buttons last)
+        const open = adOpenCards.has(m.id);
+        const sum = [m.loginId ? `<span class="num">${esc(m.loginId)}</span>` : "", esc(m.rep ? "勤務形態なし" : m.workType || "未回答"), esc(m.rep ? "代表" : m.role || "メンバー"),
+          m.hasContract ? `<span class="sum-ok">締結済み</span>` : `<span class="sum-ng">未締結</span>`].filter(Boolean).join(`<i>・</i>`);
+        return `<div class="ad-card ad-fold${open ? " open" : ""}" data-id="${esc(m.id)}" data-name="${esc(m.name)}">` +
+          `<div class="ad-sum" role="button" tabindex="0" aria-expanded="${open}">` +
+          `<div class="ad-card-h"><span>${numName(i, m.name)}</span><span class="ad-sum-r">${badge(m)}<span class="ad-chev" aria-hidden="true"></span></span></div>` +
+          `<div class="ad-sum-l">${sum}</div></div>` +
+          `<div class="ad-more">` +
           (m.loginId ? `<div class="ad-id"><span class="ad-id-lb">ID</span>${esc(m.loginId)}<button type="button" class="ad-copy" data-copyid="${esc(m.loginId)}">コピー</button></div>` : "") +
           `<dl class="ad-kv">` +
-          `<dt>勤務形態</dt><dd>${workSel(m.workType, `wt-${esc(m.id)}`, 'data-k="workType"')}</dd>` +
+          (m.rep ? "" : `<dt>勤務形態</dt><dd>${workSel(m.workType, `wt-${esc(m.id)}`, 'data-k="workType"')}</dd>`) +
           (touch ? `<dt>役割</dt><dd>${roleSel(m.role, `rl-${esc(m.id)}`, 'data-k="role"')}</dd>` : "") +
+          // 社員: 性別 for the 賃金台帳
+          (owner && m.workType === "社員" ? `<dt>性別</dt><dd>${seg(`gd-${esc(m.id)}`, [["男性", "男性"], ["女性", "女性"]], m.gender || "", 'data-k="gender"')}</dd>` : "") +
           `<dt>契約</dt><dd>${m.hasContract
             ? `<span class="ad-signed">${esc(signed)} 締結</span><button type="button" class="tool" data-contract>見る</button><button type="button" class="tool" data-cdl>保存</button>`
             : `<span class="st st-late">未締結</span>${askable ? askChk(m.contractAsk, 'data-k="contractAsk"') : ""}`}</dd>` +
           `</dl>` +
           (touch ? `<div class="ad-acts"><button type="button" class="tool" data-temp>仮パスワードを発行</button><button type="button" class="tool danger" data-del>削除</button></div>` : "") +
-          `</div>`;
+          `</div></div>`;
       }).join("") + `</div>`).join("");
     const card = (el) => el.closest(".ad-card"), person = (c) => adData.members.find((m) => m.id === c.dataset.id);
+    // open / fold a card; which ones are open is kept, so a change saved (which redraws the list) leaves them open
+    for (const s of $("ad-body").querySelectorAll(".ad-sum")) {
+      const flip = () => {
+        const c = card(s), open = !c.classList.contains("open");
+        c.classList.toggle("open", open); s.setAttribute("aria-expanded", open);
+        if (open) adOpenCards.add(c.dataset.id); else adOpenCards.delete(c.dataset.id);
+      };
+      s.onclick = flip;
+      s.onkeydown = (e) => { if (e.key === "Enter" || e.key === " ") { e.preventDefault(); flip(); } };
+    }
     // the phone must not offer the contacts list (自動入力) for the new person's name
     if (owner) noAutofill($("ad-who"));
     // the red note goes away as soon as the missing part is filled in
@@ -4090,9 +4237,9 @@ ${v.addr}`;
         m.admin = !!m.role; m.owner = m.rep || m.role === "運営";
         adChanged();
         if (!saved) adMsg(`${m.name}さんを保存しましたが、サーバーが古いため反映されていないかもしれません。Code.gs を「新しいバージョン」でデプロイし直してください。`);
-        else if (saved[k] !== v) adMsg(`${m.name}さんの${{ role: "役割", workType: "勤務形態", contractAsk: "契約書の表示" }[k]}は変えられませんでした。`);
+        else if (saved[k] !== v) adMsg(`${m.name}さんの${{ role: "役割", workType: "勤務形態", contractAsk: "契約書の表示", gender: "性別" }[k]}は変えられませんでした。`);
         else adMsg(k === "contractAsk" ? `${m.name}さんに、契約書を最初に${v ? "表示する" : "表示しない"}ようにしました。`
-          : `${m.name}さんの${k === "role" ? "役割" : "勤務形態"}を「${v || "メンバー"}」にしました。`);
+          : `${m.name}さんの${{ role: "役割", workType: "勤務形態", gender: "性別" }[k]}を「${v || "メンバー"}」にしました。`);
       } catch (err) { adMsg(errText(err)); el.disabled = false; }
     };
     const conFile = (name) => `業務委託契約書_${name}.pdf`;
@@ -4504,7 +4651,7 @@ ${v.addr}`;
   }
   // first the name, address and 勤務形態, then the contract; both block the app (admins too) until done
   function needsSetup() {
-    if (!doc("billing").from || !doc("billing").addr || !window.TC_WORK) { openSetup(); return true; }
+    if (!doc("billing").from || !doc("billing").addr || (!window.TC_WORK && !window.TC_REP)) { openSetup(); return true; }
     if (contractDue()) { openContract(); return true; }
     return false;
   }
