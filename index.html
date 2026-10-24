@@ -362,6 +362,7 @@ label.check { -webkit-tap-highlight-color: transparent; }
 .who-tag { display: inline-block; vertical-align: .15em; margin-left: 6px; padding: 1px 8px; border-radius: 999px; font-size: 11px; font-weight: 700; letter-spacing: .04em; border: 1px solid currentColor; }
 .who-tag.full { color: var(--accent); }
 .who-tag.wkend { color: var(--break); }
+.who-tag.staff { color: var(--ink); }
 .who-tag.role { color: var(--ink-soft); }
 /* on a phone the 管理画面 button already says who is an admin; only 常勤 / 週末 stays beside the name */
 @media (max-width: 560px) { .who-tag.role { display: none; } }
@@ -1403,8 +1404,8 @@ button.pcal-c { cursor: pointer; }
     <label class="f">建物名・部屋番号（任意）<input id="s-building" type="text" autocomplete="off" maxlength="60" placeholder="〇〇マンション 101"></label>
     <label class="f">電話番号<input id="s-tel" type="tel" inputmode="tel" autocomplete="off" maxlength="15" placeholder="090-1234-5678"></label>
     <div class="f" role="radiogroup" aria-labelledby="s-work-h"><span id="s-work-h">勤務形態</span>
-      <div class="s-work"><label class="check"><input type="radio" name="s-work" value="常勤"> 常勤</label><label class="check"><input type="radio" name="s-work" value="週末"> 週末</label></div>
-      <span class="hint">常勤の人は、シフト希望の提出はありません。</span></div>
+      <div class="s-work"><label class="check"><input type="radio" name="s-work" value="常勤"> 常勤</label><label class="check"><input type="radio" name="s-work" value="週末"> 週末</label><label class="check"><input type="radio" name="s-work" value="社員"> 社員</label></div>
+      <span class="hint">常勤の人は、シフト希望の提出はありません。社員の人は、シフト表だけを使います。</span></div>
     <span class="hint perr" id="s-err" role="alert"></span>
     <div class="modal-actions">
       <span></span>
@@ -1787,11 +1788,11 @@ window.addEventListener("error", function (e) {
   const pickTab = (t) => { viewPicked = true; setTab(t); };
   $("tab-card").onclick = () => pickTab("card");
   $("tab-hope").onclick = () => pickTab("hope");
-  // 常勤 staff hand in no shift wishes, so they never see that tab
+  // 常勤 staff hand in no shift wishes, so they never see that tab; 社員 see the シフト表 only (no wishes, no invoices)
+  const tabOk = (t) => t === "card" || (window.TC_WORK !== "社員" && (t === "inv" || window.TC_WORK !== "常勤"));
   function applyWork() {
-    const full = window.TC_WORK === "常勤";
-    $("tab-hope").hidden = full;
-    if (full && tab === "hope") setTab("card");
+    $("tab-hope").hidden = !tabOk("hope"); $("tab-inv").hidden = !tabOk("inv");
+    if (!tabOk(tab)) setTab("card");
   }
   $("tab-inv").onclick = () => pickTab("inv");
 
@@ -2884,7 +2885,7 @@ ${v.addr}`;
     if (!val("address")) { $("s-err").textContent = "住所を入力してください。"; $("s-address").focus(); return; }
     if (!val("tel")) { $("s-err").textContent = "電話番号を入力してください。"; $("s-tel").focus(); return; }
     const work = [...document.getElementsByName("s-work")].find((r) => r.checked)?.value;
-    if (!work) { $("s-err").textContent = "勤務形態（常勤か週末か）を選んでください。"; return; }
+    if (!work) { $("s-err").textContent = "勤務形態（常勤・週末・社員）を選んでください。"; return; }
     if (work !== window.TC_WORK) {
       const btn = e.submitter || $("setup-form").querySelector("[type=submit]");
       btn.disabled = true; $("s-err").textContent = "保存しています…";
@@ -3066,12 +3067,12 @@ ${v.addr}`;
     return v && Date.now() - (v.at || 0) < VIEW_TTL ? v : null;
   }
   const dropView = () => { for (const st of [localStorage, sessionStorage]) try { st.removeItem(VIEW_KEY); } catch (e) {} };
-  // the normal screen's tab and the month of each tab (シフト希望 not for 常勤)
+  // the normal screen's tab and the month of each tab (シフト希望 not for 常勤, neither it nor 請求書 for 社員)
   function showSavedTab(v) {
     if (!v) return;
     for (const k of Object.keys(tabView)) if (/^\d{4}-\d{2}$/.test(v.months?.[k] || "")) { const [y, m] = v.months[k].split("-").map(Number); tabView[k] = new Date(y, m - 1, 1); }
     view = tabView[tab];
-    setTab(v.tab === "inv" || (v.tab === "hope" && window.TC_WORK !== "常勤") ? v.tab : "card");
+    setTab(["inv", "hope"].includes(v.tab) && tabOk(v.tab) ? v.tab : "card");
   }
   // the admin screen's tab (請求書 only for 運営) and months
   function adoptAdminView(v) {
@@ -3155,7 +3156,7 @@ ${v.addr}`;
     const name = doc("billing").from || window.TC_NAME || "";
     const tag = (t, cls) => `<span class="who-tag ${cls}">${t}</span>`;
     $("who").innerHTML = name ? esc(name) +
-      (window.TC_WORK ? tag(esc(window.TC_WORK), window.TC_WORK === "常勤" ? "full" : "wkend") : "") +
+      (window.TC_WORK ? tag(esc(window.TC_WORK), { 常勤: "full", 週末: "wkend" }[window.TC_WORK] || "staff") : "") +
       (window.TC_ADMIN ? tag(window.TC_OWNER ? "運営" : "管理者", "role") : "") : "";
   }
   function showPerson(me) {
@@ -3479,8 +3480,8 @@ ${v.addr}`;
     return late ? { k: "late", t: "未出勤" } : { k: "plan", t: "予定" };
   };
 
-  // 常勤 and 週末 are always listed apart, each numbered from 001 so the head count is plain to see
-  const WORK_GROUPS = ["常勤", "週末", ""];
+  // 常勤, 週末 and 社員 are always listed apart, each numbered from 001 so the head count is plain to see
+  const WORK_GROUPS = ["常勤", "週末", "社員", ""];
   const groupName = (t) => t || "勤務形態が未回答";
   const byWork = (list, key = (x) => x) => WORK_GROUPS.map((t) => [t, list.filter((x) => (key(x).workType || "") === t)]).filter(([, l]) => l.length);
   const numName = (i, name) => `<span class="no">${String(i + 1).padStart(3, "0")}</span>${esc(name)}`;
@@ -3827,20 +3828,19 @@ ${v.addr}`;
     // 未回答 is not a choice: until one is made the box only says 選んでください
     const list = adData.members, owner = adData.owner, workSel = (v, attr) => `<select class="ad-sel" ${attr}>` +
       (v ? "" : `<option value="" selected disabled hidden>選んでください</option>`) +
-      ["常勤", "週末"].map((k) => `<option value="${k}"${k === v ? " selected" : ""}>${k}</option>`).join("") + `</select>`;
+      ["常勤", "週末", "社員"].map((k) => `<option value="${k}"${k === v ? " selected" : ""}>${k}</option>`).join("") + `</select>`;
     // 運営 · 管理者 · メンバー (stored as 運営 / 管理者 / blank)
     const roleSel = (v, attr) => `<select class="ad-sel" ${attr}>` +
       [["運営", "運営"], ["管理者", "管理者"], ["", "メンバー"]].map(([k, t]) => `<option value="${k}"${k === (v || "") ? " selected" : ""}>${t}</option>`).join("") + `</select>`;
     // whether the contract is put in front of the person when they first open the app (blank on the sheet = 表示する)
-    const askSel = (v, attr) => `<select class="ad-sel" ${attr}>` +
-      [["1", "最初に表示する"], ["0", "表示しない"]].map(([k, t]) => `<option value="${k}"${k === (v === false ? "0" : "1") ? " selected" : ""}>${t}</option>`).join("") + `</select>`;
+    const askChk = (v, attr) => `<label class="check"><input type="checkbox" ${attr}${v === false ? "" : " checked"}> 最初に表示する</label>`;
     const badge = (m) => m.role === "運営" ? `<span class="st st-done">運営</span>` : m.role === "管理者" ? `<span class="st st-work">管理者</span>` : "";
     $("ad-body").innerHTML =
       (owner ? `<form class="ad-add" id="ad-add" novalidate><b>メンバーを追加</b>` +
         `<label class="f">氏名<input id="ad-who" autocomplete="off" autocorrect="off" spellcheck="false" enterkeyhint="done"></label>` +
         `<label class="f">勤務形態${workSel("", 'id="ad-work"')}</label>` +
         `<label class="f">役割${roleSel("", 'id="ad-role"')}</label>` +
-        `<label class="f">業務委託契約書${askSel(true, 'id="ad-ask"')}</label><button type="submit" class="btn primary" id="ad-add-btn">追加</button>` +
+        `<div class="f">業務委託契約書${askChk(true, 'id="ad-ask"')}</div><button type="submit" class="btn primary" id="ad-add-btn">追加</button>` +
         `<p class="hint">ログインIDと仮パスワードは自動で作られます。追加したあとに出る画面からコピーして、本人に伝えてください。</p></form>` : "") +
       byWork(list).map(([t, g]) => `<h3 class="ad-grp">${esc(groupName(t))}（${g.length}人）</h3><div class="ad-cards">` + g.map((m, i) => {
         const self = m.id === adData.me, signed = m.contract.split("（")[0];
@@ -3850,7 +3850,7 @@ ${v.addr}`;
           (m.loginId ? `<dt>ログインID</dt><dd><span class="ad-id">${esc(m.loginId)}<button type="button" class="tool" data-copyid="${esc(m.loginId)}">コピー</button></span></dd>` : "") +
           `<dt>勤務形態</dt><dd>${workSel(m.workType, 'data-k="workType"')}</dd>` +
           `<dt>契約</dt><dd>${m.hasContract ? `<span class="num">${esc(signed)}</span><button type="button" class="tool" data-contract>契約書を見る</button><button type="button" class="tool" data-cdl>ダウンロード</button>` : `<span class="st st-late">未締結</span>`}</dd>` +
-          (owner && !m.hasContract ? `<dt>契約書</dt><dd>${askSel(m.contractAsk, 'data-k="contractAsk"')}</dd>` : "") +
+          (owner && !m.hasContract ? `<dt>契約書</dt><dd>${askChk(m.contractAsk, 'data-k="contractAsk"')}</dd>` : "") +
           // 運営 gives roles; 出井張貴 and 江田翔 always stay 運営, and nobody changes their own
           (owner && !m.fixed && !self ? `<dt>役割</dt><dd>${roleSel(m.role, 'data-k="role"')}</dd>` : "") +
           `</dl>` +
@@ -3862,9 +3862,9 @@ ${v.addr}`;
     if (owner) noAutofill($("ad-who"));
     if (owner) $("ad-add").addEventListener("submit", (e) => {
       e.preventDefault();
-      const name = $("ad-who").value.trim(), workType = $("ad-work").value, role = $("ad-role").value, contractAsk = $("ad-ask").value === "1";
+      const name = $("ad-who").value.trim(), workType = $("ad-work").value, role = $("ad-role").value, contractAsk = $("ad-ask").checked;
       if (!name) { adMsg("氏名を入れてください。"); $("ad-who").focus(); return; }
-      if (!workType) { adMsg("勤務形態（常勤か週末か）を選んでください。"); $("ad-work").focus(); return; }
+      if (!workType) { adMsg("勤務形態（常勤・週末・社員）を選んでください。"); $("ad-work").focus(); return; }
       busyBtn($("ad-add-btn"), async () => {
         adMsg("追加しています…");
         try {
@@ -3879,7 +3879,7 @@ ${v.addr}`;
       b.textContent = ok ? "コピー済み" : "失敗"; setTimeout(() => { b.textContent = "コピー"; }, 1500);
     };
     for (const el of $("ad-body").querySelectorAll(".ad-card [data-k]")) el.onchange = async () => {
-      const c = card(el), m = person(c), k = el.dataset.k, v = k === "contractAsk" ? el.value === "1" : el.value;
+      const c = card(el), m = person(c), k = el.dataset.k, v = k === "contractAsk" ? el.checked : el.value;
       el.disabled = true; adMsg(`${m.name}さんを保存しています…`);
       try {
         await call("api_adminSaveMember", { id: m.id, [k]: v });
