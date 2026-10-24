@@ -406,8 +406,6 @@ fieldset:disabled .f input, fieldset:disabled .f textarea, fieldset:disabled .f 
 .bar-tabs .tabs button { text-align: center; }
 .bar-tabs .tabs button[hidden] { display: none; }
 #member-ui:not([data-tab="card"]) > .shifts, #member-ui:not([data-tab="card"]) > .clock { display: none; }
-/* 更新 on the admin screen is for a mouse; on a touch screen the pull-down does it */
-@media (hover: none) and (pointer: coarse) { #ad-reload { display: none; } }
 .same-last { font-weight: 700; }
 .set-sum { margin: 0; font-size: 13px; color: var(--ink-soft); background: var(--paper); border-radius: 8px; padding: 8px 10px; }
 .set-sum[hidden], .set-body[hidden] { display: none; }
@@ -674,6 +672,7 @@ fieldset:disabled .f input, fieldset:disabled .f textarea, fieldset:disabled .f 
 .bl-warn { color: var(--stamp-red); font-weight: 700; font-size: 13px; }
 /* 他社請求: two by two on a phone, one row of four when there is room, so a 7–8 digit 未入金の合計 still fits its box */
 .ad-stats.bl-stats { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+.bl-h { margin: 14px 0 6px; font-size: 13px; color: var(--ink-soft); letter-spacing: .04em; }
 @media (min-width: 640px) { .ad-stats.bl-stats { grid-template-columns: repeat(4, minmax(0, 1fr)); } }
 .bl-stats .ad-stat { min-width: 0; }
 .bl-stats .ad-stat b { font-size: clamp(17px, 5vw, 22px); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
@@ -993,9 +992,7 @@ button.pcal-c { cursor: pointer; }
         <button type="button" role="tab" data-t="members" aria-selected="false">メンバー</button>
       </div>
       <div class="month-nav">
-        <span class="month-nav" id="ad-month"><button type="button" id="ad-prev" aria-label="前の月">‹</button><b id="ad-label">—</b><button type="button" id="ad-next" aria-label="次の月">›</button></span>
-        <button type="button" id="ad-reload">更新</button>
-      </div>
+        <span class="month-nav" id="ad-month"><button type="button" id="ad-prev" aria-label="前の月">‹</button><b id="ad-label">—</b><button type="button" id="ad-next" aria-label="次の月">›</button></span>      </div>
     </div>
     <div class="msg" id="ad-msg" role="status" aria-live="polite"></div>
     <div class="ad-body" id="ad-body"></div>
@@ -2892,8 +2889,10 @@ ${v.addr}`;
     $("setup-sheet").hidden = true;
     fillForms(true); lastInvKey = ""; render();
     if (await persist("billing")) msg("氏名・住所を保存しました。請求書に反映されます。");
-    if (!doc("contract").signedAt) openContract();
+    if (contractDue()) openContract();
   });
+  // 運営 can choose, per person, not to put the contract in front of them (an older server sends nothing: shown)
+  const contractDue = () => window.TC_CONTRACT !== false && !doc("contract").signedAt;
 
   // ---- 業務委託契約: read it, fill in 乙, sign by hand; the signed PDF goes to Themis ----
   // the original PDF (with Themis's seal) is fetched and the contractor's details are drawn onto its blanks
@@ -3029,7 +3028,7 @@ ${v.addr}`;
   });
 
   // ---- the same screen after a reload ----
-  // a reload (pull to refresh, a 更新 button or the browser's, or iPhone reopening the app after switching away)
+  // a reload (pull to refresh or the browser's, or iPhone reopening the app after switching away)
   // comes back on the same screen, tab, month and scroll position:
   //   - the spot is saved on every change, not only as the page goes away (a write made while the page is being
   //     reloaded may not have landed when the new page reads it), in localStorage and in the tab's sessionStorage;
@@ -3066,7 +3065,7 @@ ${v.addr}`;
   }
   // the admin screen's tab (請求書 only for 運営) and months
   function adoptAdminView(v) {
-    adTab = (v.adTab === "inv" || v.adTab === "bills") && !window.TC_OWNER ? "today" : v.adTab || adTab;
+    adTab = UNEI_TABS.includes(v.adTab) && !window.TC_OWNER ? "today" : v.adTab || adTab;
     Object.assign(adMonth, v.adMonth || {});
   }
   // while the quick copy shows: the admin screen, still loading, with its read starting alongside the sign-in check
@@ -3151,7 +3150,7 @@ ${v.addr}`;
   }
   function showPerson(me) {
     window.TC_NAME = me.name; window.TC_WORK = me.workType || "";
-    window.TC_ADMIN = !!me.admin; window.TC_OWNER = !!me.owner;
+    window.TC_ADMIN = !!me.admin; window.TC_OWNER = !!me.owner; window.TC_CONTRACT = me.contractAsk !== false;
     $("logout").hidden = false; $("chpass").hidden = false;
     // admins use the normal site too; the header button switches to the admin screen and back
     $("adminbtn").hidden = !me.admin;
@@ -3371,7 +3370,7 @@ ${v.addr}`;
   const link = (url, text) => (url ? `<a href="${esc(url)}" target="_blank" rel="noopener">${esc(text)}</a>` : "");
 
   // the money tabs make up the 運営画面 (運営 only); the rest is the 管理画面. Which one shows follows the open tab
-  const UNEI_TABS = ["inv", "bills"];
+  const UNEI_TABS = ["inv", "bills", "members"];
   const spaceOf = (t) => (UNEI_TABS.includes(t) ? "unei" : "kanri");
   const adLast = { kanri: "today", unei: "inv" };
   function paintAdTabs() {
@@ -3393,7 +3392,6 @@ ${v.addr}`;
     };
     $("ad-prev").onclick = () => adShift(-1);
     $("ad-next").onclick = () => adShift(1);
-    $("ad-reload").onclick = () => adLoad(true);
     return adLoad();
   }
   // invoices are for finished months: the 請求書 tab goes no later than last month, as on the member's screen
@@ -3814,12 +3812,16 @@ ${v.addr}`;
     // 運営 · 管理者 · メンバー (stored as 運営 / 管理者 / blank)
     const roleSel = (v, attr) => `<select class="ad-sel" ${attr}>` +
       [["運営", "運営"], ["管理者", "管理者"], ["", "メンバー"]].map(([k, t]) => `<option value="${k}"${k === (v || "") ? " selected" : ""}>${t}</option>`).join("") + `</select>`;
+    // whether the contract is put in front of the person when they first open the app (blank on the sheet = 表示する)
+    const askSel = (v, attr) => `<select class="ad-sel" ${attr}>` +
+      [["1", "最初に表示する"], ["0", "表示しない"]].map(([k, t]) => `<option value="${k}"${k === (v === false ? "0" : "1") ? " selected" : ""}>${t}</option>`).join("") + `</select>`;
     const badge = (m) => m.role === "運営" ? `<span class="st st-done">運営</span>` : m.role === "管理者" ? `<span class="st st-work">管理者</span>` : "";
     $("ad-body").innerHTML =
       (owner ? `<form class="ad-add" id="ad-add" novalidate><b>メンバーを追加</b>` +
         `<label class="f">氏名<input id="ad-who" autocomplete="off" autocorrect="off" spellcheck="false" enterkeyhint="done"></label>` +
         `<label class="f">勤務形態${workSel("", 'id="ad-work"')}</label>` +
-        `<label class="f">役割${roleSel("", 'id="ad-role"')}</label><button type="submit" class="btn primary" id="ad-add-btn">追加</button>` +
+        `<label class="f">役割${roleSel("", 'id="ad-role"')}</label>` +
+        `<label class="f">業務委託契約書${askSel(true, 'id="ad-ask"')}</label><button type="submit" class="btn primary" id="ad-add-btn">追加</button>` +
         `<p class="hint">ログインIDと仮パスワードは自動で作られます。追加したあとに出る画面からコピーして、本人に伝えてください。</p></form>` : "") +
       byWork(list).map(([t, g]) => `<h3 class="ad-grp">${esc(groupName(t))}（${g.length}人）</h3><div class="ad-cards">` + g.map((m, i) => {
         const self = m.id === adData.me, signed = m.contract.split("（")[0];
@@ -3829,6 +3831,7 @@ ${v.addr}`;
           (m.loginId ? `<dt>ログインID</dt><dd><span class="ad-id">${esc(m.loginId)}<button type="button" class="tool" data-copyid="${esc(m.loginId)}">コピー</button></span></dd>` : "") +
           `<dt>勤務形態</dt><dd>${workSel(m.workType, 'data-k="workType"')}</dd>` +
           `<dt>契約</dt><dd>${m.hasContract ? `<span class="num">${esc(signed)}</span><button type="button" class="tool" data-contract>契約書を見る</button><button type="button" class="tool" data-cdl>ダウンロード</button>` : `<span class="st st-late">未締結</span>`}</dd>` +
+          (owner && !m.hasContract ? `<dt>契約書</dt><dd>${askSel(m.contractAsk, 'data-k="contractAsk"')}</dd>` : "") +
           // 運営 gives roles; 出井張貴 and 江田翔 always stay 運営, and nobody changes their own
           (owner && !m.fixed && !self ? `<dt>役割</dt><dd>${roleSel(m.role, 'data-k="role"')}</dd>` : "") +
           `</dl>` +
@@ -3840,14 +3843,14 @@ ${v.addr}`;
     if (owner) noAutofill($("ad-who"));
     if (owner) $("ad-add").addEventListener("submit", (e) => {
       e.preventDefault();
-      const name = $("ad-who").value.trim(), workType = $("ad-work").value, role = $("ad-role").value;
+      const name = $("ad-who").value.trim(), workType = $("ad-work").value, role = $("ad-role").value, contractAsk = $("ad-ask").value === "1";
       if (!name) { adMsg("氏名を入れてください。"); $("ad-who").focus(); return; }
       if (!workType) { adMsg("勤務形態（常勤か週末か）を選んでください。"); $("ad-work").focus(); return; }
       busyBtn($("ad-add-btn"), async () => {
         adMsg("追加しています…");
         try {
-          const r = JSON.parse(await call("api_adminSaveMember", { name, workType, role }));
-          adData.members.push({ id: r.id, name, loginId: r.loginId, role, admin: !!role, owner: role === "運営", fixed: false, active: true, contract: "", hasContract: false, workType });
+          const r = JSON.parse(await call("api_adminSaveMember", { name, workType, role, contractAsk }));
+          adData.members.push({ id: r.id, name, loginId: r.loginId, role, admin: !!role, owner: role === "運営", fixed: false, active: true, contract: "", hasContract: false, workType, contractAsk });
           adChanged(); adMsg(`${name}さんを追加しました。`); showCreds(name, r);
         } catch (err) { adMsg(errText(err)); }
       });
@@ -3857,13 +3860,15 @@ ${v.addr}`;
       b.textContent = ok ? "コピー済み" : "失敗"; setTimeout(() => { b.textContent = "コピー"; }, 1500);
     };
     for (const el of $("ad-body").querySelectorAll(".ad-card [data-k]")) el.onchange = async () => {
-      const c = card(el), m = person(c), k = el.dataset.k, v = el.value;
+      const c = card(el), m = person(c), k = el.dataset.k, v = k === "contractAsk" ? el.value === "1" : el.value;
       el.disabled = true; adMsg(`${m.name}さんを保存しています…`);
       try {
         await call("api_adminSaveMember", { id: m.id, [k]: v });
         m[k] = v;
         if (k === "role") { m.admin = !!v; m.owner = v === "運営"; }
-        adChanged(); adMsg(`${m.name}さんの${k === "role" ? `役割を「${v || "メンバー"}」に` : "勤務形態を"}しました。`);
+        adChanged();
+        adMsg(k === "contractAsk" ? `${m.name}さんに、契約書を最初に${v ? "表示する" : "表示しない"}ようにしました。`
+          : `${m.name}さんの${k === "role" ? `役割を「${v || "メンバー"}」に` : "勤務形態を"}しました。`);
       } catch (err) { adMsg(errText(err)); el.disabled = false; }
     };
     const conFile = (name) => `業務委託契約書_${name}.pdf`;
@@ -3963,10 +3968,20 @@ ${v.addr}`;
     if (adTab !== "bills" || mode !== "admin") return;
     const c = blData.company, bills = blData.bills.slice().sort((a, b) => b.date.localeCompare(a.date) || b.no.localeCompare(a.no));
     const open = bills.filter((b) => !b.paidOn), cnt = (s) => bills.filter((b) => billState(b) === s).length;
+    // 売上 = these invoices, 利益 = 売上 − what the members invoice Themis, matched by the month the work was done:
+    // this month's invoices (dated October) are for September, as are the members' September invoices
+    const costs = blData.costs || {}, sum = (list) => list.reduce((s, b) => s + b.total, 0), now = workYm(dayKey(new Date()));
+    const sales = sum(bills.filter((b) => workYm(b.date) === now)), cost = costs[now] || 0;
+    const salesAll = sum(bills), costAll = Object.values(costs).reduce((s, v) => s + v, 0);
+    const money = [[`今月の売上（${workMonth()}月分）`, sales], [`今月の利益（${workMonth()}月分）`, sales - cost], ["全体の売上", salesAll], ["全体の利益", salesAll - costAll]];
     $("ad-body").innerHTML =
       `<div class="bl-top"><button type="button" class="btn primary" id="bl-new">＋ 新しい請求書</button><button type="button" class="tool" id="bl-co">自社情報</button></div>` +
       (coReady(c) ? "" : `<p class="hint bl-warn">先に「自社情報」で会社名・住所・振込先を登録してください。請求書に載ります。</p>`) +
       (coReady(c) && !blData.seal ? `<p class="hint">「自社情報」で印鑑の画像を登録すると、請求書に押印されます。</p>` : "") +
+      `<h4 class="bl-h">売上・利益（税込）</h4><div class="ad-stats bl-stats">` +
+      money.map(([t, v], i) => `<div class="ad-stat${i % 2 && v < 0 ? " warn" : ""}"><span>${t}</span><b class="num">${v < 0 ? "−" : ""}${yen(Math.abs(v))}</b></div>`).join("") + `</div>` +
+      `<p class="hint">売上は他社請求の合計、利益は売上からメンバーへの支払い（メンバーの請求書の金額）を引いたものです。今月は、今月の請求日の他社請求と、メンバーの${workMonth()}月分の請求書で計算します。</p>` +
+      `<h4 class="bl-h">入金</h4>` +
       `<div class="ad-stats bl-stats">` + [["未入金", `${open.length}件`], ["未入金の合計", yen(open.reduce((s, b) => s + b.total, 0))], ["期限切れ", `${cnt("late")}件`], ["入金済み", `${cnt("paid")}件`]]
         .map(([t, v], i) => `<div class="ad-stat${i === 2 && cnt("late") ? " warn" : ""}"><span>${t}</span><b class="num">${v}</b></div>`).join("") + `</div>` +
       `<p class="hint">他社に出す請求書を作ってPDFで保存し、メールなどで送ってください。入金されたら「入金済みにする」を押します。一覧はスプレッドシートの「他社請求書一覧」にも出ます。</p>` +
@@ -4016,6 +4031,7 @@ ${v.addr}`;
   const blankLine = () => ({ name: "", qty: 1, price: "" });
   // the month the work was done: the one before the 請求日 (an invoice in October is for September)
   const workMonth = (iso) => { const [y, m] = String(iso || dayKey(new Date())).split("-").map(Number); return new Date(y, m - 2, 1).getMonth() + 1; };
+  const workYm = (iso) => { const [y, m] = String(iso).split("-").map(Number); return ymOf(dayKey(new Date(y, m - 2, 1))); };
   function openBill(b) {
     const today = dayKey(new Date());
     blEdit = b ? JSON.parse(JSON.stringify(b))
@@ -4226,7 +4242,7 @@ ${v.addr}`;
   // first the name, address and 勤務形態, then the contract; both block the app (admins too) until done
   function needsSetup() {
     if (!doc("billing").from || !doc("billing").addr || !window.TC_WORK) { openSetup(); return true; }
-    if (!doc("contract").signedAt) { openContract(); return true; }
+    if (contractDue()) { openContract(); return true; }
     return false;
   }
 })();
