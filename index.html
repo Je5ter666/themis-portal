@@ -422,7 +422,38 @@ fieldset:disabled .f input, fieldset:disabled .f textarea, fieldset:disabled .f 
 .bar-tabs .tabs button[hidden] { display: none; }
 /* four tabs (シフト希望, 給与明細…) stay on one line on a phone */
 @media (max-width: 560px) { .bar-tabs .tabs button { padding: 7px 2px; font-size: 13px; letter-spacing: 0; } }
-#member-ui:not([data-tab="card"]) > .shifts, #member-ui:not([data-tab="card"]) > .clock { display: none; }
+/* ホーム: the day's plan and the clock; シフト: シフト表 / シフト希望 picked at the top (no choice when only one is shown);
+   メニュー: its list, and 請求書 / 給与明細 under a way back to it; the month bar wherever there is a month */
+#member-ui:not([data-tab="home"]) > :is(.shifts, .clock) { display: none; }
+#member-ui:not([data-tab="card"]):not([data-tab="hope"]) > #shift-seg, #shift-seg:not(:has(#tab-hope:not([hidden]))) { display: none; }
+#member-ui:is([data-tab="home"], [data-tab="menu"]) > .bar-month { display: none; }
+#member-ui:not([data-tab="inv"]):not([data-tab="pay"]) > .sub-back { display: none; }
+.sub-back { margin-bottom: -12px; }
+.menu-list { display: grid; background: var(--card); border: 1px solid var(--rule); border-radius: var(--r); overflow: hidden; }
+.menu-item { display: grid; gap: 2px; text-align: left; background: transparent; border: 0; padding: 14px 40px 14px 16px; position: relative; color: var(--ink); }
+.menu-item:not([hidden]) ~ .menu-item { border-top: 1px solid var(--rule); }
+.menu-item::after { content: "›"; position: absolute; right: 16px; top: 50%; transform: translateY(-50%); font-size: 20px; color: var(--ink-soft); }
+.menu-item b { font-size: 16px; }
+.menu-item small { font-size: 12px; color: var(--ink-soft); }
+.menu-item.danger b { color: var(--stamp-red); }
+.menu-item:active { background: color-mix(in srgb, var(--ink) 6%, transparent); }
+/* the bar at the foot, like a game's: three big buttons, the one on screen lifted and coloured */
+body:has(#member-ui:not([hidden])) { padding-bottom: calc(96px + env(safe-area-inset-bottom, 0px)); }
+body:has(#member-ui:not([hidden])) .brand-btns { display: none; }
+body:has(#member-ui:not([hidden])) .hope-submit { bottom: calc(90px + env(safe-area-inset-bottom, 0px)); }
+.bnav { position: fixed; left: 0; right: 0; bottom: 0; z-index: 15; background: var(--card); border-top: 1px solid var(--rule);
+  box-shadow: 0 -6px 18px -10px rgb(31 42 58 / .3); padding: 6px max(10px, env(safe-area-inset-right, 0px)) calc(6px + env(safe-area-inset-bottom, 0px)) max(10px, env(safe-area-inset-left, 0px)); }
+.bnav-in { max-width: 520px; margin: 0 auto; display: grid; grid-template-columns: repeat(3, 1fr); gap: 6px; }
+.bnav button { display: grid; justify-items: center; gap: 2px; padding: 7px 4px 6px; border: 0; border-radius: 14px; background: transparent; color: var(--ink-soft); font-size: 12px; font-weight: 700; letter-spacing: .04em; }
+.bnav svg { width: 26px; height: 26px; fill: none; stroke: currentColor; stroke-width: 2; stroke-linecap: round; stroke-linejoin: round; }
+.bnav button[data-g="home"] svg { fill: currentColor; fill-opacity: .15; }
+.bnav button[aria-current="page"] { color: #fff; background: var(--accent); background-image: linear-gradient(180deg, rgb(255 255 255 / .22), rgb(0 0 0 / .06));
+  box-shadow: inset 0 1px 0 rgb(255 255 255 / .3), 0 3px 0 color-mix(in srgb, var(--accent) 55%, #000); transform: translateY(-3px); }
+.bnav button[aria-current="page"] svg { fill-opacity: .25; }
+.bnav button:active { transform: translateY(0); }
+/* a message said off the ホーム screen shows for a moment just above the bar */
+.toast { position: fixed; left: 50%; transform: translateX(-50%); bottom: calc(88px + env(safe-area-inset-bottom, 0px)); z-index: 16; width: max-content; max-width: min(92vw, 520px);
+  background: var(--ink); color: var(--card); font-size: 13.5px; line-height: 1.5; padding: 10px 14px; border-radius: 12px; box-shadow: 0 6px 18px rgb(0 0 0 / .25); }
 .same-last { font-weight: 700; }
 .set-sum { margin: 0; font-size: 13px; color: var(--ink-soft); background: var(--paper); border-radius: 8px; padding: 8px 10px; }
 .set-sum[hidden], .set-body[hidden] { display: none; }
@@ -506,6 +537,8 @@ fieldset:disabled .f input, fieldset:disabled .f textarea, fieldset:disabled .f 
 .fields .folded, .fields .past-off { display: none !important; }
 .foldsum { margin: -4px 0 0; font-family: var(--f-num); font-size: 14px; color: var(--ink); font-variant-numeric: tabular-nums; overflow-wrap: anywhere; }
 .foldsum:empty { display: none; }
+/* beside 出勤 / 退勤: whether the time is the plan or the punch */
+.tsrc { font-size: 11px; font-weight: 400; color: var(--ink-soft); letter-spacing: 0; }
 .foldsum .muted { color: var(--ink-soft); font-size: 13px; }
 .chip-x { display: inline-flex; align-items: center; padding: 0; overflow: hidden; }
 .chip-x button { border: 0; background: transparent; color: inherit; font: inherit; padding: 4px 4px 4px 12px; }
@@ -748,9 +781,11 @@ body.gate { position: fixed; inset: 0; touch-action: none; }
 .sl-tbl thead th { font-size: 12px; font-weight: 400; color: var(--ink-soft); }
 .sl-tbl tbody tr:last-child > * { border-bottom: 0; }
 .sl-tbl tr.warn td:nth-child(n+4) { color: var(--stamp-red); }
+/* a long item name wraps and the card keeps to the screen's width, so the amount always shows in full */
+.bl-card { min-width: 0; }
 .bl-line { display: flex; align-items: baseline; gap: 14px; font-size: 14px; }
-.bl-line span { min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
-.bl-line b { font-size: 18px; flex: none; }
+.bl-line span { flex: 1 1 auto; min-width: 0; overflow-wrap: anywhere; }
+.bl-line b { font-size: 18px; flex: none; margin-left: auto; }
 .bl-meta { font-size: 12px; color: var(--ink-soft); }
 .bl-modal { width: min(680px, 100%); }
 .bl-honor { width: auto !important; flex: none; }
@@ -861,7 +896,7 @@ body.gate { position: fixed; inset: 0; touch-action: none; }
 .btn.sm { padding: 6px 14px; font-size: 13px; }
 /* a card never grows past its column: the box, 円（税込） and 金額を設定 share the width and wrap when it runs out,
    instead of spilling over the next card */
-.ad-card { min-width: 0; }
+.ad-card { min-width: 0; grid-template-columns: minmax(0, 1fr); }
 .ad-card-h > :first-child { min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 .ad-card-h > .st { flex: none; }
 .ad-amount { display: flex; flex-wrap: wrap; align-items: center; gap: 8px; font-size: 12px; color: var(--ink-soft); }
@@ -1276,15 +1311,15 @@ button.pcal-c { cursor: pointer; }
   </div>
 
   <div id="member-ui" class="member-ui" hidden data-tab="card">
-  <!-- the three screens come first; on シフト希望 and 請求書 the day's plan, the clock and the calendar step aside -->
-  <div class="bar bar-tabs">
+  <!-- three screens picked at the foot: ホーム (the day's plan and the clock), シフト (シフト表 / シフト希望 at the top),
+       メニュー (請求書, 給与明細 and the account) -->
+  <div class="bar bar-tabs" id="shift-seg">
     <div class="tabs" role="tablist">
       <button type="button" role="tab" id="tab-card" aria-selected="true" aria-controls="p-card">シフト表</button>
       <button type="button" role="tab" id="tab-hope" aria-selected="false" aria-controls="p-hope">シフト希望</button>
-      <button type="button" role="tab" id="tab-inv" aria-selected="false" aria-controls="p-inv">請求書</button>
-      <button type="button" role="tab" id="tab-pay" aria-selected="false" aria-controls="p-pay" hidden>給与明細</button>
     </div>
   </div>
+  <div class="sub-back" id="sub-back"><button type="button" class="tool" id="back-menu">‹ メニュー</button></div>
   <section class="shifts" aria-label="予定">
     <div class="shift-today big" id="shift-today">
       <span class="st-label">今日の予定</span>
@@ -1472,6 +1507,27 @@ button.pcal-c { cursor: pointer; }
     </div>
     <p class="hint">提出すると、請求書PDFがThemisの担当者にメールで届きます。メールアドレスを入れておくと、控えがあなたにも届きます。交通費の証明画像は、シフト表の日付から添付してください（請求書とは別にThemisに届きます）。</p>
   </section>
+
+  <section class="panel menu" id="p-menu" aria-label="メニュー" hidden>
+    <div class="menu-list">
+      <button type="button" class="menu-item" id="tab-inv"><b>請求書</b><small>毎月の請求書を作って提出</small></button>
+      <button type="button" class="menu-item" id="tab-pay" hidden><b>給与明細</b><small>毎月の給与明細を見る</small></button>
+      <button type="button" class="menu-item" id="m-admin" hidden><b>管理画面</b><small>全員の勤怠・シフトを見る</small></button>
+    </div>
+    <div class="menu-list">
+      <button type="button" class="menu-item" id="m-pass"><b>パスワード変更</b></button>
+      <button type="button" class="menu-item danger" id="m-logout"><b>ログアウト</b></button>
+    </div>
+  </section>
+
+  <div class="toast" id="toast" role="status" aria-live="polite" hidden></div>
+  <nav class="bnav" aria-label="画面の切り替え">
+    <div class="bnav-in">
+      <button type="button" data-g="home" aria-current="page"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M3 10.5 12 3l9 7.5V20a1 1 0 0 1-1 1h-5v-6h-6v6H4a1 1 0 0 1-1-1z"/></svg><span>ホーム</span></button>
+      <button type="button" data-g="shift"><svg viewBox="0 0 24 24" aria-hidden="true"><rect x="3" y="5" width="18" height="16" rx="2"/><path d="M3 10h18M8 3v4M16 3v4"/></svg><span>シフト</span></button>
+      <button type="button" data-g="menu"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 6h16M4 12h16M4 18h16"/></svg><span>メニュー</span></button>
+    </div>
+  </nav>
   </div>
 </div>
 
@@ -1490,22 +1546,19 @@ button.pcal-c { cursor: pointer; }
   <form class="modal" id="edit-form" novalidate>
     <div class="modal-head"><h3 id="e-title">記録を修正</h3><button type="button" class="tool" id="e-back">‹ 戻る</button></div>
     <div class="fields">
-      <div class="sec wide first sec-row"><span>予定</span><button type="button" class="tool" id="f-plantoggle" aria-expanded="false">開く</button></div>
+      <!-- one 出勤 / 退勤 pair: the planned times until a time is punched, then the punched time in its place -->
+      <div class="sec wide first sec-row"><span>稼働店舗</span><button type="button" class="tool" id="f-plantoggle" aria-expanded="false">開く</button></div>
       <p class="abs-note wide" id="f-absnote" hidden></p>
       <p class="foldsum wide" id="f-plansum"></p>
-      <label class="f wide pl-f">稼働店舗<input type="text" id="f-store" maxlength="60" placeholder="例：〇〇電機 新宿西口店"></label>
+      <label class="f wide pl-f">店舗名<input type="text" id="f-store" maxlength="60" placeholder="例：〇〇電機 新宿西口店"></label>
       <div class="chips wide pl-f" id="store-chips" role="group" aria-label="前に入れた店舗"></div>
-      <label class="f pl-f pl-t">出勤<input type="time" id="f-pin" step="300"></label>
-      <label class="f pl-f pl-t">退勤<input type="time" id="f-pout" step="300"></label>
-      <div class="chips wide pl-f pl-t" id="plan-chips" role="group" aria-label="よく使う予定時間"></div>
-      <div class="sec wide sec-row"><span>稼働</span><button type="button" class="tool" id="f-acttoggle" aria-expanded="false">修正</button></div>
-      <p class="foldsum wide" id="f-actsum"></p>
-      <div class="wide act"><button type="button" class="tool" id="f-copyplan">自動入力</button></div>
-      <label class="f act">出勤<input type="time" id="f-in" step="300"></label>
-      <label class="f act">退勤<input type="time" id="f-out" step="300"></label>
-      <div class="work-now wide act" id="f-work" aria-live="polite"></div>
-      <label class="check wide act"><input type="checkbox" id="f-early"> 早退</label>
-      <label class="f wide act" id="f-early-wrap" hidden>早退理由<input type="text" id="f-early-reason" maxlength="100" placeholder="例：体調不良のため"></label>
+      <label class="f pl-f"><span>出勤 <small class="tsrc" id="f-insrc"></small></span><input type="time" id="f-pin" step="300"></label>
+      <label class="f pl-f"><span>退勤 <small class="tsrc" id="f-outsrc"></small></span><input type="time" id="f-pout" step="300"></label>
+      <p class="hint wide pl-f" id="f-lockn" hidden>打刻した出勤の時間は、退勤すると修正できます。</p>
+      <div class="chips wide pl-f pl-t" id="plan-chips" role="group" aria-label="よく使う時間"></div>
+      <div class="work-now wide pl-f" id="f-work" aria-live="polite"></div>
+      <label class="check wide pl-f" id="f-early-box"><input type="checkbox" id="f-early"> 早退</label>
+      <label class="f wide pl-f" id="f-early-wrap" hidden>早退理由<input type="text" id="f-early-reason" maxlength="100" placeholder="例：体調不良のため"></label>
       <div class="sec wide sec-row"><span>交通機関</span><button type="button" class="tool" id="f-trtoggle" aria-expanded="false">開く</button></div>
       <p class="foldsum wide" id="f-trsum"></p>
       <div class="f wide tr-f">交通機関（複数選べます）<div class="chips" id="f-transport" role="group" aria-label="交通機関"></div></div>
@@ -1580,7 +1633,7 @@ button.pcal-c { cursor: pointer; }
 <div class="modal-bg" id="setup-sheet" hidden>
   <form class="modal" id="setup-form" novalidate>
     <h3>初めに</h3>
-    <p class="hint">請求書に載せる情報を入力してください。後から請求書タブの「毎月共通の設定」で変更できます。</p>
+    <p class="hint">請求書に載せる情報を入力してください。後からメニューの「請求書」にある「毎月共通の設定」で変更できます。</p>
     <label class="f">氏名・屋号<input id="s-from" type="text" maxlength="60" placeholder="例：山田 太郎"></label>
     <div class="zip-row">
       <label class="f">郵便番号<input id="s-zip" type="text" inputmode="numeric" autocomplete="off" maxlength="8" placeholder="160-0023"></label>
@@ -1895,7 +1948,14 @@ window.addEventListener("error", function (e) {
   const openRec = () => (state().openDate ? rec(state().openDate) : undefined);
 
   // ---- punches ----
-  const msg = (t) => { $("msg").textContent = t; };
+  // the message line sits under the clock on ホーム; on the other screens it shows for a moment above the bar
+  let toastTimer = null;
+  const msg = (t) => {
+    $("msg").textContent = t;
+    clearTimeout(toastTimer);
+    $("toast").textContent = t; $("toast").hidden = !t || tab === "home";
+    if (t) toastTimer = setTimeout(() => { $("toast").hidden = true; }, 5000);
+  };
   async function punch(kind) {
     if (!backend) { msg("記録を読み込んでいます。少し待ってからもう一度押してください。"); return; }
     const now = Date.now();
@@ -1954,21 +2014,34 @@ window.addEventListener("error", function (e) {
   $("st-fix-next").onclick = () => { const d = new Date(); openSheet(dayKey(new Date(d.getFullYear(), d.getMonth(), d.getDate() + 1))); };  $("k-out").onclick = () => punch("out");
 
   // ---- tabs + month ----
-  // the page always opens on the shift calendar
-  let tab = "card";
+  // the page opens on ホーム; the bar at the foot picks ホーム, シフト (シフト表 / シフト希望) or メニュー (請求書 / 給与明細 in it)
+  let tab = "home", shiftTab = "card";
+  const GROUP = { home: "home", card: "shift", hope: "shift", menu: "menu", inv: "menu", pay: "menu" };
   function setTab(t) {
     // each tab keeps its own month: the shift calendar opens on this month, invoices on last month
     if (t !== tab) { tabView[tab] = view; tab = t; }
+    if (GROUP[t] === "shift") shiftTab = t;
     view = tabView[t]; clampView(); watchView(); fillForms(true);
     $("m-now").textContent = { inv: "先月分", pay: "先月分", hope: "来月" }[t] || "今月";
-    for (const k of ["card", "hope", "inv", "pay"]) {
-      $("tab-" + k).setAttribute("aria-selected", t === k);
-      $("p-" + k).hidden = t !== k;
+    for (const k of ["card", "hope"]) $("tab-" + k).setAttribute("aria-selected", t === k);
+    for (const k of ["card", "hope", "inv", "pay", "menu"]) $("p-" + k).hidden = t !== k;
+    for (const b of document.querySelectorAll(".bnav button")) {
+      if (b.dataset.g === GROUP[t]) b.setAttribute("aria-current", "page"); else b.removeAttribute("aria-current");
     }
     $("member-ui").dataset.tab = t;
+    $("toast").hidden = true;
     render();
     saveView();
   }
+  for (const b of document.querySelectorAll(".bnav button")) b.onclick = () => {
+    pickTab({ home: "home", shift: tabOk(shiftTab) ? shiftTab : "card", menu: "menu" }[b.dataset.g]);
+    window.scrollTo(0, 0);
+  };
+  $("back-menu").onclick = () => pickTab("menu");
+  // the account's buttons live in the header on the admin screen; on the normal screen メニュー has the same ones
+  $("m-admin").onclick = () => $("adminbtn").click();
+  $("m-pass").onclick = () => $("chpass").click();
+  $("m-logout").onclick = () => $("logout").click();
   // a tab picked by hand while the page is still loading wins over the one saved before the reload
   let viewPicked = false;
   const pickTab = (t) => { viewPicked = true; setTab(t); };
@@ -1977,7 +2050,7 @@ window.addEventListener("error", function (e) {
   // 常勤 staff hand in no shift wishes, so they never see that tab; 社員 send no invoice and hand in no wishes:
   // they get their 給与明細 instead
   // 代表 has no 勤務形態 and sees every tab
-  const tabOk = (t) => t === "card" || !!window.TC_REP || (window.TC_WORK === "社員" ? t === "pay" : t === "inv" || (t === "hope" && window.TC_WORK !== "常勤"));
+  const tabOk = (t) => t === "card" || t === "home" || t === "menu" || !!window.TC_REP || (window.TC_WORK === "社員" ? t === "pay" : t === "inv" || (t === "hope" && window.TC_WORK !== "常勤"));
   function applyWork() {
     $("tab-hope").hidden = !tabOk("hope"); $("tab-inv").hidden = !tabOk("inv"); $("tab-pay").hidden = !tabOk("pay");
     if (!tabOk(tab)) setTab("card");
@@ -1986,7 +2059,7 @@ window.addEventListener("error", function (e) {
   $("tab-pay").onclick = () => pickTab("pay");
 
   let view = new Date(); view = new Date(view.getFullYear(), view.getMonth(), 1);
-  const tabView = { card: view, inv: new Date(view.getFullYear(), view.getMonth() - 1, 1), pay: new Date(view.getFullYear(), view.getMonth() - 1, 1), hope: new Date(view.getFullYear(), view.getMonth() + 1, 1) };
+  const tabView = { home: view, menu: view, card: view, inv: new Date(view.getFullYear(), view.getMonth() - 1, 1), pay: new Date(view.getFullYear(), view.getMonth() - 1, 1), hope: new Date(view.getFullYear(), view.getMonth() + 1, 1) };
   const viewYm = () => `${view.getFullYear()}-${pad(view.getMonth() + 1)}`;
   function watchView() {
     if (!backend) return;
@@ -2673,7 +2746,7 @@ ${v.addr}`;
   // time fields become one pulldown of 5-minute times, the same on every device; the original input
   // keeps a `value` of "HH:MM" (or "") so the rest of the sheet reads and writes it unchanged
   // a start time list begins at 09:00 and an end time list at 17:00, each wrapping round the day
-  const LIST_START = { "f-pin": 9 * 60, "f-pout": 17 * 60, "f-in": 9 * 60, "f-out": 17 * 60 };
+  const LIST_START = { "f-pin": 9 * 60, "f-pout": 17 * 60 };
   const rank = (t, start) => { const [h, m] = t.split(":").map(Number); return (h * 60 + m - start + 1440) % 1440; };
   const timesFrom = (start) => Array.from({ length: 288 }, (_, i) => {
     const min = (start + i * 5) % 1440;
@@ -2704,18 +2777,22 @@ ${v.addr}`;
     if (planIn && end < atTime(key, planIn)) end += 86400000;
     return outMs < end - 60000;
   };
-  const syncEarly = () => { $("f-early-wrap").hidden = !$("f-early").checked; };
+  const syncEarly = () => { $("f-early-wrap").hidden = !$("f-early").checked || $("f-early-box").hidden; };
   $("f-early").onchange = syncEarly;
-  $("f-out").nextElementSibling.addEventListener("change", () => {
-    const a = $("f-in").value, z = $("f-out").value;
-    if (!a || !z || !editKey) return;
+  // the sheet's one 出勤 / 退勤 pair: each holds the punched time once there is one (`actual`), the planned time before;
+  // 退勤 also counts as the real one on a past day already clocked in (a forgotten 退勤 put in afterwards)
+  let actual = { in: false, out: false }, editPlan = { planIn: "", planOut: "" };
+  $("f-pout").nextElementSibling.addEventListener("change", () => {
+    const a = $("f-pin").value, z = $("f-pout").value;
+    if (!actual.out || !a || !z || !editKey) return;
     let out = atTime(editKey, z);
     if (out < atTime(editKey, a)) out += 86400000;
-    if (leftEarly(editKey, $("f-pin").value, $("f-pout").value, out)) { $("f-early").checked = true; syncEarly(); }
+    if (leftEarly(editKey, editPlan.planIn, editPlan.planOut, out)) { $("f-early").checked = true; syncEarly(); }
   });
   function updateWork() {
-    const a = $("f-in").value, z = $("f-out").value;
-    if (!a || !z) { $("f-work").textContent = ""; return; }
+    const a = $("f-pin").value, z = $("f-pout").value;
+    // 実働 only for a day that is worked (punched, or a plan that has passed), not for one still ahead
+    if (!a || !z || $("f-early-box").hidden) { $("f-work").textContent = ""; return; }
     let min = (atTime("2000-01-01", z) - atTime("2000-01-01", a)) / 60000;
     if (min < 0) min += 1440;
     $("f-work").textContent = `実働 ${dur(min)}${atTime("2000-01-01", z) < atTime("2000-01-01", a) ? "（退勤は翌日）" : ""}`;
@@ -2788,13 +2865,18 @@ ${v.addr}`;
     const t = travelFor(store);
     if (!t) {
       if (filledBy) {
-        $("f-pin").value = ""; $("f-pout").value = ""; $("f-ride").value = ""; setTransport(""); $("f-km").value = "";
+        if (!actual.in) $("f-pin").value = "";
+        if (!actual.out) $("f-pout").value = "";
+        $("f-ride").value = ""; setTransport(""); $("f-km").value = "";
         editProofs = []; renderProofs(); filledBy = null; trSum();
       }
       return;
     }
     filledBy = store;
-    $("f-pin").value = t.planIn || ""; $("f-pout").value = t.planOut || "";
+    // a punched time stays; only the planned ones follow the store
+    if (!actual.in) $("f-pin").value = t.planIn || "";
+    if (!actual.out) $("f-pout").value = t.planOut || "";
+    updateWork();
     $("f-ride").value = t.rideWith || "";
     setTransport(t.transport);
     $("f-km").value = t.km ?? "";
@@ -2822,22 +2904,26 @@ ${v.addr}`;
     editKey = key; delArmed = false;
     const r = rec(key), [y, m, d] = key.split("-").map(Number);
     $("e-title").textContent = `${m}月${d}日（${WD[new Date(y, m - 1, d).getDay()]}）の記録`;
-    const eff = asWorked(key, r, Date.now());   // a passed plan opens with its times filled in
-    $("f-in").value = r?.in ? hm(r.in) : eff?.fromPlan && r.planIn ? r.planIn : "";
-    $("f-out").value = r?.out ? hm(r.out) : eff?.fromPlan && r.planOut ? r.planOut : "";
+    const eff = asWorked(key, r, Date.now()), past = key < dayKey(new Date());
+    actual = { in: !!r?.in, out: !!r?.out || (!!r?.in && past) };
+    editPlan = { planIn: r?.planIn || "", planOut: r?.planOut || "" };
     $("f-memo").value = r?.memo || "";
     $("f-absnote").hidden = !r?.absent;
     $("f-absnote").textContent = r?.absent ? `この日は欠勤です${r.absentReason ? "\n理由：" + r.absentReason : ""}` : "";
     $("f-result").value = r?.result || "";
     $("f-early").checked = !!r?.early;
     $("f-early-reason").value = r?.earlyReason || "";
+    // 早退 and 実働 belong to a day that is over: clocked out, a past day, or a plan whose time has passed
+    $("f-early-box").hidden = !(r?.out || actual.out || (eff?.fromPlan && eff.out));
     syncEarly();
     // a new day starts from the last store and route entered, since most shifts repeat
     const last = doc("billing").lastShift || {}, src = r || last;
     $("f-store").value = src.store || "";
     filledBy = src.store || null;
-    $("f-pin").value = src.planIn || "";
-    $("f-pout").value = src.planOut || "";
+    $("f-pin").value = actual.in ? hm(r.in) : src.planIn || "";
+    $("f-pout").value = r?.out ? hm(r.out) : src.planOut || "";
+    $("f-insrc").textContent = actual.in ? "打刻" : src.planIn ? "予定" : "";
+    $("f-outsrc").textContent = r?.out ? "打刻" : actual.out ? "打刻なし・時間を確かめてください" : src.planOut ? "予定" : "";
     $("f-ride").value = src.rideWith || "";
     setTransport(src.transport);
     $("f-perr").textContent = "";
@@ -2871,7 +2957,12 @@ ${v.addr}`;
     $("plan-chips").replaceChildren(...top.map((k) => {
       const wrap = document.createElement("span"); wrap.className = "chip chip-x";
       const pick = document.createElement("button"); pick.type = "button"; pick.textContent = k;
-      pick.onclick = () => { const [a, z] = k.split("–"); $("f-pin").value = a; $("f-pout").value = z; };
+      pick.onclick = () => {
+        const [a, z] = k.split("–");
+        if (!actual.in) $("f-pin").value = a;
+        if (!actual.out) $("f-pout").value = z;
+        updateWork();
+      };
       const x = document.createElement("button"); x.type = "button"; x.textContent = "×"; x.setAttribute("aria-label", `${k}を候補から消す`);
       x.onclick = () => {
         const b = doc("billing"); b.hiddenPlans = [...new Set([...(b.hiddenPlans || []), k])]; saveSoon("billing");
@@ -2886,17 +2977,17 @@ ${v.addr}`;
     $("e-abs").disabled = !!r?.in;   // a day already clocked in can't be marked absent
     $("e-del").classList.remove("armed"); $("e-del").textContent = "削除";
     $("sheet").hidden = false;
-    // a day before today shows only its store as the plan, not the planned times
-    const past = key < dayKey(new Date());
-    for (const el of $("edit-form").querySelectorAll(".pl-t")) el.classList.toggle("past-off", past);
-    // 稼働 and 稼働実績 open only once the day is clocked out (a passed plan counts); a past day stays open
-    // so a forgotten 退勤 can still be put in
+    // the often-used time pairs are for planning: not on a day already punched or gone by
+    for (const el of $("edit-form").querySelectorAll(".pl-t")) el.classList.toggle("past-off", past || actual.in);
+    // a punched 出勤 and 稼働実績 can be changed only once the day is clocked out (a passed plan counts); a past day
+    // stays open so a forgotten 退勤 can still be put in
     actAllowed = !!r?.out || !!eff?.fromPlan || past;
+    $("f-pin").nextElementSibling.disabled = actual.in && !actAllowed;
+    $("f-lockn").hidden = !(actual.in && !actAllowed);
     updateWork();
-    // a day already recorded opens folded, each section showing a one-line summary; a new day opens 予定 and 交通機関
+    // a day already recorded opens folded, each section showing a one-line summary; 交通機関 always starts folded
     setPlanOpen(!r);
-    setTrOpen(!r);
-    setActOpen(false);
+    setTrOpen(false);
     setResOpen(false);
     // the sheet is reused for every day: start each one at the top, not where the last one was scrolled to
     $("edit-form").scrollTop = 0;
@@ -2908,9 +2999,9 @@ ${v.addr}`;
   const muted = (t) => `<span class="muted">${esc(t)}</span>`;
   function setPlanOpen(open) {
     fold(".pl-f", open); setToggle("f-plantoggle", open, "開く");
-    const store = $("f-store").value.trim(), a = $("f-pin").value, z = $("f-pout").value;
-    const times = editKey >= dayKey(new Date()) && (a || z) ? esc(`${a || "--:--"}–${z || "--:--"}`) : "";
-    $("f-plansum").innerHTML = open ? "" : [store ? esc(store) : muted("店舗なし"), times].filter(Boolean).join("　");
+    const store = $("f-store").value.trim(), a = $("f-pin").value, z = $("f-pout").value, w = $("f-work").textContent;
+    const times = a || z ? esc(`出勤 ${a || "--:--"}　退勤 ${z || "--:--"}`) : "";
+    $("f-plansum").innerHTML = open ? "" : [store ? esc(store) : muted("店舗なし"), times, w ? esc(w) : ""].filter(Boolean).join("　");
   }
   function trSum() {
     const t = getTransport(), ride = $("f-ride").value.trim(), km = $("f-km").value, far = t && !walkOnly(t);
@@ -2932,9 +3023,11 @@ ${v.addr}`;
   }
   $("edit-form").addEventListener("submit", async (e) => {
     e.preventDefault();
-    const key = editKey, inV = $("f-in").value, outV = $("f-out").value;
+    // a time that holds a punch is saved as the punch (the plan behind it kept), otherwise as the plan
+    const key = editKey, a = $("f-pin").value, z = $("f-pout").value;
+    const inV = actual.in ? a : "", outV = actual.out ? z : "";
     const shift = {
-      store: $("f-store").value.trim(), planIn: $("f-pin").value, planOut: $("f-pout").value, transport: getTransport(),
+      store: $("f-store").value.trim(), planIn: actual.in ? editPlan.planIn : a, planOut: actual.out ? editPlan.planOut : z, transport: getTransport(),
       km: $("f-km").value === "" ? null : Math.max(0, Number($("f-km").value) || 0),    };
     // an absent day stays absent unless a clock-in time is entered for it
     const absent = !!month(ymOf(key)).days[key]?.absent && !inV;
@@ -3015,23 +3108,11 @@ ${v.addr}`;
     msg(r.result ? "稼働実績を保存しました。" : "稼働実績は空のまま保存しました。");
     await persist("m-" + ymOf(key));
   });
-  // the actual-time fields stay folded away; they open for a forgotten punch or a correction,
-  // and the folded header shows what is recorded
   function lock(el, locked) {
     el.classList.toggle("locked", locked);
     for (const c of el.querySelectorAll("input, select, textarea, button")) c.disabled = locked;
   }
   let actAllowed = true;
-  function setActOpen(open) {
-    for (const el of $("edit-form").querySelectorAll(".act")) lock(el, !open);
-    fold(".act", open);
-    $("f-acttoggle").setAttribute("aria-expanded", String(open));
-    $("f-acttoggle").textContent = open ? "修正を終える" : "修正";
-    $("f-acttoggle").disabled = !actAllowed;
-    const a = $("f-in").value, z = $("f-out").value, w = $("f-work").textContent;
-    $("f-actsum").innerHTML = open ? "" : [a ? esc(`出勤 ${a}　退勤 ${z || "--:--"}${w ? "　" + w : ""}`) : muted("記録なし"),
-      actAllowed ? "" : muted("退勤すると修正できます")].filter(Boolean).join("　");
-  }
   // results open locked behind 修正 (a toggle); only the sheet opened right after clocking out starts unlocked
   function setResOpen(open) {
     lock($("edit-form").querySelector(".res"), !open);
@@ -3043,12 +3124,6 @@ ${v.addr}`;
     const open = $("f-resedit").getAttribute("aria-expanded") !== "true";
     setResOpen(open);
     if (open) $("f-result").focus();
-  };
-  $("f-acttoggle").onclick = () => setActOpen($("f-acttoggle").getAttribute("aria-expanded") !== "true");
-  $("f-copyplan").onclick = () => {
-    if ($("f-pin").value) $("f-in").value = $("f-pin").value;
-    if ($("f-pout").value) $("f-out").value = $("f-pout").value;
-    updateWork();
   };
   // mark a past or upcoming day absent (two presses), keeping the planned store and times
   let eAbsArmed = false;
@@ -3311,7 +3386,7 @@ ${v.addr}`;
     if (!v) return;
     for (const k of Object.keys(tabView)) if (/^\d{4}-\d{2}$/.test(v.months?.[k] || "")) { const [y, m] = v.months[k].split("-").map(Number); tabView[k] = new Date(y, m - 1, 1); }
     view = tabView[tab];
-    setTab(["inv", "hope", "pay"].includes(v.tab) && tabOk(v.tab) ? v.tab : "card");
+    setTab(["card", "inv", "hope", "pay", "menu"].includes(v.tab) && tabOk(v.tab) ? v.tab : "home");
   }
   // the admin screen's tab (請求書 only for 運営) and months
   function adoptAdminView(v) {
@@ -3403,7 +3478,8 @@ ${v.addr}`;
     window.TC_ADMIN = !!me.admin; window.TC_OWNER = !!me.owner; window.TC_REP = !!me.rep; window.TC_CONTRACT = me.contractAsk !== false;
     $("logout").hidden = false; $("chpass").hidden = false;
     // admins use the normal site too; the header button switches to the admin screen and back
-    $("adminbtn").hidden = !me.admin;
+    $("adminbtn").hidden = !me.admin; $("m-admin").hidden = !me.admin;
+    $("m-admin").querySelector("small").textContent = me.owner ? "全員の勤怠・シフト・請求書を見る" : "全員の勤怠・シフトを見る";
     paintWho();
     $("ad-space").hidden = !me.owner;
     paintAdTabs();
@@ -4823,7 +4899,7 @@ ${v.addr}`;
     showMode();   // restoreView below switches straight back to the admin screen in the same step, so nothing flashes
     if (!needsSetup()) {
       const paid = [prev, cur].filter((ym) => doc("inv-" + ym).status === "paid" && !doc("inv-" + ym).confirmedOn);
-      if (paid.length) msg(`${paid.map((ym) => Number(ym.slice(5))).join("・")}月分の入金が完了しました。請求書タブで金額を確かめて「入金を確認しました」を押してください。`);
+      if (paid.length) msg(`${paid.map((ym) => Number(ym.slice(5))).join("・")}月分の入金が完了しました。メニューの「請求書」で金額を確かめて「入金を確認しました」を押してください。`);
       restoreView();
     }
     if (window.TC_ADMIN) adPrefetch();
