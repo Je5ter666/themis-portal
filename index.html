@@ -601,10 +601,12 @@ fieldset:disabled .f input, fieldset:disabled .f textarea, fieldset:disabled .f 
 .today-punch b { font-size: 15px; color: var(--ink-soft); }
 .today-punch .on b { color: var(--accent); }
 /* "add to home screen" nudge under the header */
-.install { display: grid; gap: 12px; padding: 16px; border-radius: 18px; color: #fff; position: relative; overflow: hidden;
-  background: linear-gradient(135deg, color-mix(in srgb, var(--accent) 88%, #fff) 0%, var(--accent) 45%, color-mix(in srgb, var(--accent) 70%, #000) 100%);
-  box-shadow: 0 14px 30px -14px color-mix(in srgb, var(--accent) 80%, #000), inset 0 1px 0 rgb(255 255 255 / .25); }
-.install::after { content: ""; position: absolute; right: -40px; top: -40px; width: 150px; height: 150px; border-radius: 50%; background: rgb(255 255 255 / .1); pointer-events: none; }
+/* light, with dark text: easy to read; the accent only on its edge */
+.install { display: grid; gap: 12px; padding: 14px; border-radius: 18px; color: var(--ink); position: relative; overflow: hidden;
+  background: color-mix(in srgb, var(--accent) 10%, var(--card)); border: 1.5px solid color-mix(in srgb, var(--accent) 45%, var(--rule));
+  box-shadow: 0 10px 24px -14px rgb(31 42 58 / .35); }
+/* the app's name as on the home screen, in a black frame */
+.app-name { display: inline-block; border: 1.5px solid var(--ink); border-radius: 6px; padding: 0 6px; font-weight: 700; color: var(--ink); white-space: nowrap; line-height: 1.5; }
 .install[hidden] { display: none; }
 /* the steps written out on the banner, on a light card so they read as in the sheet */
 .install-inline { position: relative; z-index: 1; background: var(--card); color: var(--ink); border-radius: 12px; padding: 12px 14px; }
@@ -613,9 +615,9 @@ fieldset:disabled .f input, fieldset:disabled .f textarea, fieldset:disabled .f 
 .install-inline .im-step:first-child { border-top: 0; padding-top: 0; }
 .install-inline .im-body b { font-size: 15px; }
 .install-inline .im-body b svg { width: 17px; height: 17px; vertical-align: -3px; }
-.im-after { margin: 6px 0 0; padding-top: 8px; border-top: 1px solid var(--rule); font-size: 13px; color: var(--ink); display: flex; align-items: center; gap: 6px; flex-wrap: wrap; }
+.im-after { margin: 6px 0 0; padding-top: 10px; border-top: 1px solid var(--rule); font-size: 14px; font-weight: 700; color: var(--ink); display: flex; align-items: center; gap: 8px; white-space: nowrap; }
 .im-after .im-tile { display: inline-flex; vertical-align: middle; }
-.im-after .im-tile img { width: 22px; height: 22px; border-radius: 6px; }
+.im-after .im-tile img { width: 40px; height: 40px; border-radius: 10px; }
 .im-after .im-tile span { display: none; }
 /* iPhone Safari: a bobbing arrow at the very bottom, where the share button is */
 /* where the button sits: at-b the middle of Safari's bottom bar (before iOS 26), at-br its ⋯ at the bottom right
@@ -624,7 +626,9 @@ fieldset:disabled .f input, fieldset:disabled .f textarea, fieldset:disabled .f 
   background: var(--ink); color: var(--card); font-size: 14px; font-weight: 700; box-shadow: 0 6px 18px rgb(0 0 0 / .3);
   animation: ip-bob 1.2s ease-in-out infinite; pointer-events: none; white-space: nowrap; }
 .install-pointer.at-b { left: 50%; bottom: calc(10px + env(safe-area-inset-bottom, 0px)); animation-name: ip-bob-c; }
-.install-pointer.at-br { right: 10px; bottom: calc(10px + env(safe-area-inset-bottom, 0px)); }
+/* iOS 26: Safari's bar floats over the page's foot, so the label sits above it, its arrow over the ⋯ at the right end */
+.install-pointer.at-br { right: 8px; bottom: calc(64px + env(safe-area-inset-bottom, 0px)); padding-right: 10px; }
+.install-pointer.at-br::after { content: ""; position: absolute; right: 16px; top: 100%; border: 9px solid transparent; border-top-color: var(--ink); }
 .install-pointer.at-tr { right: 10px; top: calc(10px + env(safe-area-inset-top, 0px)); animation-name: ip-bob-up; }
 .install-pointer[hidden] { display: none; }
 .install-pointer svg { width: 17px; height: 17px; }
@@ -633,14 +637,23 @@ fieldset:disabled .f input, fieldset:disabled .f textarea, fieldset:disabled .f 
 @keyframes ip-bob-up { 0%, 100% { transform: translateY(0); } 50% { transform: translateY(-6px); } }
 .install-top { display: grid; grid-template-columns: auto 1fr auto; gap: 12px; align-items: center; }
 .install-icon { width: 52px; height: 52px; border-radius: 13px; background: #fff; box-shadow: 0 4px 12px rgb(0 0 0 / .25); }
-.install-text { display: grid; gap: 4px; font-size: 13.5px; line-height: 1.55; color: #fff; }
-.install-text b { font-size: 16px; color: #fff; letter-spacing: .02em; }
-.install-later { align-self: start; font: inherit; font-size: 13px; font-weight: 700; color: #fff; background: rgb(255 255 255 / .18); border: 0; border-radius: 999px; padding: 4px 10px; cursor: pointer; position: relative; z-index: 1; }
+.install-text { display: grid; gap: 4px; font-size: 13.5px; line-height: 1.55; color: var(--ink); min-width: 0; }
+.install-text b { font-size: 16px; color: var(--ink); letter-spacing: .02em; }
+.install-text span { white-space: nowrap; }
+.install-later { align-self: start; font: inherit; font-size: 13px; font-weight: 700; color: var(--ink); background: var(--card); border: 1px solid var(--rule); border-radius: 999px; padding: 4px 10px; cursor: pointer; position: relative; z-index: 1; }
 .install-later[hidden] { display: none; }
 /* a phone's browser: only the steps to add the app, nothing to sign in to */
 body.gate #login, body.gate #member-ui, body.gate #admin, body.gate .brand-side { display: none !important; }
 body.gate .install { margin-top: 8px; }
-.install-go { font: inherit; font-size: 15px; font-weight: 700; color: var(--accent); background: #fff; border: 0; border-radius: 12px; padding: 12px;
+/* all of it on one screen: tighter steps, and room at the foot for the label pointing at Safari's bar */
+body.gate .install-inline .im-step { padding: 7px 0; gap: 8px; }
+body.gate .install-inline .im-body { gap: 4px; }
+body.gate .brand { padding-bottom: 8px; margin-bottom: 0; }
+body.gate .wrap { padding-bottom: 120px; }
+/* …and the screen stays put: it does not scroll */
+html:has(body.gate), body.gate { overflow: hidden; overscroll-behavior: none; height: 100%; }
+body.gate { position: fixed; inset: 0; touch-action: none; }
+.install-go { font: inherit; font-size: 15px; font-weight: 700; color: #fff; background: var(--accent); border: 0; border-radius: 12px; padding: 12px;
   box-shadow: 0 3px 0 rgb(0 0 0 / .15); cursor: pointer; position: relative; z-index: 1; }
 .install-go:active { transform: translateY(1px); box-shadow: 0 2px 0 rgb(0 0 0 / .15); }
 /* the how-to box: app header, three perks, then numbered steps each with a picture of the button to find */
@@ -3350,7 +3363,7 @@ ${v.addr}`;
     if (mode !== "gate") { $("install").hidden = true; return; }
     $("install-inline").hidden = true; $("install-go").hidden = true;
     $("install-title").textContent = "追加できました";
-    $("install-sub").textContent = "ホーム画面の Themis Portal から開いてください。";
+    $("install-sub").innerHTML = `ホーム画面の <span class="app-name">Themis Portal</span> から開く`;
   });
   const UA = navigator.userAgent;
   const isIOS = /iPhone|iPad|iPod/.test(UA) || (/Macintosh/.test(UA) && navigator.maxTouchPoints > 1);
@@ -3359,6 +3372,9 @@ ${v.addr}`;
   const isPhone = /iPhone|iPod/.test(UA) || (isAndroid && /Mobile/.test(UA));
   // Safari 26 (iOS 26) keeps 共有 in the ⋯ menu at the bottom right; Chrome on iPhone has it in the address bar
   const iosSafari = isIOS && !/CriOS|FxiOS|EdgiOS|OPiOS|GSA\//.test(UA), iosChrome = isIOS && /CriOS/.test(UA);
+  // the other browsers get their own steps (without a pointer: where their buttons sit varies with their settings)
+  const iosEdge = isIOS && /EdgiOS/.test(UA), iosFirefox = isIOS && /FxiOS/.test(UA), iosGoogle = isIOS && /GSA\//.test(UA);
+  const andSamsung = isAndroid && /SamsungBrowser/.test(UA), andFirefox = isAndroid && /Firefox\//.test(UA), andEdge = isAndroid && /EdgA\//.test(UA);
   const safari26 = iosSafari && Number((UA.match(/Version\/(\d+)/) || [])[1]) >= 26;
   // LINE, Instagram and the like open links in their own browser, which cannot add to the home screen
   const inAppBrowser = /Line\/|Instagram|FBAN|FBAV|Twitter|MicroMessenger/i.test(UA);
@@ -3383,11 +3399,11 @@ ${v.addr}`;
     document.body.classList.add("gate");
     mode = "gate";
     $("install-later").hidden = true;
-    $("install-title").textContent = "スマホでは、アプリで使います";
-    $("install-sub").textContent = "下の手順でホーム画面に追加して、ホーム画面の Themis Portal から開いてください。";
+    $("install-title").textContent = "ホーム画面に追加して使います";
+    $("install-sub").innerHTML = `追加した <span class="app-name">Themis Portal</span> から開く`;
     // the Apps Script page cannot be added itself: the button opens the app's own address
     if (viaGas) {
-      $("install-sub").textContent = "下のボタンでアプリ版を開いて、そこからホーム画面に追加してください。";
+      $("install-sub").textContent = "下のボタンから、アプリ版を開いてください。";
       $("install-go").textContent = "アプリ版を開く"; $("install-go").hidden = false; $("install").hidden = false;
       try { $("install").dataset.url = await rawCall("api_appUrl"); } catch (e) { $("install-go").hidden = true; }
       return;
@@ -3397,11 +3413,11 @@ ${v.addr}`;
   // the steps written out on the banner; the button stays only where one tap can install (Android Chrome)
   function showSteps() {
     $("install-inline").innerHTML = installSteps(); $("install-inline").hidden = false;
-    $("install-go").hidden = !(isAndroid && !inAppBrowser);
+    $("install-go").hidden = !(isAndroid && !inAppBrowser && !andFirefox);
     if (isPhone && isIOS && !inAppBrowser && (iosSafari || iosChrome)) {
       const p = $("install-pointer");
       p.className = "install-pointer " + (iosChrome ? "at-tr" : safari26 ? "at-br" : "at-b");
-      p.innerHTML = iosChrome ? `↑ ここ（右上）の${ICON.share}` : safari26 ? `ここ（右下）の ⋯ ↓` : `${ICON.share}ここ（画面の下）の共有ボタン ↓`;
+      p.innerHTML = iosChrome ? `↑ ここ（右上）の${ICON.share}` : safari26 ? `下のバーの右はしの ⋯ を押す` : `${ICON.share}ここ（画面の下）の共有ボタン ↓`;
       p.hidden = false;
     }
     $("install").hidden = false;
@@ -3456,7 +3472,7 @@ ${v.addr}`;
     const tile = `<span class="im-tile"><img alt="" src="icons/apple-touch-icon.png" onerror="this.style.visibility='hidden'"><span>Themis</span></span>`;
     // three short steps at most, each with the button to look for; one line under them for what comes after
     const arrow = `<span class="im-arrow">→</span>`;
-    const more = "見つからない時は、下にスクロールしてください。";
+    const more = "なければ、下にスクロール";
     return `<ol class="im-steps">` + (inAppBrowser
       ? step(1, "右上の「…」を押す", "", chip(ICON.dots, "", true)) +
         step(2, "「ブラウザで開く」を押す", "", chip(ICON.globe, "ブラウザで開く", true))
@@ -3465,23 +3481,45 @@ ${v.addr}`;
         step(2, "「ホーム画面に追加」を押す", more, chip(ICON.plus, "ホーム画面に追加", true)) +
         step(3, "右上の「追加」を押す", "", chip("", "追加", true))
       : safari26
-      ? step(1, "右下の ⋯ を押して、「共有」を押す", "", chip(ICON.dots, "", true) + arrow + chip(ICON.share, "共有", true) +
-          `<span class="im-alt"><span class="im-or">⋯ がない時は、画面の下の</span>${chip(ICON.share, "")}</span>`) +
+      ? step(1, "右下の ⋯ →「共有」を押す", "⋯ がなければ、画面の下の共有ボタン", chip(ICON.dots, "", true) + arrow + chip(ICON.share, "共有", true)) +
         step(2, "「ホーム画面に追加」を押す", more, chip(ICON.plus, "ホーム画面に追加", true)) +
-        step(3, "右上の「追加」を押す", "「Webアプリとして開く」は、オンのままにしてください。", chip("", "追加", true))
+        step(3, "右上の「追加」を押す", "「Webアプリとして開く」はオンのまま", chip("", "追加", true))
       : iosChrome
-      ? step(1, `右上のアドレスバーの ${ICON.share} を押す`, "", chip(ICON.share, "共有", true)) +
+      ? step(1, `右上のアドレスバーの ${ICON.share} を押す`, "アドレスバーが下にある時は、下の共有ボタン", chip(ICON.share, "共有", true)) +
         step(2, "「ホーム画面に追加」を押す", more, chip(ICON.plus, "ホーム画面に追加", true)) +
         step(3, "右上の「追加」を押す", "", chip("", "追加", true))
+      : iosEdge
+      ? step(1, "下の「…」→「共有」を押す", "", chip(ICON.dots, "", true) + arrow + chip(ICON.share, "共有", true)) +
+        step(2, "「ホーム画面に追加」を押す", more, chip(ICON.plus, "ホーム画面に追加", true)) +
+        step(3, "右上の「追加」を押す", "", chip("", "追加", true))
+      : iosFirefox
+      ? step(1, "メニュー（≡）→「共有」を押す", "メニューは画面の下か右上", chip("≡", "", true) + arrow + chip(ICON.share, "共有", true)) +
+        step(2, "「ホーム画面に追加」を押す", more, chip(ICON.plus, "ホーム画面に追加", true)) +
+        step(3, "右上の「追加」を押す", "", chip("", "追加", true))
+      : iosGoogle
+      ? step(1, `${ICON.share} を押して「Safariで開く」`, "Googleアプリでは追加できません", chip(ICON.share, "", true) + arrow + chip(ICON.globe, "Safariで開く", true)) +
+        step(2, "開いたSafariに出る手順で追加する", "", "")
       : isIOS
       ? step(1, `画面の下の ${ICON.share} を押す`, "", chip(ICON.share, "共有", true) +
           `<span class="im-alt"><span class="im-or">ない時は</span>${chip(ICON.dots, "")}${arrow}${chip(ICON.share, "共有")}</span>`) +
         step(2, "「ホーム画面に追加」を押す", more, chip(ICON.plus, "ホーム画面に追加", true)) +
         step(3, "右上の「追加」を押す", "", chip("", "追加", true))
+      : andSamsung
+      ? step(1, "右下のメニュー（≡）を押す", "", chip("≡", "", true)) +
+        step(2, "「ページを追加」→「ホーム画面」", "", chip(ICON.plus, "ページを追加", true) + arrow + chip("", "ホーム画面", true)) +
+        step(3, "「追加」を押す", "", chip("", "追加", true))
+      : andEdge
+      ? step(1, "下の「…」を押す", "", chip(ICON.dots, "", true)) +
+        step(2, "「スマートフォンに追加」を押す", "なければ「ホーム画面に追加」", chip(ICON.plus, "スマートフォンに追加", true)) +
+        step(3, "「インストール」を押す", "", chip("", "インストール", true))
+      : andFirefox
+      ? step(1, "メニュー（⋮）を押す", "メニューは右上か右下", chip(ICON.dots3, "", true)) +
+        step(2, "「インストール」を押す", "なければ「ホーム画面に追加」", chip(ICON.plus, "インストール", true)) +
+        step(3, "「追加」を押す", "", chip("", "追加", true))
       : step(1, "右上の「⋮」を押す", "", chip(ICON.dots3, "", true)) +
         step(2, "「ホーム画面に追加」を押す", "", chip(ICON.plus, "ホーム画面に追加", true)) +
         step(3, "「インストール」を押す", "", chip("", "インストール", true))) + `</ol>` +
-      `<p class="im-after">${inAppBrowser ? "開いたブラウザに、続きの手順が出ます。" : `追加したら、ホーム画面の ${tile} から開いてください。`}</p>`;
+      `<p class="im-after">${inAppBrowser ? "開いたブラウザに、続きの手順が出ます。" : `追加したら、ホーム画面の ${tile} から開く`}</p>`;
   }
   $("install-close").onclick = () => { $("install-sheet").hidden = true; };
 
